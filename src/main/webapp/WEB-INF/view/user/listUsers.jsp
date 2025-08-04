@@ -28,98 +28,210 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f5f5;
+            background-color: #f5f6fa;
+            overflow-x: hidden;
         }
 
-        .navbar {
-            background-color: #2c3e50;
-            color: white;
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100vh;
+            background: #2c3e50;
+            transition: left 0.3s ease;
+            z-index: 1000;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .sidebar.active {
+            left: 0;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+        }
+
+        .sidebar-header h2 {
+            color: #fff;
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-header p {
+            color: #bdc3c7;
+            font-size: 0.9rem;
+        }
+
+        .sidebar-menu {
+            padding: 1rem 0;
+        }
+
+        .menu-item {
+            display: block;
+            padding: 1rem 1.5rem;
+            color: #ecf0f1;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .menu-item:hover,
+        .menu-item.active {
+            background-color: rgba(255,255,255,0.1);
+            border-left-color: #95a5a6;
+            color: #fff;
+        }
+
+        .menu-item i {
+            margin-right: 0.8rem;
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .icon-dashboard::before { content: "📊"; }
+        .icon-users::before { content: "👥"; }
+        .icon-items::before { content: "📦"; }
+        .icon-customers::before { content: "🏢"; }
+        .icon-bills::before { content: "🧾"; }
+        .icon-logout::before { content: "🚪"; }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 0;
+            min-height: 100vh;
+            transition: margin-left 0.3s ease;
+        }
+
+        .main-content.shifted {
+            margin-left: 280px;
+        }
+
+        /* Top Navigation */
+        .topbar {
+            background: #fff;
             padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 999;
         }
 
-        .navbar h1 {
-            font-size: 1.5rem;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 1rem;
-        }
-
-        .nav-links a {
+        .menu-toggle {
+            background: #2c3e50;
             color: white;
-            text-decoration: none;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            transition: background-color 0.3s;
+            border: none;
+            padding: 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: background-color 0.3s ease;
         }
 
-        .nav-links a:hover {
-            background-color: #34495e;
+        .menu-toggle:hover {
+            background: #34495e;
         }
 
-        .container {
-            max-width: 1400px;
-            margin: 2rem auto;
-            padding: 0 1rem;
+        .page-title {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: #2c3e50;
+        }
+
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            background: #2c3e50;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        /* Overlay for mobile */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Content Area */
+        .content-area {
+            padding: 2rem;
         }
 
         .page-header {
             background: white;
             padding: 2rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.07);
         }
 
-        .page-header h2 {
+        .page-header h1 {
             color: #2c3e50;
-            margin-bottom: 1rem;
-        }
-
-        .header-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        .admin-warning {
-            background-color: #fff3cd;
-            border: 1px solid #ffeaa7;
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            border-left: 4px solid #f39c12;
-        }
-
-        .admin-warning h4 {
-            color: #856404;
+            font-size: 2rem;
             margin-bottom: 0.5rem;
         }
 
-        .admin-warning p {
-            color: #856404;
+        .breadcrumb {
+            color: #7f8c8d;
             font-size: 0.9rem;
         }
 
-        .stats-cards {
+        .breadcrumb a {
+            color: #2c3e50;
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
+            gap: 1.5rem;
             margin-bottom: 2rem;
         }
 
         .stat-card {
             background: white;
             padding: 1.5rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.07);
             text-align: center;
+            border-left: 4px solid #2c3e50;
         }
 
         .stat-card h3 {
@@ -133,36 +245,73 @@
             font-size: 0.9rem;
         }
 
-        .stat-card.total {
-            border-left: 4px solid #3498db;
+        /* Alert Messages */
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid;
+            animation: slideIn 0.3s ease;
         }
 
-        .stat-card.admins {
-            border-left: 4px solid #e74c3c;
+        .alert-success {
+            background-color: #d4edda;
+            border-left-color: #27ae60;
+            color: #155724;
         }
 
-        .stat-card.cashiers {
-            border-left: 4px solid #27ae60;
+        .alert-error {
+            background-color: #f8d7da;
+            border-left-color: #e74c3c;
+            color: #721c24;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Table Styles */
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.07);
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-header h2 {
+            color: #2c3e50;
+            font-size: 1.3rem;
         }
 
         .btn {
             padding: 0.7rem 1.5rem;
             border: none;
-            border-radius: 4px;
+            border-radius: 8px;
             cursor: pointer;
             text-decoration: none;
             display: inline-block;
-            transition: background-color 0.3s;
+            transition: all 0.3s ease;
             font-size: 0.9rem;
+            font-weight: 500;
         }
 
         .btn-primary {
-            background-color: #3498db;
+            background-color: #2c3e50;
             color: white;
         }
 
         .btn-primary:hover {
-            background-color: #2980b9;
+            background-color: #34495e;
+            transform: translateY(-2px);
         }
 
         .btn-success {
@@ -172,6 +321,7 @@
 
         .btn-success:hover {
             background-color: #229954;
+            transform: translateY(-2px);
         }
 
         .btn-warning {
@@ -181,6 +331,7 @@
 
         .btn-warning:hover {
             background-color: #e67e22;
+            transform: translateY(-2px);
         }
 
         .btn-danger {
@@ -190,36 +341,12 @@
 
         .btn-danger:hover {
             background-color: #c0392b;
+            transform: translateY(-2px);
         }
 
         .btn-sm {
             padding: 0.4rem 0.8rem;
             font-size: 0.8rem;
-        }
-
-        .alert {
-            padding: 1rem;
-            border-radius: 4px;
-            margin-bottom: 1rem;
-        }
-
-        .alert-success {
-            background-color: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
-        }
-
-        .alert-error {
-            background-color: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
-        }
-
-        .table-container {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            overflow: hidden;
         }
 
         .table {
@@ -231,7 +358,7 @@
         .table td {
             padding: 1rem;
             text-align: left;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 1px solid #e9ecef;
         }
 
         .table th {
@@ -242,6 +369,11 @@
 
         .table tbody tr:hover {
             background-color: #f8f9fa;
+        }
+
+        .table tbody tr.current-user {
+            background-color: #e8f4fd;
+            border-left: 4px solid #2c3e50;
         }
 
         .action-buttons {
@@ -267,7 +399,7 @@
             color: #155724;
         }
 
-        .user-status {
+        .status-badge {
             display: inline-block;
             padding: 0.25rem 0.8rem;
             border-radius: 12px;
@@ -285,11 +417,6 @@
             color: #721c24;
         }
 
-        .current-user {
-            background-color: #e3f2fd !important;
-            border-left: 4px solid #3498db;
-        }
-
         .empty-state {
             text-align: center;
             padding: 3rem;
@@ -298,270 +425,286 @@
 
         .empty-state h3 {
             margin-bottom: 1rem;
+            color: #2c3e50;
+        }
+
+        /* Responsive Design */
+        @media (min-width: 1024px) {
+            .sidebar {
+                left: 0;
+            }
+            
+            .main-content {
+                margin-left: 280px;
+            }
+            
+            .menu-toggle {
+                display: none;
+            }
         }
 
         @media (max-width: 768px) {
-            .navbar {
-                flex-direction: column;
-                gap: 1rem;
+            .topbar {
+                padding: 1rem;
             }
-
-            .header-actions {
-                flex-direction: column;
-                align-items: stretch;
+            
+            .content-area {
+                padding: 1rem;
             }
-
-            .stats-cards {
+            
+            .page-header {
+                padding: 1.5rem;
+            }
+            
+            .stats-grid {
                 grid-template-columns: 1fr;
             }
-
+            
             .table-container {
                 overflow-x: auto;
             }
-
+            
             .action-buttons {
                 flex-direction: column;
+            }
+            
+            .user-info span {
+                display: none;
             }
         }
     </style>
 </head>
 <body>
-    <nav class="navbar">
-        <h1>User Management</h1>
-        <div class="nav-links">
-            <a href="dashboard">Dashboard</a>
-            <a href="customer?action=list">Customers</a>
-            <a href="item?action=list">Items</a>
-            <a href="bill?action=list">Bills</a>
-            <a href="auth?action=logout">Logout</a>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>Redupahana</h2>
+            <p>Admin Panel</p>
         </div>
-    </nav>
+        <nav class="sidebar-menu">
+            <a href="dashboard" class="menu-item">
+                <i class="icon-dashboard"></i>
+                Dashboard
+            </a>
+            <a href="user?action=list" class="menu-item active">
+                <i class="icon-users"></i>
+                User Management
+            </a>
+            <a href="item?action=list" class="menu-item">
+                <i class="icon-items"></i>
+                Item Management
+            </a>
+            <a href="customer?action=list" class="menu-item">
+                <i class="icon-customers"></i>
+                Customer Management
+            </a>
+            <a href="bill?action=list" class="menu-item">
+                <i class="icon-bills"></i>
+                Bill Management
+            </a>
+            <a href="auth?action=logout" class="menu-item" style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
+                <i class="icon-logout"></i>
+                Logout
+            </a>
+        </nav>
+    </div>
 
-    <div class="container">
-        <div class="page-header">
-            <h2>User Management</h2>
-            <div class="header-actions">
-                <div>
-                    <span style="color: #7f8c8d;">Logged in as: <strong><%= loggedUser.getFullName() %></strong> (Admin)</span>
-                </div>
-                <a href="user?action=add" class="btn btn-success">Add New User</a>
+    <!-- Overlay for mobile -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Top Navigation -->
+        <header class="topbar">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <button class="menu-toggle" id="menuToggle">☰</button>
+                <h1 class="page-title">User Management</h1>
             </div>
-        </div>
+            <div class="user-info">
+                <div class="user-avatar"><%= loggedUser.getFullName().substring(0,1).toUpperCase() %></div>
+                <span><%= loggedUser.getFullName() %></span>
+            </div>
+        </header>
 
-        <div class="admin-warning">
-            <h4>⚠️ Administrator Access</h4>
-            <p>You are accessing the user management system. Please be careful when modifying user accounts and permissions.</p>
-        </div>
+        <!-- Content Area -->
+        <main class="content-area">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1>User Management</h1>
+                <div class="breadcrumb">
+                    <a href="dashboard">Dashboard</a> &gt; User Management
+                </div>
+            </div>
 
-        <%
-            // Calculate statistics
-            int totalUsers = 0;
-            int adminCount = 0;
-            int cashierCount = 0;
-            
-            if (users != null) {
-                totalUsers = users.size();
-                for (User user : users) {
-                    if (Constants.ROLE_ADMIN.equals(user.getRole())) {
-                        adminCount++;
-                    } else if (Constants.ROLE_CASHIER.equals(user.getRole())) {
-                        cashierCount++;
+            <!-- Stats Cards -->
+            <%
+                int totalUsers = 0;
+                int adminCount = 0;
+                int cashierCount = 0;
+                
+                if (users != null) {
+                    totalUsers = users.size();
+                    for (User user : users) {
+                        if (Constants.ROLE_ADMIN.equals(user.getRole())) {
+                            adminCount++;
+                        } else if (Constants.ROLE_CASHIER.equals(user.getRole())) {
+                            cashierCount++;
+                        }
                     }
                 }
-            }
-        %>
-
-        <div class="stats-cards">
-            <div class="stat-card total">
-                <h3><%= totalUsers %></h3>
-                <p>Total Users</p>
+            %>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3><%= totalUsers %></h3>
+                    <p>Total Users</p>
+                </div>
+                <div class="stat-card">
+                    <h3><%= adminCount %></h3>
+                    <p>Administrators</p>
+                </div>
+                <div class="stat-card">
+                    <h3><%= cashierCount %></h3>
+                    <p>Cashiers</p>
+                </div>
             </div>
-            <div class="stat-card admins">
-                <h3><%= adminCount %></h3>
-                <p>Administrators</p>
-            </div>
-            <div class="stat-card cashiers">
-                <h3><%= cashierCount %></h3>
-                <p>Cashiers</p>
-            </div>
-        </div>
 
-        <% if (successMessage != null) { %>
-        <div class="alert alert-success">
-            <%= successMessage %>
-        </div>
-        <% } %>
-
-        <% if (errorMessage != null) { %>
-        <div class="alert alert-error">
-            <%= errorMessage %>
-        </div>
-        <% } %>
-
-        <div class="table-container">
-            <% if (users != null && !users.isEmpty()) { %>
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Username</th>
-                        <th>Full Name</th>
-                        <th>Role</th>
-                        <th>Email</th>
-                        <th>Phone</th>
-                        <th>Status</th>
-                        <th>Created Date</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% for (User user : users) { %>
-                    <tr <%= user.getUserId() == loggedUser.getUserId() ? "class='current-user'" : "" %>>
-                        <td>
-                            <strong><%= user.getUsername() %></strong>
-                            <% if (user.getUserId() == loggedUser.getUserId()) { %>
-                            <span style="color: #3498db; font-size: 0.8rem;">(You)</span>
-                            <% } %>
-                        </td>
-                        <td><%= user.getFullName() %></td>
-                        <td>
-                            <span class="role-badge <%= 
-                                Constants.ROLE_ADMIN.equals(user.getRole()) ? "role-admin" : "role-cashier" 
-                            %>">
-                                <%= user.getRole() %>
-                            </span>
-                        </td>
-                        <td><%= user.getEmail() != null ? user.getEmail() : "-" %></td>
-                        <td><%= user.getPhone() != null ? user.getPhone() : "-" %></td>
-                        <td>
-                            <span class="user-status <%= user.isActive() ? "status-active" : "status-inactive" %>">
-                                <%= user.isActive() ? "Active" : "Inactive" %>
-                            </span>
-                        </td>
-                        <td><%= user.getCreatedDate() %></td>
-                        <td>
-                            <div class="action-buttons">
-                                <a href="user?action=view&id=<%= user.getUserId() %>" 
-                                   class="btn btn-primary btn-sm">View</a>
-                                <a href="user?action=edit&id=<%= user.getUserId() %>" 
-                                   class="btn btn-warning btn-sm">Edit</a>
-                                <% if (user.getUserId() != loggedUser.getUserId()) { %>
-                                <a href="user?action=delete&id=<%= user.getUserId() %>" 
-                                   class="btn btn-danger btn-sm"
-                                   onclick="return confirm('Are you sure you want to delete this user? This action cannot be undone.')">Delete</a>
-                                <% } else { %>
-                                <span class="btn btn-sm" style="background-color: #ecf0f1; color: #7f8c8d; cursor: not-allowed;">Current User</span>
-                                <% } %>
-                            </div>
-                        </td>
-                    </tr>
-                    <% } %>
-                </tbody>
-            </table>
-            <% } else { %>
-            <div class="empty-state">
-                <h3>No users found</h3>
-                <p>Start by adding your first user to the system.</p>
-                <a href="user?action=add" class="btn btn-success">Add User</a>
+            <!-- Alert Messages -->
+            <% if (successMessage != null) { %>
+            <div class="alert alert-success" id="successAlert">
+                ✅ <%= successMessage %>
             </div>
             <% } %>
-        </div>
+
+            <% if (errorMessage != null) { %>
+            <div class="alert alert-error" id="errorAlert">
+                ❌ <%= errorMessage %>
+            </div>
+            <% } %>
+
+            <!-- Users Table -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h2>System Users</h2>
+                    <a href="user?action=add" class="btn btn-success">➕ Add New User</a>
+                </div>
+
+                <% if (users != null && !users.isEmpty()) { %>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Full Name</th>
+                            <th>Role</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Status</th>
+                            <th>Created Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% for (User user : users) { %>
+                        <tr <%= user.getUserId() == loggedUser.getUserId() ? "class='current-user'" : "" %>>
+                            <td>
+                                <strong><%= user.getUsername() %></strong>
+                                <% if (user.getUserId() == loggedUser.getUserId()) { %>
+                                <span style="color: #2c3e50; font-size: 0.8rem;">(You)</span>
+                                <% } %>
+                            </td>
+                            <td><%= user.getFullName() %></td>
+                            <td>
+                                <span class="role-badge <%= 
+                                    Constants.ROLE_ADMIN.equals(user.getRole()) ? "role-admin" : "role-cashier" 
+                                %>">
+                                    <%= user.getRole() %>
+                                </span>
+                            </td>
+                            <td><%= user.getEmail() != null ? user.getEmail() : "-" %></td>
+                            <td><%= user.getPhone() != null ? user.getPhone() : "-" %></td>
+                            <td>
+                                <span class="status-badge status-active">Active</span>
+                            </td>
+                            <td><%= user.getCreatedDate() %></td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="user?action=view&id=<%= user.getUserId() %>" 
+                                       class="btn btn-primary btn-sm">👁️ View</a>
+                                    <a href="user?action=edit&id=<%= user.getUserId() %>" 
+                                       class="btn btn-warning btn-sm">✏️ Edit</a>
+                                    <% if (user.getUserId() != loggedUser.getUserId()) { %>
+                                    <a href="user?action=delete&id=<%= user.getUserId() %>" 
+                                       class="btn btn-danger btn-sm"
+                                       onclick="return confirmDelete('<%= user.getUsername() %>')">🗑️ Delete</a>
+                                    <% } %>
+                                </div>
+                            </td>
+                        </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+                <% } else { %>
+                <div class="empty-state">
+                    <h3>No Users Found</h3>
+                    <p>Start by adding your first user to the system.</p>
+                    <a href="user?action=add" class="btn btn-success" style="margin-top: 1rem;">Add User</a>
+                </div>
+                <% } %>
+            </div>
+        </main>
     </div>
 
     <script>
+        // Sidebar Toggle
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+        }
+
+        menuToggle.addEventListener('click', toggleSidebar);
+        overlay.addEventListener('click', toggleSidebar);
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth >= 1024) {
+                sidebar.classList.remove('active');
+                overlay.classList.remove('active');
+            }
+        });
+
+        // Confirm delete function
+        function confirmDelete(username) {
+            return confirm('Are you sure you want to delete user "' + username + '"? This action cannot be undone.');
+        }
+
+        // Auto-hide alerts after 5 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                alert.style.opacity = '0';
+                alert.style.transform = 'translateY(-10px)';
+                setTimeout(function() {
+                    alert.style.display = 'none';
+                }, 300);
+            });
+        }, 5000);
+
+        // Add loading states to buttons
+        document.querySelectorAll('.btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                if (!this.onclick && !this.href.includes('delete')) {
+                    this.style.opacity = '0.7';
+                    this.innerHTML = this.innerHTML + '...';
+                }
+            });
+        });
+
+        // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            // Add confirmation for delete actions
-            const deleteLinks = document.querySelectorAll('.btn-danger');
-            deleteLinks.forEach(link => {
-                link.addEventListener('click', function(e) {
-                    const row = this.closest('tr');
-                    const username = row.querySelector('td:first-child strong').textContent;
-                    
-                    if (!confirm(`Are you sure you want to delete user "${username}"? This action cannot be undone and will remove all access for this user.`)) {
-                        e.preventDefault();
-                    }
-                });
-            });
-
-            // Add loading state to buttons
-            const buttons = document.querySelectorAll('.btn');
-            buttons.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    if (!this.classList.contains('btn-danger')) {
-                        this.style.opacity = '0.7';
-                        this.style.pointerEvents = 'none';
-                    }
-                });
-            });
-
-            // Highlight current user row
-            const currentUserRow = document.querySelector('.current-user');
-            if (currentUserRow) {
-                currentUserRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-
-            // Role badge click for filtering (future enhancement)
-            const roleBadges = document.querySelectorAll('.role-badge');
-            roleBadges.forEach(badge => {
-                badge.style.cursor = 'pointer';
-                badge.title = 'Click to filter by role';
-                badge.addEventListener('click', function() {
-                    const role = this.textContent.trim();
-                    filterByRole(role);
-                });
-            });
-
-            function filterByRole(role) {
-                const rows = document.querySelectorAll('tbody tr');
-                rows.forEach(row => {
-                    const userRole = row.querySelector('.role-badge').textContent.trim();
-                    if (userRole === role) {
-                        row.style.display = '';
-                        row.style.backgroundColor = '#fff3cd';
-                    } else {
-                        row.style.display = 'none';
-                    }
-                });
-
-                // Add clear filter button
-                if (!document.getElementById('clearFilter')) {
-                    const clearBtn = document.createElement('button');
-                    clearBtn.id = 'clearFilter';
-                    clearBtn.className = 'btn btn-secondary btn-sm';
-                    clearBtn.textContent = `Clear ${role} Filter`;
-                    clearBtn.style.margin = '1rem 0';
-                    clearBtn.onclick = function() {
-                        rows.forEach(row => {
-                            row.style.display = '';
-                            row.style.backgroundColor = '';
-                        });
-                        this.remove();
-                    };
-                    
-                    const tableContainer = document.querySelector('.table-container');
-                    tableContainer.parentNode.insertBefore(clearBtn, tableContainer);
-                }
-            }
-
-            // Keyboard shortcuts
-            document.addEventListener('keydown', function(e) {
-                // Ctrl + N for new user
-                if (e.ctrlKey && e.key === 'n') {
-                    e.preventDefault();
-                    window.location.href = 'user?action=add';
-                }
-            });
-
-            // Add tooltips for action buttons
-            const actionButtons = document.querySelectorAll('.action-buttons .btn');
-            actionButtons.forEach(btn => {
-                if (btn.textContent.includes('View')) {
-                    btn.title = 'View user details';
-                } else if (btn.textContent.includes('Edit')) {
-                    btn.title = 'Edit user information';
-                } else if (btn.textContent.includes('Delete')) {
-                    btn.title = 'Delete user (cannot be undone)';
-                }
-            });
+            console.log('User Management page loaded');
         });
     </script>
 </body>
