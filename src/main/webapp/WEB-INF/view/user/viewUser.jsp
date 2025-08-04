@@ -87,9 +87,10 @@
             text-align: center;
         }
 
+        /* Icon classes using Unicode */
         .icon-dashboard::before { content: "📊"; }
         .icon-users::before { content: "👥"; }
-        .icon-items::before { content: "📦"; }
+        .icon-books::before { content: "📚"; }
         .icon-customers::before { content: "🏢"; }
         .icon-bills::before { content: "🧾"; }
         .icon-logout::before { content: "🚪"; }
@@ -487,7 +488,7 @@
 </head>
 <body>
     <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
+  <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <h2>Redupahana</h2>
             <p>Admin Panel</p>
@@ -497,13 +498,15 @@
                 <i class="icon-dashboard"></i>
                 Dashboard
             </a>
-            <a href="user?action=list" class="menu-item active">
+            <% if (Constants.ROLE_ADMIN.equals(loggedUser.getRole())) { %>
+            <a href="user?action=list" class="menu-item">
                 <i class="icon-users"></i>
                 User Management
             </a>
-            <a href="item?action=list" class="menu-item">
-                <i class="icon-items"></i>
-                Item Management
+            <% } %>
+            <a href="book?action=list" class="menu-item active">
+                <i class="icon-books"></i>
+                Book Management
             </a>
             <a href="customer?action=list" class="menu-item">
                 <i class="icon-customers"></i>

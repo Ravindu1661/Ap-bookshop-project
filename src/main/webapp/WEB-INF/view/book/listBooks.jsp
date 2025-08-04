@@ -1,6 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.util.List"%>
-<%@ page import="com.redupahana.model.Item"%>
+<%@ page import="com.redupahana.model.Book"%>
 <%@ page import="com.redupahana.model.User"%>
 <%@ page import="com.redupahana.util.Constants"%>
 <%
@@ -10,7 +10,7 @@
         return;
     }
     
-    List<Item> items = (List<Item>) request.getAttribute("items");
+    List<Book> books = (List<Book>) request.getAttribute("books");
     String searchTerm = (String) request.getAttribute("searchTerm");
     String errorMessage = (String) request.getAttribute("errorMessage");
     String successMessage = (String) request.getAttribute("successMessage");
@@ -20,7 +20,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Item Management - Redupahana</title>
+    <title>Book Management - Redupahana</title>
     <style>
         * {
             margin: 0;
@@ -97,7 +97,7 @@
 
         .icon-dashboard::before { content: "📊"; }
         .icon-users::before { content: "👥"; }
-        .icon-items::before { content: "📦"; }
+        .icon-books::before { content: "📚"; }
         .icon-customers::before { content: "🏢"; }
         .icon-bills::before { content: "🧾"; }
         .icon-logout::before { content: "🚪"; }
@@ -223,22 +223,44 @@
             text-decoration: underline;
         }
 
-        /* Search Form */
-        .search-form {
-            display: flex;
-            gap: 0.5rem;
-            align-items: center;
+        /* Search & Filter Section */
+        .search-section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.07);
         }
 
-        .search-form input {
-            padding: 0.7rem;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            min-width: 250px;
+        .search-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr auto;
+            gap: 1rem;
+            align-items: end;
+        }
+
+        .search-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .search-group label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
             font-size: 0.9rem;
         }
 
-        .search-form input:focus {
+        .search-group input,
+        .search-group select {
+            padding: 0.7rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .search-group input:focus,
+        .search-group select:focus {
             outline: none;
             border-color: #2c3e50;
         }
@@ -453,6 +475,17 @@
             color: #2c3e50;
         }
 
+        /* Language Badge */
+        .language-badge {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            background-color: #e8f4fd;
+            color: #2c3e50;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
         /* Responsive Design */
         @media (min-width: 1024px) {
             .sidebar {
@@ -486,12 +519,8 @@
                 align-items: stretch;
             }
             
-            .search-form {
-                flex-direction: column;
-            }
-            
-            .search-form input {
-                min-width: auto;
+            .search-row {
+                grid-template-columns: 1fr;
             }
             
             .stats-grid {
@@ -530,9 +559,9 @@
                 User Management
             </a>
             <% } %>
-            <a href="item?action=list" class="menu-item active">
-                <i class="icon-items"></i>
-                Item Management
+            <a href="book?action=list" class="menu-item active">
+                <i class="icon-books"></i>
+                Book Management
             </a>
             <a href="customer?action=list" class="menu-item">
                 <i class="icon-customers"></i>
@@ -558,7 +587,7 @@
         <header class="topbar">
             <div style="display: flex; align-items: center; gap: 1rem;">
                 <button class="menu-toggle" id="menuToggle">☰</button>
-                <h1 class="page-title">Item Management</h1>
+                <h1 class="page-title">Book Management</h1>
             </div>
             <div class="user-info">
                 <div class="user-avatar"><%= loggedUser.getFullName().substring(0,1).toUpperCase() %></div>
@@ -570,52 +599,77 @@
         <main class="content-area">
             <!-- Page Header -->
             <div class="page-header">
-                <h1>Item Management</h1>
+                <h1>📚 Book Management</h1>
                 <div class="breadcrumb">
-                    <a href="dashboard">Dashboard</a> &gt; Item Management
+                    <a href="dashboard">Dashboard</a> &gt; Book Management
                 </div>
                 <div class="header-actions">
-                    <form class="search-form" action="item" method="get">
-                        <input type="hidden" name="action" value="search">
-                        <input type="text" name="searchTerm" placeholder="Search by name, code, or category..." 
-                               value="<%= searchTerm != null ? searchTerm : "" %>">
-                        <button type="submit" class="btn btn-primary">🔍 Search</button>
-                        <% if (searchTerm != null) { %>
-                        <a href="item?action=list" class="btn btn-secondary">❌ Clear</a>
-                        <% } %>
-                    </form>
-                    <a href="item?action=add" class="btn btn-success">➕ Add New Item</a>
+                    <a href="book?action=add" class="btn btn-success">➕ Add New Book</a>
                 </div>
+            </div>
+
+            <!-- Search & Filter Section -->
+            <div class="search-section">
+                <form action="book" method="get" id="searchForm">
+                    <div class="search-row">
+                        <div class="search-group">
+                            <label for="searchTerm">Search Books</label>
+                            <input type="text" name="searchTerm" id="searchTerm" 
+                                   placeholder="Search by title, author, ISBN, or publisher..." 
+                                   value="<%= searchTerm != null ? searchTerm : "" %>">
+                        </div>
+                        <div class="search-group">
+                            <label for="searchAuthor">Filter by Author</label>
+                            <input type="text" name="author" id="searchAuthor" 
+                                   placeholder="Author name...">
+                        </div>
+                        <div class="search-group">
+                            <label for="searchLanguage">Filter by Language</label>
+                            <select name="language" id="searchLanguage">
+                                <option value="">All Languages</option>
+                                <option value="Sinhala">Sinhala</option>
+                                <option value="English">English</option>
+                                <option value="Tamil">Tamil</option>
+                            </select>
+                        </div>
+                        <div class="search-group">
+                            <button type="button" class="btn btn-primary" onclick="performSearch()">🔍 Search</button>
+                            <% if (searchTerm != null) { %>
+                            <a href="book?action=list" class="btn btn-secondary" style="margin-top: 0.5rem;">❌ Clear</a>
+                            <% } %>
+                        </div>
+                    </div>
+                </form>
             </div>
 
             <!-- Stats Cards -->
             <%
-                int totalItems = 0;
-                int lowStockItems = 0;
-                int outOfStockItems = 0;
+                int totalBooks = 0;
+                int lowStockBooks = 0;
+                int outOfStockBooks = 0;
                 
-                if (items != null) {
-                    totalItems = items.size();
-                    for (Item item : items) {
-                        if (item.getStockQuantity() == 0) {
-                            outOfStockItems++;
-                        } else if (item.getStockQuantity() <= 10) {
-                            lowStockItems++;
+                if (books != null) {
+                    totalBooks = books.size();
+                    for (Book book : books) {
+                        if (book.getStockQuantity() == 0) {
+                            outOfStockBooks++;
+                        } else if (book.getStockQuantity() <= 5) {
+                            lowStockBooks++;
                         }
                     }
                 }
             %>
             <div class="stats-grid">
                 <div class="stat-card">
-                    <h3><%= totalItems %></h3>
-                    <p>Total Items</p>
+                    <h3><%= totalBooks %></h3>
+                    <p>Total Books</p>
                 </div>
                 <div class="stat-card">
-                    <h3><%= lowStockItems %></h3>
-                    <p>Low Stock Items</p>
+                    <h3><%= lowStockBooks %></h3>
+                    <p>Low Stock Books</p>
                 </div>
                 <div class="stat-card">
-                    <h3><%= outOfStockItems %></h3>
+                    <h3><%= outOfStockBooks %></h3>
                     <p>Out of Stock</p>
                 </div>
             </div>
@@ -633,60 +687,65 @@
             </div>
             <% } %>
 
-            <!-- Items Table -->
+            <!-- Books Table -->
             <div class="table-container">
                 <div class="table-header">
-                    <h2>Inventory Items</h2>
+                    <h2>Library Inventory</h2>
                     <% if (searchTerm != null) { %>
                     <span style="color: #7f8c8d; font-size: 0.9rem;">Search results for: "<%= searchTerm %>"</span>
                     <% } %>
                 </div>
 
-                <% if (items != null && !items.isEmpty()) { %>
+                <% if (books != null && !books.isEmpty()) { %>
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Item Code</th>
-                            <th>Name</th>
-                            <th>Category</th>
+                            <th>Book Code</th>
+                            <th>Title</th>
+                            <th>Author</th>
+                            <th>Language</th>
                             <th>Price</th>
                             <th>Stock</th>
-                            <th>Description</th>
-                            <th>Created Date</th>
+                            <th>Publisher</th>
+                            <th>Year</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <% for (Item item : items) { %>
+                        <% for (Book book : books) { %>
                         <tr>
-                            <td><strong><%= item.getItemCode() %></strong></td>
-                            <td><%= item.getName() %></td>
-                            <td><%= item.getCategory() %></td>
-                            <td class="price">Rs. <%= String.format("%.2f", item.getPrice()) %></td>
+                            <td><strong><%= book.getBookCode() %></strong></td>
+                            <td>
+                                <strong><%= book.getTitle() %></strong>
+                                <% if (book.getIsbn() != null && !book.getIsbn().trim().isEmpty()) { %>
+                                <br><small style="color: #7f8c8d;">ISBN: <%= book.getIsbn() %></small>
+                                <% } %>
+                            </td>
+                            <td><%= book.getAuthor() %></td>
+                            <td>
+                                <span class="language-badge"><%= book.getLanguage() != null ? book.getLanguage() : "Sinhala" %></span>
+                            </td>
+                            <td class="price">Rs. <%= String.format("%.2f", book.getPrice()) %></td>
                             <td>
                                 <span class="stock-status <%= 
-                                    item.getStockQuantity() == 0 ? "stock-low" :
-                                    item.getStockQuantity() <= 10 ? "stock-low" : 
-                                    item.getStockQuantity() <= 50 ? "stock-medium" : "stock-good" 
+                                    book.getStockQuantity() == 0 ? "stock-low" :
+                                    book.getStockQuantity() <= 5 ? "stock-low" : 
+                                    book.getStockQuantity() <= 20 ? "stock-medium" : "stock-good" 
                                 %>">
-                                    <%= item.getStockQuantity() %> units
+                                    <%= book.getStockQuantity() %> copies
                                 </span>
                             </td>
-                            <td>
-                                <%= item.getDescription() != null && item.getDescription().length() > 50 
-                                    ? item.getDescription().substring(0, 50) + "..." 
-                                    : (item.getDescription() != null ? item.getDescription() : "-") %>
-                            </td>
-                            <td><%= item.getCreatedDate() %></td>
+                            <td><%= book.getPublisher() != null ? book.getPublisher() : "-" %></td>
+                            <td><%= book.getPublicationYear() > 0 ? book.getPublicationYear() : "-" %></td>
                             <td>
                                 <div class="action-buttons">
-                                    <a href="item?action=view&id=<%= item.getItemId() %>" 
+                                    <a href="book?action=view&id=<%= book.getBookId() %>" 
                                        class="btn btn-primary btn-sm">👁️ View</a>
-                                    <a href="item?action=edit&id=<%= item.getItemId() %>" 
+                                    <a href="book?action=edit&id=<%= book.getBookId() %>" 
                                        class="btn btn-warning btn-sm">✏️ Edit</a>
-                                    <a href="item?action=delete&id=<%= item.getItemId() %>" 
+                                    <a href="book?action=delete&id=<%= book.getBookId() %>" 
                                        class="btn btn-danger btn-sm"
-                                       onclick="return confirmDelete('<%= item.getName() %>')">🗑️ Delete</a>
+                                       onclick="return confirmDelete('<%= book.getTitle() %>', '<%= book.getAuthor() %>')">🗑️ Delete</a>
                                 </div>
                             </td>
                         </tr>
@@ -695,15 +754,15 @@
                 </table>
                 <% } else { %>
                 <div class="empty-state">
-                    <h3>No Items Found</h3>
+                    <h3>No Books Found</h3>
                     <p>
                         <% if (searchTerm != null) { %>
-                        No items match your search criteria for "<%= searchTerm %>".
+                        No books match your search criteria for "<%= searchTerm %>".
                         <% } else { %>
-                        Start by adding your first item to the inventory.
+                        Start by adding your first book to the library.
                         <% } %>
                     </p>
-                    <a href="item?action=add" class="btn btn-success" style="margin-top: 1rem;">Add Item</a>
+                    <a href="book?action=add" class="btn btn-success" style="margin-top: 1rem;">📚 Add Book</a>
                 </div>
                 <% } %>
             </div>
@@ -732,9 +791,30 @@
             }
         });
 
+        // Search Functions
+        function performSearch() {
+            const form = document.getElementById('searchForm');
+            const searchTerm = document.getElementById('searchTerm').value.trim();
+            const author = document.getElementById('searchAuthor').value.trim();
+            const language = document.getElementById('searchLanguage').value;
+
+            if (searchTerm) {
+                form.action = 'book?action=search';
+                form.submit();
+            } else if (author) {
+                form.action = 'book?action=searchByAuthor';
+                form.submit();
+            } else if (language) {
+                form.action = 'book?action=searchByLanguage';
+                form.submit();
+            } else {
+                window.location.href = 'book?action=list';
+            }
+        }
+
         // Confirm delete function
-        function confirmDelete(itemName) {
-            return confirm('Are you sure you want to delete item "' + itemName + '"? This action cannot be undone.');
+        function confirmDelete(title, author) {
+            return confirm('Are you sure you want to delete the book "' + title + '" by ' + author + '? This action cannot be undone.');
         }
 
         // Auto-hide alerts after 5 seconds
@@ -759,24 +839,17 @@
             });
         });
 
-        // Auto-focus search input
-        const searchInput = document.querySelector('input[name="searchTerm"]');
-        if (searchInput && !searchInput.value) {
-            searchInput.focus();
-        }
-
-        // Highlight low stock items
-        const stockElements = document.querySelectorAll('.stock-low');
-        stockElements.forEach(function(element) {
-            const row = element.closest('tr');
-            if (row) {
-                row.style.backgroundColor = '#fdf2f2';
+        // Enter key search
+        document.getElementById('searchTerm').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                performSearch();
             }
         });
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Item Management page loaded');
+            console.log('Book Management page loaded');
         });
     </script>
 </body>

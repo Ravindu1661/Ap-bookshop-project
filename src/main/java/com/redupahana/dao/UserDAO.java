@@ -71,6 +71,22 @@ public class UserDAO {
         return null;
     }
     
+    // Add getUserByUsername method
+    public User getUserByUsername(String username) throws SQLException {
+        String query = "SELECT * FROM users WHERE username = ? AND is_active = true";
+        try (Connection connection = DBConnectionFactory.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+            
+            statement.setString(1, username);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return mapResultSetToUser(resultSet);
+                }
+            }
+        }
+        return null;
+    }
+    
     public void updateUser(User user) throws SQLException {
         String query = "UPDATE users SET username = ?, role = ?, full_name = ?, email = ?, phone = ? WHERE user_id = ?";
         try (Connection connection = DBConnectionFactory.getConnection();

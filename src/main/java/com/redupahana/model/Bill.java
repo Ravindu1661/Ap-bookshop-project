@@ -1,4 +1,3 @@
-// Bill.java
 package com.redupahana.model;
 
 import java.util.List;
@@ -14,14 +13,25 @@ public class Bill {
     private double tax;
     private double totalAmount;
     private String paymentStatus;
+    private boolean isActive;
+    private String createdDate;
+    private String updatedDate;
+    
+    // Additional fields for display
+    private String customerName;
+    private String cashierName;
     private Customer customer;
     private User cashier;
     private List<BillItem> billItems;
 
     // Constructors
-    public Bill() {}
+    public Bill() {
+        this.isActive = true;
+        this.paymentStatus = "PENDING";
+    }
 
     public Bill(String billNumber, int customerId, int cashierId, double subTotal, double totalAmount) {
+        this();
         this.billNumber = billNumber;
         this.customerId = customerId;
         this.cashierId = cashierId;
@@ -61,6 +71,21 @@ public class Bill {
     public String getPaymentStatus() { return paymentStatus; }
     public void setPaymentStatus(String paymentStatus) { this.paymentStatus = paymentStatus; }
 
+    public boolean isActive() { return isActive; }
+    public void setActive(boolean active) { isActive = active; }
+
+    public String getCreatedDate() { return createdDate; }
+    public void setCreatedDate(String createdDate) { this.createdDate = createdDate; }
+
+    public String getUpdatedDate() { return updatedDate; }
+    public void setUpdatedDate(String updatedDate) { this.updatedDate = updatedDate; }
+
+    public String getCustomerName() { return customerName; }
+    public void setCustomerName(String customerName) { this.customerName = customerName; }
+
+    public String getCashierName() { return cashierName; }
+    public void setCashierName(String cashierName) { this.cashierName = cashierName; }
+
     public Customer getCustomer() { return customer; }
     public void setCustomer(Customer customer) { this.customer = customer; }
 
@@ -69,4 +94,33 @@ public class Bill {
 
     public List<BillItem> getBillItems() { return billItems; }
     public void setBillItems(List<BillItem> billItems) { this.billItems = billItems; }
+
+    // Utility methods
+    public int getTotalItemsCount() {
+        if (billItems == null) return 0;
+        return billItems.stream().mapToInt(BillItem::getQuantity).sum();
+    }
+
+    public int getUniqueItemsCount() {
+        if (billItems == null) return 0;
+        return billItems.size();
+    }
+
+    public boolean isPaid() {
+        return "PAID".equalsIgnoreCase(paymentStatus);
+    }
+
+    public boolean isPending() {
+        return "PENDING".equalsIgnoreCase(paymentStatus);
+    }
+
+    @Override
+    public String toString() {
+        return "Bill{" +
+                "billNumber='" + billNumber + '\'' +
+                ", customerName='" + customerName + '\'' +
+                ", totalAmount=" + totalAmount +
+                ", paymentStatus='" + paymentStatus + '\'' +
+                '}';
+    }
 }

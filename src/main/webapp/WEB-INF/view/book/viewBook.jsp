@@ -1,5 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="com.redupahana.model.Item"%>
+<%@ page import="com.redupahana.model.Book"%>
 <%@ page import="com.redupahana.model.User"%>
 <%@ page import="com.redupahana.util.Constants"%>
 <%
@@ -9,7 +9,7 @@
         return;
     }
     
-    Item item = (Item) request.getAttribute("item");
+    Book book = (Book) request.getAttribute("book");
     String errorMessage = (String) request.getAttribute("errorMessage");
 %>
 <!DOCTYPE html>
@@ -17,7 +17,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>View Item - Redupahana</title>
+    <title>View Book - Redupahana</title>
     <style>
         * {
             margin: 0;
@@ -90,7 +90,7 @@
 
         .icon-dashboard::before { content: "📊"; }
         .icon-users::before { content: "👥"; }
-        .icon-items::before { content: "📦"; }
+        .icon-books::before { content: "📚"; }
         .icon-customers::before { content: "🏢"; }
         .icon-bills::before { content: "🧾"; }
         .icon-logout::before { content: "🚪"; }
@@ -216,8 +216,8 @@
             color: #721c24;
         }
 
-        /* Item Profile Card */
-        .item-profile {
+        /* Book Profile Card */
+        .book-profile {
             background: white;
             border-radius: 12px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.07);
@@ -244,15 +244,21 @@
             font-size: 3rem;
         }
 
-        .profile-name {
+        .profile-title {
             font-size: 2rem;
             font-weight: 600;
             margin-bottom: 0.5rem;
         }
 
-        .profile-code {
-            font-size: 1.1rem;
+        .profile-author {
+            font-size: 1.2rem;
             opacity: 0.9;
+            margin-bottom: 1rem;
+        }
+
+        .profile-code {
+            font-size: 1rem;
+            opacity: 0.8;
             display: inline-block;
             padding: 0.5rem 1rem;
             border-radius: 20px;
@@ -353,6 +359,16 @@
             color: #155724;
         }
 
+        .language-badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            background-color: #e8f4fd;
+            color: #2c3e50;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
         /* Action Buttons */
         .action-buttons {
             display: flex;
@@ -426,6 +442,24 @@
             margin-bottom: 2rem;
         }
 
+        /* Description Box */
+        .description-box {
+            background-color: #fff;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 0.5rem;
+            line-height: 1.6;
+            color: #2c3e50;
+        }
+
+        .description-box.empty {
+            color: #bdc3c7;
+            font-style: italic;
+            text-align: center;
+            padding: 2rem;
+        }
+
         /* Responsive Design */
         @media (min-width: 1024px) {
             .sidebar { left: 0; }
@@ -438,7 +472,7 @@
             .content-area { padding: 1rem; }
             .page-header { padding: 1.5rem; }
             .profile-header { padding: 1.5rem; }
-            .profile-name { font-size: 1.5rem; }
+            .profile-title { font-size: 1.5rem; }
             .profile-content { padding: 1rem; }
             .info-grid { grid-template-columns: 1fr; gap: 1rem; }
             .action-buttons { flex-direction: column; }
@@ -466,9 +500,9 @@
                 User Management
             </a>
             <% } %>
-            <a href="item?action=list" class="menu-item active">
-                <i class="icon-items"></i>
-                Item Management
+            <a href="book?action=list" class="menu-item active">
+                <i class="icon-books"></i>
+                Book Management
             </a>
             <a href="customer?action=list" class="menu-item">
                 <i class="icon-customers"></i>
@@ -494,7 +528,7 @@
         <header class="topbar">
             <div style="display: flex; align-items: center; gap: 1rem;">
                 <button class="menu-toggle" id="menuToggle">☰</button>
-                <h1 class="page-title">Item Details</h1>
+                <h1 class="page-title">Book Details</h1>
             </div>
             <div class="user-info">
                 <div class="user-avatar"><%= loggedUser.getFullName().substring(0,1).toUpperCase() %></div>
@@ -506,11 +540,11 @@
         <main class="content-area">
             <!-- Page Header -->
             <div class="page-header">
-                <h1>Item Details</h1>
+                <h1>📚 Book Details</h1>
                 <div class="breadcrumb">
                     <a href="dashboard">Dashboard</a> &gt; 
-                    <a href="item?action=list">Item Management</a> &gt; 
-                    Item Details
+                    <a href="book?action=list">Book Management</a> &gt; 
+                    Book Details
                 </div>
             </div>
 
@@ -521,13 +555,14 @@
             </div>
             <% } %>
 
-            <% if (item != null) { %>
-            <!-- Item Profile -->
-            <div class="item-profile">
+            <% if (book != null) { %>
+            <!-- Book Profile -->
+            <div class="book-profile">
                 <div class="profile-header">
-                    <div class="profile-avatar">📦</div>
-                    <div class="profile-name"><%= item.getName() %></div>
-                    <div class="profile-code">Code: <%= item.getItemCode() %></div>
+                    <div class="profile-avatar">📖</div>
+                    <div class="profile-title"><%= book.getTitle() %></div>
+                    <div class="profile-author">by <%= book.getAuthor() %></div>
+                    <div class="profile-code">Code: <%= book.getBookCode() %></div>
                 </div>
 
                 <div class="profile-content">
@@ -535,21 +570,27 @@
                         <div class="info-section">
                             <h4>📋 Basic Information</h4>
                             <div class="info-row">
-                                <span class="info-label">Item ID:</span>
-                                <span class="info-value">#<%= item.getItemId() %></span>
+                                <span class="info-label">Book ID:</span>
+                                <span class="info-value">#<%= book.getBookId() %></span>
                             </div>
                             <div class="info-row">
-                                <span class="info-label">Name:</span>
-                                <span class="info-value"><%= item.getName() %></span>
+                                <span class="info-label">Title:</span>
+                                <span class="info-value"><%= book.getTitle() %></span>
                             </div>
                             <div class="info-row">
-                                <span class="info-label">Category:</span>
-                                <span class="info-value"><%= item.getCategory() %></span>
+                                <span class="info-label">Author:</span>
+                                <span class="info-value"><%= book.getAuthor() %></span>
                             </div>
                             <div class="info-row">
-                                <span class="info-label">Description:</span>
-                                <span class="info-value <%= item.getDescription() == null || item.getDescription().trim().isEmpty() ? "empty" : "" %>">
-                                    <%= item.getDescription() != null && !item.getDescription().trim().isEmpty() ? item.getDescription() : "No description provided" %>
+                                <span class="info-label">Language:</span>
+                                <span class="info-value">
+                                    <span class="language-badge"><%= book.getLanguage() != null ? book.getLanguage() : "Sinhala" %></span>
+                                </span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Status:</span>
+                                <span class="info-value">
+                                    <span class="status-badge">Available</span>
                                 </span>
                             </div>
                         </div>
@@ -558,30 +599,52 @@
                             <h4>💰 Pricing & Stock</h4>
                             <div class="info-row">
                                 <span class="info-label">Price:</span>
-                                <span class="info-value price">Rs. <%= String.format("%.2f", item.getPrice()) %></span>
+                                <span class="info-value price">Rs. <%= String.format("%.2f", book.getPrice()) %></span>
                             </div>
                             <div class="info-row">
                                 <span class="info-label">Stock Quantity:</span>
                                 <span class="info-value">
                                     <span class="stock-badge <%= 
-                                        item.getStockQuantity() == 0 ? "stock-low" :
-                                        item.getStockQuantity() <= 10 ? "stock-low" : 
-                                        item.getStockQuantity() <= 50 ? "stock-medium" : "stock-good" 
+                                        book.getStockQuantity() == 0 ? "stock-low" :
+                                        book.getStockQuantity() <= 5 ? "stock-low" : 
+                                        book.getStockQuantity() <= 20 ? "stock-medium" : "stock-good" 
                                     %>">
-                                        <%= item.getStockQuantity() %> units
+                                        <%= book.getStockQuantity() %> copies
                                     </span>
                                 </span>
                             </div>
                             <div class="info-row">
-                                <span class="info-label">Status:</span>
-                                <span class="info-value">
-                                    <span class="status-badge">Active</span>
+                                <span class="info-label">Total Value:</span>
+                                <span class="info-value price">
+                                    Rs. <%= String.format("%.2f", book.getPrice() * book.getStockQuantity()) %>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="info-section">
+                            <h4>📖 Publication Details</h4>
+                            <div class="info-row">
+                                <span class="info-label">ISBN:</span>
+                                <span class="info-value <%= book.getIsbn() == null || book.getIsbn().trim().isEmpty() ? "empty" : "" %>">
+                                    <%= book.getIsbn() != null && !book.getIsbn().trim().isEmpty() ? book.getIsbn() : "Not provided" %>
                                 </span>
                             </div>
                             <div class="info-row">
-                                <span class="info-label">Stock Value:</span>
-                                <span class="info-value price">
-                                    Rs. <%= String.format("%.2f", item.getPrice() * item.getStockQuantity()) %>
+                                <span class="info-label">Publisher:</span>
+                                <span class="info-value <%= book.getPublisher() == null || book.getPublisher().trim().isEmpty() ? "empty" : "" %>">
+                                    <%= book.getPublisher() != null && !book.getPublisher().trim().isEmpty() ? book.getPublisher() : "Not provided" %>
+                                </span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Publication Year:</span>
+                                <span class="info-value">
+                                    <%= book.getPublicationYear() > 0 ? book.getPublicationYear() : "Not specified" %>
+                                </span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Pages:</span>
+                                <span class="info-value">
+                                    <%= book.getPages() > 0 ? book.getPages() + " pages" : "Not specified" %>
                                 </span>
                             </div>
                         </div>
@@ -589,39 +652,53 @@
                         <div class="info-section">
                             <h4>📅 Timeline</h4>
                             <div class="info-row">
-                                <span class="info-label">Created Date:</span>
-                                <span class="info-value"><%= item.getCreatedDate() %></span>
+                                <span class="info-label">Added to Library:</span>
+                                <span class="info-value"><%= book.getCreatedDate() %></span>
                             </div>
                             <div class="info-row">
                                 <span class="info-label">Last Updated:</span>
                                 <span class="info-value">
-                                    <%= item.getUpdatedDate() != null ? item.getUpdatedDate() : "Never updated" %>
+                                    <%= book.getUpdatedDate() != null ? book.getUpdatedDate() : "Never updated" %>
                                 </span>
                             </div>
                             <div class="info-row">
-                                <span class="info-label">Days in Inventory:</span>
-                                <span class="info-value" id="daysInInventory">Calculating...</span>
+                                <span class="info-label">Days in Library:</span>
+                                <span class="info-value" id="daysInLibrary">Calculating...</span>
                             </div>
                         </div>
                     </div>
 
+                    <!-- Description Section -->
+                    <div class="info-section" style="grid-column: 1 / -1;">
+                        <h4>📝 Description</h4>
+                        <% if (book.getDescription() != null && !book.getDescription().trim().isEmpty()) { %>
+                        <div class="description-box">
+                            <%= book.getDescription() %>
+                        </div>
+                        <% } else { %>
+                        <div class="description-box empty">
+                            No description provided for this book.
+                        </div>
+                        <% } %>
+                    </div>
+
                     <div class="action-buttons">
-                        <a href="item?action=edit&id=<%= item.getItemId() %>" class="btn btn-warning">
-                            ✏️ Edit Item
+                        <a href="book?action=edit&id=<%= book.getBookId() %>" class="btn btn-warning">
+                            ✏️ Edit Book
                         </a>
-                        <a href="item?action=list" class="btn btn-primary">
-                            📋 Back to List
+                        <a href="book?action=list" class="btn btn-primary">
+                            📚 Back to Library
                         </a>
                     </div>
                 </div>
             </div>
 
             <% } else { %>
-            <!-- Item Not Found -->
+            <!-- Book Not Found -->
             <div class="not-found">
-                <h3>Item Not Found</h3>
-                <p>The requested item could not be found or may have been deleted.</p>
-                <a href="item?action=list" class="btn btn-primary">Back to Item List</a>
+                <h3>Book Not Found</h3>
+                <p>The requested book could not be found or may have been removed from the library.</p>
+                <a href="book?action=list" class="btn btn-primary">Back to Book List</a>
             </div>
             <% } %>
         </main>
@@ -649,14 +726,14 @@
             }
         });
 
-        // Calculate days in inventory
-        <% if (item != null) { %>
-        const createdDate = new Date('<%= item.getCreatedDate() %>');
+        // Calculate days in library
+        <% if (book != null) { %>
+        const createdDate = new Date('<%= book.getCreatedDate() %>');
         const now = new Date();
         const diffTime = Math.abs(now - createdDate);
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         
-        document.getElementById('daysInInventory').textContent = diffDays + ' days';
+        document.getElementById('daysInLibrary').textContent = diffDays + ' days';
         <% } %>
 
         // Add loading state to action buttons
@@ -686,7 +763,7 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('View Item page loaded');
+            console.log('View Book page loaded');
         });
     </script>
 </body>

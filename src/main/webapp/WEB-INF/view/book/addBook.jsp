@@ -3,7 +3,7 @@
 <%@ page import="com.redupahana.util.Constants"%>
 <%
     User loggedUser = (User) session.getAttribute("loggedUser");
-    if (loggedUser == null || !Constants.ROLE_ADMIN.equals(loggedUser.getRole())) {
+    if (loggedUser == null) {
         response.sendRedirect("auth");
         return;
     }
@@ -15,7 +15,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add User - Redupahana</title>
+    <title>Add Book - Redupahana</title>
     <style>
         * {
             margin: 0;
@@ -90,7 +90,6 @@
             text-align: center;
         }
 
-        /* Icon classes using Unicode */
         .icon-dashboard::before { content: "📊"; }
         .icon-users::before { content: "👥"; }
         .icon-books::before { content: "📚"; }
@@ -225,6 +224,26 @@
             color: #721c24;
         }
 
+        /* Info Notice */
+        .info-notice {
+            background-color: #e8f4fd;
+            border: 1px solid #bee5eb;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            border-left: 4px solid #2c3e50;
+        }
+
+        .info-notice h4 {
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-notice p {
+            color: #2c3e50;
+            font-size: 0.9rem;
+        }
+
         /* Form Styles */
         .form-container {
             background: white;
@@ -284,78 +303,95 @@
             margin-top: 0.25rem;
         }
 
-        /* Role Selection */
-        .role-selection {
+        /* Price Input */
+        .price-input-group {
+            position: relative;
+        }
+
+        .price-input-group::before {
+            content: "Rs.";
+            position: absolute;
+            left: 0.8rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #7f8c8d;
+            font-weight: 600;
+        }
+
+        .price-input-group .form-control {
+            padding-left: 3rem;
+        }
+
+        /* Stock Indicator */
+        .stock-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .stock-level {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .stock-low {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .stock-medium {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .stock-good {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        /* Language Selection */
+        .language-selection {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
             gap: 1rem;
             margin-top: 0.5rem;
         }
 
-        .role-option {
+        .language-option {
             border: 2px solid #e0e0e0;
-            border-radius: 12px;
-            padding: 1.5rem;
+            border-radius: 8px;
+            padding: 1rem;
             cursor: pointer;
             transition: all 0.3s ease;
             text-align: center;
         }
 
-        .role-option:hover {
+        .language-option:hover {
             border-color: #2c3e50;
             background-color: #f8f9fa;
         }
 
-        .role-option.selected {
+        .language-option.selected {
             border-color: #2c3e50;
             background-color: #e8f4fd;
         }
 
-        .role-option input[type="radio"] {
+        .language-option input[type="radio"] {
             display: none;
         }
 
-        .role-option h4 {
-            color: #2c3e50;
+        .language-icon {
+            font-size: 1.5rem;
             margin-bottom: 0.5rem;
         }
 
-        .role-option p {
-            color: #7f8c8d;
+        .language-name {
+            color: #2c3e50;
+            font-weight: 600;
             font-size: 0.9rem;
-        }
-
-        .role-icon {
-            font-size: 2rem;
-            margin-bottom: 1rem;
-        }
-
-        /* Password Strength */
-        .password-strength {
-            margin-top: 0.5rem;
-        }
-
-        .strength-bar {
-            height: 4px;
-            background-color: #e0e0e0;
-            border-radius: 2px;
-            overflow: hidden;
-        }
-
-        .strength-fill {
-            height: 100%;
-            width: 0%;
-            transition: all 0.3s ease;
-        }
-
-        .strength-weak { background-color: #e74c3c; }
-        .strength-medium { background-color: #f39c12; }
-        .strength-strong { background-color: #27ae60; }
-
-        .strength-text {
-            font-size: 0.8rem;
-            margin-top: 0.25rem;
-            color: #7f8c8d;
         }
 
         /* Buttons */
@@ -392,31 +428,17 @@
             transform: translateY(-2px);
         }
 
+        .btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
         .form-actions {
             margin-top: 2rem;
             padding-top: 2rem;
             border-top: 1px solid #eee;
             text-align: center;
-        }
-
-        /* Info Notice */
-        .info-notice {
-            background-color: #e8f4fd;
-            border: 1px solid #bee5eb;
-            padding: 1.5rem;
-            border-radius: 8px;
-            margin-bottom: 2rem;
-            border-left: 4px solid #2c3e50;
-        }
-
-        .info-notice h4 {
-            color: #2c3e50;
-            margin-bottom: 0.5rem;
-        }
-
-        .info-notice p {
-            color: #2c3e50;
-            font-size: 0.9rem;
         }
 
         /* Responsive Design */
@@ -456,8 +478,8 @@
                 gap: 1rem;
             }
             
-            .role-selection {
-                grid-template-columns: 1fr;
+            .language-selection {
+                grid-template-columns: repeat(2, 1fr);
             }
             
             .btn {
@@ -471,11 +493,17 @@
                 display: none;
             }
         }
+
+        @media (max-width: 480px) {
+            .language-selection {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
     <!-- Sidebar -->
-  <div class="sidebar" id="sidebar">
+    <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <h2>Redupahana</h2>
             <p>Admin Panel</p>
@@ -519,7 +547,7 @@
         <header class="topbar">
             <div style="display: flex; align-items: center; gap: 1rem;">
                 <button class="menu-toggle" id="menuToggle">☰</button>
-                <h1 class="page-title">Add New User</h1>
+                <h1 class="page-title">Add New Book</h1>
             </div>
             <div class="user-info">
                 <div class="user-avatar"><%= loggedUser.getFullName().substring(0,1).toUpperCase() %></div>
@@ -531,18 +559,18 @@
         <main class="content-area">
             <!-- Page Header -->
             <div class="page-header">
-                <h1>Add New User</h1>
+                <h1>📚 Add New Book</h1>
                 <div class="breadcrumb">
                     <a href="dashboard">Dashboard</a> &gt; 
-                    <a href="user?action=list">User Management</a> &gt; 
-                    Add User
+                    <a href="book?action=list">Book Management</a> &gt; 
+                    Add Book
                 </div>
             </div>
 
             <!-- Info Notice -->
             <div class="info-notice">
-                <h4>👤 Create New User Account</h4>
-                <p>You are creating a new user account. Please ensure all information is accurate and assign appropriate permissions.</p>
+                <h4>📖 Add New Book to Library</h4>
+                <p>Fill in the details below to add a new book to your library inventory. Required fields are marked with an asterisk (*).</p>
             </div>
 
             <!-- Error Message -->
@@ -552,75 +580,116 @@
             </div>
             <% } %>
 
-            <!-- Add User Form -->
+            <!-- Add Book Form -->
             <div class="form-container">
-                <form action="user" method="post" id="addUserForm">
+                <form action="book" method="post" id="addBookForm">
                     <input type="hidden" name="action" value="add">
                     
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="username">Username <span class="required">*</span></label>
-                            <input type="text" class="form-control" id="username" name="username" required 
-                                   placeholder="Enter unique username" autocomplete="username">
-                            <div class="form-text">Username must be unique and cannot be changed later</div>
+                            <label for="bookCode">Book Code</label>
+                            <input type="text" class="form-control" id="bookCode" name="bookCode" 
+                                   placeholder="Leave blank for auto-generation">
+                            <div class="form-text">Book code will be auto-generated if left blank</div>
                         </div>
 
                         <div class="form-group">
-                            <label for="fullName">Full Name <span class="required">*</span></label>
-                            <input type="text" class="form-control" id="fullName" name="fullName" required 
-                                   placeholder="Enter full name" autocomplete="name">
+                            <label for="title">Book Title <span class="required">*</span></label>
+                            <input type="text" class="form-control" id="title" name="title" required 
+                                   placeholder="Enter book title">
                         </div>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="email">Email Address</label>
-                            <input type="email" class="form-control" id="email" name="email" 
-                                   placeholder="Enter email address (optional)" autocomplete="email">
+                            <label for="author">Author <span class="required">*</span></label>
+                            <input type="text" class="form-control" id="author" name="author" required 
+                                   placeholder="Enter author name">
                         </div>
 
                         <div class="form-group">
-                            <label for="phone">Phone Number</label>
-                            <input type="tel" class="form-control" id="phone" name="phone" 
-                                   placeholder="Enter 10-digit phone number" pattern="[0-9]{10}" autocomplete="tel">
-                            <div class="form-text">Enter a valid 10-digit phone number</div>
+                            <label for="isbn">ISBN</label>
+                            <input type="text" class="form-control" id="isbn" name="isbn" 
+                                   placeholder="Enter ISBN (optional)">
+                            <div class="form-text">International Standard Book Number</div>
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label for="password">Password <span class="required">*</span></label>
-                        <input type="password" class="form-control" id="password" name="password" required 
-                               placeholder="Enter secure password" autocomplete="new-password">
-                        <div class="password-strength">
-                            <div class="strength-bar">
-                                <div class="strength-fill" id="strengthFill"></div>
-                            </div>
-                            <div class="strength-text" id="strengthText">Password strength will be shown here</div>
-                        </div>
-                        <div class="form-text">Password should be at least 8 characters with letters and numbers</div>
+                    <div class="form-group full-width">
+                        <label for="description">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3" 
+                                  placeholder="Enter book description (optional)"></textarea>
                     </div>
 
-                    <div class="form-group">
-                        <label>User Role <span class="required">*</span></label>
-                        <div class="role-selection">
-                            <div class="role-option" onclick="selectRole('ADMIN')">
-                                <input type="radio" name="role" value="ADMIN" id="roleAdmin" required>
-                                <div class="role-icon">👑</div>
-                                <h4>Administrator</h4>
-                                <p>Full system access including user management, reports, and all features</p>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="price">Price <span class="required">*</span></label>
+                            <div class="price-input-group">
+                                <input type="number" class="form-control" id="price" name="price" required 
+                                       min="0.01" step="0.01" placeholder="0.00">
                             </div>
-                            <div class="role-option" onclick="selectRole('CASHIER')">
-                                <input type="radio" name="role" value="CASHIER" id="roleCashier" required>
-                                <div class="role-icon">💼</div>
-                                <h4>Cashier</h4>
-                                <p>Access to billing, customer management, and inventory operations</p>
+                            <div class="form-text">Enter price in Sri Lankan Rupees</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="stockQuantity">Stock Quantity <span class="required">*</span></label>
+                            <input type="number" class="form-control" id="stockQuantity" name="stockQuantity" required 
+                                   min="0" placeholder="Enter number of copies">
+                            <div class="stock-indicator">
+                                <span>Stock Level:</span>
+                                <span class="stock-level" id="stockLevel">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="publisher">Publisher</label>
+                            <input type="text" class="form-control" id="publisher" name="publisher" 
+                                   placeholder="Enter publisher name (optional)">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="publicationYear">Publication Year</label>
+                            <input type="number" class="form-control" id="publicationYear" name="publicationYear" 
+                                   min="1000" max="2024" placeholder="Enter year (optional)">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="pages">Number of Pages</label>
+                            <input type="number" class="form-control" id="pages" name="pages" 
+                                   min="1" placeholder="Enter page count (optional)">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Language</label>
+                            <div class="language-selection">
+                                <div class="language-option selected" onclick="selectLanguage('Sinhala')">
+                                    <input type="radio" name="language" value="Sinhala" id="languageSinhala" checked>
+                                    <div class="language-icon">🇱🇰</div>
+                                    <div class="language-name">Sinhala</div>
+                                </div>
+                                <div class="language-option" onclick="selectLanguage('English')">
+                                    <input type="radio" name="language" value="English" id="languageEnglish">
+                                    <div class="language-icon">🇬🇧</div>
+                                    <div class="language-name">English</div>
+                                </div>
+                                <div class="language-option" onclick="selectLanguage('Tamil')">
+                                    <input type="radio" name="language" value="Tamil" id="languageTamil">
+                                    <div class="language-icon">🇮🇳</div>
+                                    <div class="language-name">Tamil</div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="form-actions">
-                        <button type="submit" class="btn btn-primary">✅ Create User</button>
-                        <a href="user?action=list" class="btn btn-secondary">❌ Cancel</a>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            ✅ Add Book to Library
+                        </button>
+                        <a href="book?action=list" class="btn btn-secondary">❌ Cancel</a>
                     </div>
                 </form>
             </div>
@@ -649,10 +718,10 @@
             }
         });
 
-        // Role Selection
-        function selectRole(role) {
+        // Language Selection
+        function selectLanguage(language) {
             // Remove selected class from all options
-            document.querySelectorAll('.role-option').forEach(function(option) {
+            document.querySelectorAll('.language-option').forEach(function(option) {
                 option.classList.remove('selected');
             });
             
@@ -660,97 +729,60 @@
             event.currentTarget.classList.add('selected');
             
             // Check the radio button
-            if (role === 'ADMIN') {
-                document.getElementById('roleAdmin').checked = true;
-            } else {
-                document.getElementById('roleCashier').checked = true;
-            }
+            document.getElementById('language' + language).checked = true;
         }
 
-        // Password Strength Checker
-        const passwordInput = document.getElementById('password');
-        const strengthFill = document.getElementById('strengthFill');
-        const strengthText = document.getElementById('strengthText');
+        // Stock Level Indicator
+        const stockQuantityInput = document.getElementById('stockQuantity');
+        const stockLevelSpan = document.getElementById('stockLevel');
 
-        passwordInput.addEventListener('input', function() {
-            const password = this.value;
-            const strength = checkPasswordStrength(password);
+        stockQuantityInput.addEventListener('input', function() {
+            const quantity = parseInt(this.value) || 0;
             
-            strengthFill.style.width = strength.percentage + '%';
-            strengthFill.className = 'strength-fill strength-' + strength.level;
-            strengthText.textContent = strength.text;
-            strengthText.style.color = strength.color;
+            stockLevelSpan.className = 'stock-level';
+            
+            if (quantity === 0) {
+                stockLevelSpan.textContent = 'Out of Stock';
+                stockLevelSpan.classList.add('stock-low');
+            } else if (quantity <= 5) {
+                stockLevelSpan.textContent = 'Low Stock';
+                stockLevelSpan.classList.add('stock-low');
+            } else if (quantity <= 20) {
+                stockLevelSpan.textContent = 'Medium Stock';
+                stockLevelSpan.classList.add('stock-medium');
+            } else {
+                stockLevelSpan.textContent = 'Good Stock';
+                stockLevelSpan.classList.add('stock-good');
+            }
         });
 
-        function checkPasswordStrength(password) {
-            let score = 0;
-            let feedback = [];
-
-            if (password.length >= 8) score += 2;
-            else feedback.push('at least 8 characters');
-
-            if (password.match(/[a-z]/)) score += 1;
-            else feedback.push('lowercase letter');
-
-            if (password.match(/[A-Z]/)) score += 1;
-            else feedback.push('uppercase letter');
-
-            if (password.match(/[0-9]/)) score += 1;
-            else feedback.push('number');
-
-            if (password.match(/[^a-zA-Z0-9]/)) score += 1;
-
-            if (score < 3) {
-                return {
-                    level: 'weak',
-                    percentage: 25,
-                    text: 'Weak - Add ' + feedback.slice(0, 2).join(', '),
-                    color: '#e74c3c'
-                };
-            } else if (score < 5) {
-                return {
-                    level: 'medium',
-                    percentage: 60,
-                    text: 'Medium - ' + (feedback.length > 0 ? 'Add ' + feedback[0] : 'Good progress'),
-                    color: '#f39c12'
-                };
-            } else {
-                return {
-                    level: 'strong',
-                    percentage: 100,
-                    text: 'Strong - Good password!',
-                    color: '#27ae60'
-                };
-            }
-        }
-
         // Form Validation
-        document.getElementById('addUserForm').addEventListener('submit', function(e) {
-            const username = document.getElementById('username').value.trim();
-            const fullName = document.getElementById('fullName').value.trim();
-            const password = document.getElementById('password').value;
-            const role = document.querySelector('input[name="role"]:checked');
+        document.getElementById('addBookForm').addEventListener('submit', function(e) {
+            const title = document.getElementById('title').value.trim();
+            const author = document.getElementById('author').value.trim();
+            const price = parseFloat(document.getElementById('price').value);
+            const stockQuantity = parseInt(document.getElementById('stockQuantity').value);
 
             let isValid = true;
             let errorMessage = '';
 
-            if (!username) {
-                errorMessage += 'Username is required. ';
+            if (!title) {
+                errorMessage += 'Book title is required. ';
                 isValid = false;
             }
 
-            if (!fullName) {
-                errorMessage += 'Full name is required. ';
+            if (!author) {
+                errorMessage += 'Author name is required. ';
                 isValid = false;
             }
 
-            if (!password || password.length < 6) {
-                errorMessage += 'Password must be at least 6 characters. ';
+            if (!price || price <= 0) {
+                errorMessage += 'Valid price is required. ';
                 isValid = false;
             }
 
-            if (!role) {
-                errorMessage += 'Please select a user role. ';
+            if (isNaN(stockQuantity) || stockQuantity < 0) {
+                errorMessage += 'Valid stock quantity is required. ';
                 isValid = false;
             }
 
@@ -763,21 +795,36 @@
             // Add loading state
             const submitBtn = this.querySelector('button[type="submit"]');
             submitBtn.style.opacity = '0.7';
-            submitBtn.innerHTML = '⏳ Creating User...';
+            submitBtn.innerHTML = '⏳ Adding Book...';
             submitBtn.disabled = true;
         });
 
-        // Phone number formatting
-        document.getElementById('phone').addEventListener('input', function() {
-            this.value = this.value.replace(/\D/g, '').substring(0, 10);
+        // Auto-format ISBN
+        document.getElementById('isbn').addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9X-]/g, '').toUpperCase();
+        });
+
+        // Publication year validation
+        document.getElementById('publicationYear').addEventListener('input', function() {
+            const year = parseInt(this.value);
+            const currentYear = new Date().getFullYear();
+            
+            if (year && (year < 1000 || year > currentYear)) {
+                this.style.borderColor = '#e74c3c';
+            } else {
+                this.style.borderColor = '#ddd';
+            }
         });
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Add User page loaded');
+            console.log('Add Book page loaded');
             
-            // Focus on username field
-            document.getElementById('username').focus();
+            // Focus on book title field
+            document.getElementById('title').focus();
+            
+            // Initialize stock level indicator
+            stockQuantityInput.dispatchEvent(new Event('input'));
         });
     </script>
 </body>

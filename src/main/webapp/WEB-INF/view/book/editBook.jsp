@@ -1,4 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="com.redupahana.model.Book"%>
 <%@ page import="com.redupahana.model.User"%>
 <%@ page import="com.redupahana.util.Constants"%>
 <%
@@ -8,6 +9,7 @@
         return;
     }
     
+    Book book = (Book) request.getAttribute("book");
     String errorMessage = (String) request.getAttribute("errorMessage");
 %>
 <!DOCTYPE html>
@@ -15,7 +17,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Item - Redupahana</title>
+    <title>Edit Book - Redupahana</title>
     <style>
         * {
             margin: 0;
@@ -42,9 +44,7 @@
             box-shadow: 2px 0 10px rgba(0,0,0,0.1);
         }
 
-        .sidebar.active {
-            left: 0;
-        }
+        .sidebar.active { left: 0; }
 
         .sidebar-header {
             padding: 1.5rem;
@@ -63,9 +63,7 @@
             font-size: 0.9rem;
         }
 
-        .sidebar-menu {
-            padding: 1rem 0;
-        }
+        .sidebar-menu { padding: 1rem 0; }
 
         .menu-item {
             display: block;
@@ -92,7 +90,7 @@
 
         .icon-dashboard::before { content: "📊"; }
         .icon-users::before { content: "👥"; }
-        .icon-items::before { content: "📦"; }
+        .icon-books::before { content: "📚"; }
         .icon-customers::before { content: "🏢"; }
         .icon-bills::before { content: "🧾"; }
         .icon-logout::before { content: "🚪"; }
@@ -128,59 +126,7 @@
             transition: background-color 0.3s ease;
         }
 
-        .menu-toggle:hover {
-            background: #34495e;
-        }
-
-        .page-title {
-            font-size: 1.5rem;
-            color: #2c3e50;
-            font-weight: 600;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            color: #2c3e50;
-        }
-
-        .user-avatar {
-            width: 35px;
-            height: 35px;
-            background: #2c3e50;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 0.9rem;
-        }
-
-        /* Overlay for mobile */
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 999;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        /* Content Area */
-        .content-area {
-            padding: 2rem;
-        }
+        .menu-toggle:hover { background: #34495e; }
 
         .page-header {
             background: white;
@@ -206,8 +152,43 @@
             text-decoration: none;
         }
 
-        .breadcrumb a:hover {
-            text-decoration: underline;
+        .breadcrumb a:hover { text-decoration: underline; }
+
+        /* Book Info Card */
+        .book-info-card {
+            background: #e8f4fd;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            border-left: 4px solid #2c3e50;
+        }
+
+        .book-info-card h4 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .info-value {
+            color: #2c3e50;
+            font-size: 1rem;
         }
 
         /* Alert Messages */
@@ -222,26 +203,6 @@
             background-color: #f8d7da;
             border-left-color: #e74c3c;
             color: #721c24;
-        }
-
-        /* Info Notice */
-        .info-notice {
-            background-color: #e8f4fd;
-            border: 1px solid #bee5eb;
-            padding: 1.5rem;
-            border-radius: 8px;
-            margin-bottom: 2rem;
-            border-left: 4px solid #2c3e50;
-        }
-
-        .info-notice h4 {
-            color: #2c3e50;
-            margin-bottom: 0.5rem;
-        }
-
-        .info-notice p {
-            color: #2c3e50;
-            font-size: 0.9rem;
         }
 
         /* Form Styles */
@@ -259,13 +220,9 @@
             margin-bottom: 1.5rem;
         }
 
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
+        .form-group { margin-bottom: 1.5rem; }
 
-        .form-group.full-width {
-            grid-column: 1 / -1;
-        }
+        .form-group.full-width { grid-column: 1 / -1; }
 
         .form-group label {
             display: block;
@@ -274,9 +231,7 @@
             color: #2c3e50;
         }
 
-        .required {
-            color: #e74c3c;
-        }
+        .required { color: #e74c3c; }
 
         .form-control {
             width: 100%;
@@ -293,8 +248,9 @@
             box-shadow: 0 0 0 2px rgba(44, 62, 80, 0.1);
         }
 
-        .form-control.error {
-            border-color: #e74c3c;
+        .form-control:disabled {
+            background-color: #f8f9fa;
+            cursor: not-allowed;
         }
 
         .form-text {
@@ -303,95 +259,44 @@
             margin-top: 0.25rem;
         }
 
-        /* Category Selection */
-        .category-selection {
+        /* Language Selection */
+        .language-selection {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
             gap: 1rem;
             margin-top: 0.5rem;
         }
 
-        .category-option {
+        .language-option {
             border: 2px solid #e0e0e0;
-            border-radius: 12px;
+            border-radius: 8px;
             padding: 1rem;
             cursor: pointer;
             transition: all 0.3s ease;
             text-align: center;
         }
 
-        .category-option:hover {
+        .language-option:hover {
             border-color: #2c3e50;
             background-color: #f8f9fa;
         }
 
-        .category-option.selected {
+        .language-option.selected {
             border-color: #2c3e50;
             background-color: #e8f4fd;
         }
 
-        .category-option input[type="radio"] {
-            display: none;
-        }
+        .language-option input[type="radio"] { display: none; }
 
-        .category-icon {
-            font-size: 2rem;
+        .language-icon {
+            font-size: 1.5rem;
             margin-bottom: 0.5rem;
         }
 
-        .category-name {
+        .language-name {
             color: #2c3e50;
             font-weight: 600;
             font-size: 0.9rem;
-        }
-
-        /* Price Input */
-        .price-input-group {
-            position: relative;
-        }
-
-        .price-input-group::before {
-            content: "Rs.";
-            position: absolute;
-            left: 0.8rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #7f8c8d;
-            font-weight: 600;
-        }
-
-        .price-input-group .form-control {
-            padding-left: 3rem;
-        }
-
-        /* Stock Indicator */
-        .stock-indicator {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
-        }
-
-        .stock-level {
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
-        .stock-low {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-
-        .stock-medium {
-            background-color: #fff3cd;
-            color: #856404;
-        }
-
-        .stock-good {
-            background-color: #d4edda;
-            color: #155724;
         }
 
         /* Buttons */
@@ -428,12 +333,6 @@
             transform: translateY(-2px);
         }
 
-        .btn:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-            pointer-events: none;
-        }
-
         .form-actions {
             margin-top: 2rem;
             padding-top: 2rem;
@@ -441,80 +340,27 @@
             text-align: center;
         }
 
-        /* Loading Spinner */
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .spinner {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid #f3f3f3;
-            border-top: 2px solid #ffffff;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-left: 0.5rem;
-        }
-
         /* Responsive Design */
         @media (min-width: 1024px) {
-            .sidebar {
-                left: 0;
-            }
-            
-            .main-content {
-                margin-left: 280px;
-            }
-            
-            .menu-toggle {
-                display: none;
-            }
+            .sidebar { left: 0; }
+            .main-content { margin-left: 280px; }
+            .menu-toggle { display: none; }
         }
 
         @media (max-width: 768px) {
-            .topbar {
-                padding: 1rem;
-            }
-            
-            .content-area {
-                padding: 1rem;
-            }
-            
-            .page-header {
-                padding: 1.5rem;
-            }
-            
-            .form-container {
-                padding: 1.5rem;
-            }
-            
-            .form-row {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-            }
-            
-            .category-selection {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .btn {
-                display: block;
-                margin-bottom: 0.5rem;
-                margin-right: 0;
-                text-align: center;
-            }
-            
-            .user-info span {
-                display: none;
-            }
+            .topbar { padding: 1rem; }
+            .content-area { padding: 1rem; }
+            .page-header { padding: 1.5rem; }
+            .form-container { padding: 1.5rem; }
+            .form-row { grid-template-columns: 1fr; gap: 1rem; }
+            .language-selection { grid-template-columns: repeat(2, 1fr); }
+            .btn { display: block; margin-bottom: 0.5rem; margin-right: 0; text-align: center; }
+            .info-grid { grid-template-columns: 1fr; }
+            .user-info span { display: none; }
         }
 
         @media (max-width: 480px) {
-            .category-selection {
-                grid-template-columns: 1fr;
-            }
+            .language-selection { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -536,9 +382,9 @@
                 User Management
             </a>
             <% } %>
-            <a href="item?action=list" class="menu-item active">
-                <i class="icon-items"></i>
-                Item Management
+            <a href="book?action=list" class="menu-item active">
+                <i class="icon-books"></i>
+                Book Management
             </a>
             <a href="customer?action=list" class="menu-item">
                 <i class="icon-customers"></i>
@@ -564,7 +410,7 @@
         <header class="topbar">
             <div style="display: flex; align-items: center; gap: 1rem;">
                 <button class="menu-toggle" id="menuToggle">☰</button>
-                <h1 class="page-title">Add New Item</h1>
+                <h1 class="page-title">Edit Book</h1>
             </div>
             <div class="user-info">
                 <div class="user-avatar"><%= loggedUser.getFullName().substring(0,1).toUpperCase() %></div>
@@ -576,18 +422,40 @@
         <main class="content-area">
             <!-- Page Header -->
             <div class="page-header">
-                <h1>Add New Item</h1>
+                <h1>📚 Edit Book</h1>
                 <div class="breadcrumb">
                     <a href="dashboard">Dashboard</a> &gt; 
-                    <a href="item?action=list">Item Management</a> &gt; 
-                    Add Item
+                    <a href="book?action=list">Book Management</a> &gt; 
+                    Edit Book
                 </div>
             </div>
 
-            <!-- Info Notice -->
-            <div class="info-notice">
-                <h4>📦 Add New Inventory Item</h4>
-                <p>Fill in the details below to add a new item to your inventory. Required fields are marked with an asterisk (*).</p>
+            <% if (book != null) { %>
+            <!-- Current Book Info -->
+            <div class="book-info-card">
+                <h4>📖 Current Book Information</h4>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Book Code</span>
+                        <span class="info-value"><%= book.getBookCode() %></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Current Title</span>
+                        <span class="info-value"><%= book.getTitle() %></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Current Author</span>
+                        <span class="info-value"><%= book.getAuthor() %></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Current Price</span>
+                        <span class="info-value">Rs. <%= String.format("%.2f", book.getPrice()) %></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Created Date</span>
+                        <span class="info-value"><%= book.getCreatedDate() %></span>
+                    </div>
+                </div>
             </div>
 
             <!-- Error Message -->
@@ -597,90 +465,125 @@
             </div>
             <% } %>
 
-            <!-- Add Item Form -->
+            <!-- Edit Book Form -->
             <div class="form-container">
-                <form action="item" method="post" id="addItemForm">
-                    <input type="hidden" name="action" value="add">
+                <form action="book" method="post" id="editBookForm">
+                    <input type="hidden" name="action" value="update">
+                    <input type="hidden" name="bookId" value="<%= book.getBookId() %>">
                     
+                    <div class="form-group">
+                        <label for="bookCode">Book Code</label>
+                        <input type="text" class="form-control" value="<%= book.getBookCode() %>" disabled>
+                        <div class="form-text">Book code cannot be changed</div>
+                    </div>
+
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="name">Item Name <span class="required">*</span></label>
-                            <input type="text" class="form-control" id="name" name="name" required 
-                                   placeholder="Enter item name">
+                            <label for="title">Book Title <span class="required">*</span></label>
+                            <input type="text" class="form-control" id="title" name="title" 
+                                   value="<%= book.getTitle() %>" required placeholder="Enter book title">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="author">Author <span class="required">*</span></label>
+                            <input type="text" class="form-control" id="author" name="author" 
+                                   value="<%= book.getAuthor() %>" required placeholder="Enter author name">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="isbn">ISBN</label>
+                            <input type="text" class="form-control" id="isbn" name="isbn" 
+                                   value="<%= book.getIsbn() != null ? book.getIsbn() : "" %>"
+                                   placeholder="Enter ISBN (optional)">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="publisher">Publisher</label>
+                            <input type="text" class="form-control" id="publisher" name="publisher" 
+                                   value="<%= book.getPublisher() != null ? book.getPublisher() : "" %>"
+                                   placeholder="Enter publisher name (optional)">
                         </div>
                     </div>
 
                     <div class="form-group full-width">
                         <label for="description">Description</label>
                         <textarea class="form-control" id="description" name="description" rows="3" 
-                                  placeholder="Enter item description (optional)"></textarea>
+                                  placeholder="Enter book description (optional)"><%= book.getDescription() != null ? book.getDescription() : "" %></textarea>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="price">Price <span class="required">*</span></label>
-                            <div class="price-input-group">
-                                <input type="number" class="form-control" id="price" name="price" required 
-                                       min="0.01" step="0.01" placeholder="0.00">
-                            </div>
-                            <div class="form-text">Enter price in Sri Lankan Rupees</div>
+                            <label for="price">Price (Rs.) <span class="required">*</span></label>
+                            <input type="number" class="form-control" id="price" name="price" 
+                                   value="<%= book.getPrice() %>" required min="0.01" step="0.01">
                         </div>
 
                         <div class="form-group">
                             <label for="stockQuantity">Stock Quantity <span class="required">*</span></label>
-                            <input type="number" class="form-control" id="stockQuantity" name="stockQuantity" required 
-                                   min="0" placeholder="Enter quantity">
-                            <div class="stock-indicator">
-                                <span>Stock Level:</span>
-                                <span class="stock-level" id="stockLevel">-</span>
-                            </div>
+                            <input type="number" class="form-control" id="stockQuantity" name="stockQuantity" 
+                                   value="<%= book.getStockQuantity() %>" required min="0">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="publicationYear">Publication Year</label>
+                            <input type="number" class="form-control" id="publicationYear" name="publicationYear" 
+                                   value="<%= book.getPublicationYear() > 0 ? book.getPublicationYear() : "" %>"
+                                   min="1000" max="2024" placeholder="Enter year (optional)">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="pages">Number of Pages</label>
+                            <input type="number" class="form-control" id="pages" name="pages" 
+                                   value="<%= book.getPages() > 0 ? book.getPages() : "" %>"
+                                   min="1" placeholder="Enter page count (optional)">
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label>Category <span class="required">*</span></label>
-                        <div class="category-selection">
-                            <div class="category-option" onclick="selectCategory('Electronics')">
-                                <input type="radio" name="category" value="Electronics" id="categoryElectronics" required>
-                                <div class="category-icon">📱</div>
-                                <div class="category-name">Electronics</div>
+                        <label>Language</label>
+                        <div class="language-selection">
+                            <div class="language-option <%= "Sinhala".equals(book.getLanguage()) ? "selected" : "" %>" onclick="selectLanguage('Sinhala')">
+                                <input type="radio" name="language" value="Sinhala" id="languageSinhala" 
+                                       <%= "Sinhala".equals(book.getLanguage()) ? "checked" : "" %>>
+                                <div class="language-icon">🇱🇰</div>
+                                <div class="language-name">Sinhala</div>
                             </div>
-                            <div class="category-option" onclick="selectCategory('Clothing')">
-                                <input type="radio" name="category" value="Clothing" id="categoryClothing" required>
-                                <div class="category-icon">👕</div>
-                                <div class="category-name">Clothing</div>
+                            <div class="language-option <%= "English".equals(book.getLanguage()) ? "selected" : "" %>" onclick="selectLanguage('English')">
+                                <input type="radio" name="language" value="English" id="languageEnglish" 
+                                       <%= "English".equals(book.getLanguage()) ? "checked" : "" %>>
+                                <div class="language-icon">🇬🇧</div>
+                                <div class="language-name">English</div>
                             </div>
-                            <div class="category-option" onclick="selectCategory('Books')">
-                                <input type="radio" name="category" value="Books" id="categoryBooks" required>
-                                <div class="category-icon">📚</div>
-                                <div class="category-name">Books</div>
-                            </div>
-                            <div class="category-option" onclick="selectCategory('Home')">
-                                <input type="radio" name="category" value="Home" id="categoryHome" required>
-                                <div class="category-icon">🏠</div>
-                                <div class="category-name">Home & Garden</div>
-                            </div>
-                            <div class="category-option" onclick="selectCategory('Sports')">
-                                <input type="radio" name="category" value="Sports" id="categorySports" required>
-                                <div class="category-icon">⚽</div>
-                                <div class="category-name">Sports</div>
-                            </div>
-                            <div class="category-option" onclick="selectCategory('Other')">
-                                <input type="radio" name="category" value="Other" id="categoryOther" required>
-                                <div class="category-icon">📦</div>
-                                <div class="category-name">Other</div>
+                            <div class="language-option <%= "Tamil".equals(book.getLanguage()) ? "selected" : "" %>" onclick="selectLanguage('Tamil')">
+                                <input type="radio" name="language" value="Tamil" id="languageTamil" 
+                                       <%= "Tamil".equals(book.getLanguage()) ? "checked" : "" %>>
+                                <div class="language-icon">🇮🇳</div>
+                                <div class="language-name">Tamil</div>
                             </div>
                         </div>
                     </div>
 
                     <div class="form-actions">
-                        <button type="submit" class="btn btn-primary" id="submitBtn">
-                            ✅ Add Item
-                        </button>
-                        <a href="item?action=list" class="btn btn-secondary">❌ Cancel</a>
+                        <button type="submit" class="btn btn-primary">💾 Update Book</button>
+                        <a href="book?action=view&id=<%= book.getBookId() %>" class="btn btn-secondary">👁️ View Details</a>
+                        <a href="book?action=list" class="btn btn-secondary">❌ Cancel</a>
                     </div>
                 </form>
             </div>
+
+            <% } else { %>
+            <!-- Book Not Found -->
+            <div class="alert alert-error">
+                ❌ Book not found or invalid book ID.
+            </div>
+            <div style="text-align: center; margin-top: 2rem;">
+                <a href="book?action=list" class="btn btn-primary">Back to Book List</a>
+            </div>
+            <% } %>
         </main>
     </div>
 
@@ -706,10 +609,10 @@
             }
         });
 
-        // Category Selection
-        function selectCategory(category) {
+        // Language Selection
+        function selectLanguage(language) {
             // Remove selected class from all options
-            document.querySelectorAll('.category-option').forEach(function(option) {
+            document.querySelectorAll('.language-option').forEach(function(option) {
                 option.classList.remove('selected');
             });
             
@@ -717,45 +620,26 @@
             event.currentTarget.classList.add('selected');
             
             // Check the radio button
-            document.getElementById('category' + category).checked = true;
+            document.getElementById('language' + language).checked = true;
         }
 
-        // Stock Level Indicator
-        const stockQuantityInput = document.getElementById('stockQuantity');
-        const stockLevelSpan = document.getElementById('stockLevel');
-
-        stockQuantityInput.addEventListener('input', function() {
-            const quantity = parseInt(this.value) || 0;
-            
-            stockLevelSpan.className = 'stock-level';
-            
-            if (quantity === 0) {
-                stockLevelSpan.textContent = 'Out of Stock';
-                stockLevelSpan.classList.add('stock-low');
-            } else if (quantity <= 10) {
-                stockLevelSpan.textContent = 'Low Stock';
-                stockLevelSpan.classList.add('stock-low');
-            } else if (quantity <= 50) {
-                stockLevelSpan.textContent = 'Medium Stock';
-                stockLevelSpan.classList.add('stock-medium');
-            } else {
-                stockLevelSpan.textContent = 'Good Stock';
-                stockLevelSpan.classList.add('stock-good');
-            }
-        });
-
         // Form Validation
-        document.getElementById('addItemForm').addEventListener('submit', function(e) {
-            const name = document.getElementById('name').value.trim();
+        document.getElementById('editBookForm').addEventListener('submit', function(e) {
+            const title = document.getElementById('title').value.trim();
+            const author = document.getElementById('author').value.trim();
             const price = parseFloat(document.getElementById('price').value);
             const stockQuantity = parseInt(document.getElementById('stockQuantity').value);
-            const category = document.querySelector('input[name="category"]:checked');
 
             let isValid = true;
             let errorMessage = '';
 
-            if (!name) {
-                errorMessage += 'Item name is required. ';
+            if (!title) {
+                errorMessage += 'Book title is required. ';
+                isValid = false;
+            }
+
+            if (!author) {
+                errorMessage += 'Author name is required. ';
                 isValid = false;
             }
 
@@ -769,11 +653,6 @@
                 isValid = false;
             }
 
-            if (!category) {
-                errorMessage += 'Please select a category. ';
-                isValid = false;
-            }
-
             if (!isValid) {
                 e.preventDefault();
                 alert('Please fix the following errors:\n' + errorMessage);
@@ -783,29 +662,16 @@
             // Add loading state
             const submitBtn = this.querySelector('button[type="submit"]');
             submitBtn.style.opacity = '0.7';
-            submitBtn.innerHTML = '⏳ Adding Item...';
+            submitBtn.innerHTML = '⏳ Updating Book...';
             submitBtn.disabled = true;
-        });
-
-        // Price input formatting
-        document.getElementById('price').addEventListener('input', function() {
-            const value = parseFloat(this.value);
-            if (!isNaN(value) && value > 0) {
-                this.style.borderColor = '#27ae60';
-            } else {
-                this.style.borderColor = '#ddd';
-            }
         });
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Add Item page loaded');
+            console.log('Edit Book page loaded');
             
-            // Focus on item name field
-            document.getElementById('name').focus();
-            
-            // Initialize stock level indicator
-            stockQuantityInput.dispatchEvent(new Event('input'));
+            // Focus on book title field
+            document.getElementById('title').focus();
         });
     </script>
 </body>

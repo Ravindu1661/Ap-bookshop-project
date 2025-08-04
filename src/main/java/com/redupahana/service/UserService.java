@@ -53,6 +53,13 @@ public class UserService {
         return userDAO.getUserById(userId);
     }
     
+    public User getUserByUsername(String username) throws SQLException {
+        if (!ValidationUtil.isNotEmpty(username)) {
+            throw new IllegalArgumentException("Username is required");
+        }
+        return userDAO.getUserByUsername(username);
+    }
+    
     public void updateUser(User user) throws SQLException {
         validateUserForUpdate(user);
         userDAO.updateUser(user);
