@@ -1,0 +1,104 @@
+<!DOCTYPE web-app PUBLIC
+"-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
+"http://java.sun.com/dtd/web-app_2_3.dtd" >
+
+<web-app>
+  <display-name>Archetype Created Web Application</display-name>
+  
+  <!-- Auth Controller Servlet -->
+  <servlet>
+    <servlet-name>AuthController</servlet-name>
+    <display-name>AuthController</display-name>
+    <description></description>
+    <servlet-class>com.redupahana.controller.AuthController</servlet-class>
+  </servlet>
+  
+  <!-- Bill Controller Servlet -->
+  <servlet>
+    <servlet-name>BillController</servlet-name>
+    <display-name>BillController</display-name>
+    <description></description>
+    <servlet-class>com.redupahana.controller.BillController</servlet-class>
+  </servlet>
+  
+  <!-- Customer Controller Servlet -->
+  <servlet>
+    <servlet-name>CustomerController</servlet-name>
+    <display-name>CustomerController</display-name>
+    <description></description>
+    <servlet-class>com.redupahana.controller.CustomerController</servlet-class>
+  </servlet>
+  
+  <!-- Dashboard Controller Servlet -->
+  <servlet>
+    <servlet-name>DashboardController</servlet-name>
+    <display-name>DashboardController</display-name>
+    <description></description>
+    <servlet-class>com.redupahana.controller.DashboardController</servlet-class>
+  </servlet>
+  
+  <!-- Item Controller Servlet -->
+  <servlet>
+    <servlet-name>ItemController</servlet-name>
+    <display-name>ItemController</display-name>
+    <description></description>
+    <servlet-class>com.redupahana.controller.ItemController</servlet-class>
+  </servlet>
+  
+  <!-- User Controller Servlet -->
+  <servlet>
+    <servlet-name>UserController</servlet-name>
+    <display-name>UserController</display-name>
+    <description></description>
+    <servlet-class>com.redupahana.controller.UserController</servlet-class>
+  </servlet>
+  
+  <!-- Servlet Mappings -->
+  <servlet-mapping>
+    <servlet-name>AuthController</servlet-name>
+    <url-pattern>/auth</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>BillController</servlet-name>
+    <url-pattern>/Bill</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>CustomerController</servlet-name>
+    <url-pattern>/Customer</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>DashboardController</servlet-name>
+    <url-pattern>/Dashboard</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>ItemController</servlet-name>
+    <url-pattern>/Item</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>UserController</servlet-name>
+    <url-pattern>/User</url-pattern>
+  </servlet-mapping>
+  
+  
+  <!-- Error Pages -->
+<error-page>
+  <error-code>404</error-code>
+  <location>/WEB-INF/view/error.jsp</location>
+</error-page>
+
+<error-page>
+  <error-code>500</error-code>
+  <location>/WEB-INF/view/error.jsp</location>
+</error-page>
+
+<error-page>
+  <exception-type>java.lang.Exception</exception-type>
+  <location>/WEB-INF/view/error.jsp</location>
+</error-page>
+
+</web-app>
