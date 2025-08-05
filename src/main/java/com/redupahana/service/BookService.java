@@ -1,4 +1,4 @@
-// BookService.java
+// BookService.java - Fixed Version
 package com.redupahana.service;
 
 import java.sql.SQLException;
@@ -31,9 +31,15 @@ public class BookService {
     public void addBook(Book book) throws SQLException {
         validateBook(book);
         
-        // Generate book code if not provided
+        // Generate unique book code if not provided
         if (book.getBookCode() == null || book.getBookCode().isEmpty()) {
-            book.setBookCode(BillNumberGenerator.generateItemCode("Books"));
+            book.setBookCode(generateUniqueBookCode());
+        } else {
+            // Check if provided code already exists
+            Book existingBook = bookDAO.getBookByCode(book.getBookCode());
+            if (existingBook != null) {
+                throw new IllegalArgumentException("Book code '" + book.getBookCode() + "' already exists. Please use a different code.");
+            }
         }
         
         // Check for duplicate ISBN
@@ -45,6 +51,50 @@ public class BookService {
         }
         
         bookDAO.addBook(book);
+    }
+    
+    /**
+     * Generate a unique book code by checking existing codes in database
+     */
+    private String generateUniqueBookCode() throws SQLException {
+        String baseCode = "BOO";
+        int counter = 1;
+        String bookCode;
+        
+        do {
+            bookCode = baseCode + String.format("%03d", counter);
+            Book existingBook = bookDAO.getBookByCode(bookCode);
+            if (existingBook == null) {
+                return bookCode; // Found unique code
+            }
+            counter++;
+        } while (counter <= 9999); // Prevent infinite loop
+        
+        // If we reach here, generate timestamp-based code
+        return baseCode + System.currentTimeMillis() % 100000;
+    }
+    
+    /**
+     * Alternative method: Get next available book code number
+     */
+    private String generateSequentialBookCode() throws SQLException {
+        List<Book> allBooks = bookDAO.getAllBooks();
+        int maxNumber = 0;
+        
+        for (Book book : allBooks) {
+            String code = book.getBookCode();
+            if (code != null && code.startsWith("BOO") && code.length() >= 6) {
+                try {
+                    String numberPart = code.substring(3);
+                    int number = Integer.parseInt(numberPart);
+                    maxNumber = Math.max(maxNumber, number);
+                } catch (NumberFormatException e) {
+                    // Skip non-numeric codes
+                }
+            }
+        }
+        
+        return "BOO" + String.format("%03d", maxNumber + 1);
     }
     
     public List<Book> getAllBooks() throws SQLException {
@@ -122,6 +172,42 @@ public class BookService {
             throw new IllegalArgumentException("Language is required");
         }
         return bookDAO.getBooksByLanguage(language);
+    }
+    
+    /**
+     * Check if a book code is available
+     */
+    public boolean isBookCodeAvailable(String bookCode) throws SQLException {
+        if (bookCode == null || bookCode.trim().isEmpty()) {
+            return false;
+        }
+        Book existingBook = bookDAO.getBookByCode(bookCode);
+        return existingBook == null;
+    }
+    
+    /**
+     * Suggest available book codes if provided code exists
+     */
+    public String suggestAlternativeBookCode(String requestedCode) throws SQLException {
+        if (isBookCodeAvailable(requestedCode)) {
+            return requestedCode;
+        }
+        
+        // Extract base and try with incremental numbers
+        String base = requestedCode.replaceAll("\\d+$", "");
+        if (base.equals(requestedCode)) {
+            base = requestedCode + "_";
+        }
+        
+        for (int i = 1; i <= 99; i++) {
+            String alternative = base + String.format("%02d", i);
+            if (isBookCodeAvailable(alternative)) {
+                return alternative;
+            }
+        }
+        
+        // Fallback to timestamp
+        return base + System.currentTimeMillis() % 1000;
     }
     
     private void validateBook(Book book) {

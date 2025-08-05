@@ -1,7 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.util.List"%>
 <%@ page import="com.redupahana.model.Customer"%>
-<%@ page import="com.redupahana.model.Item"%>
+<%@ page import="com.redupahana.model.Book"%>
 <%@ page import="com.redupahana.model.User"%>
 <%@ page import="com.redupahana.util.Constants"%>
 <%
@@ -12,7 +12,7 @@
     }
     
     List<Customer> customers = (List<Customer>) request.getAttribute("customers");
-    List<Item> items = (List<Item>) request.getAttribute("items");
+    List<Book> books = (List<Book>) request.getAttribute("books");
     String errorMessage = (String) request.getAttribute("errorMessage");
     String successMessage = (String) request.getAttribute("successMessage");
 %>
@@ -21,7 +21,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Bill - Redupahana POS</title>
+    <title>POS System - Create Bill | Redupahana</title>
     <style>
         * {
             margin: 0;
@@ -31,126 +31,77 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f6fa;
-            overflow-x: hidden;
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
         }
 
-        /* Sidebar Styles */
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: -280px;
-            width: 280px;
-            height: 100vh;
-            background: #2c3e50;
-            transition: left 0.3s ease;
-            z-index: 1000;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-        }
-
-        .sidebar.active {
-            left: 0;
-        }
-
-        .sidebar-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            text-align: center;
-        }
-
-        .sidebar-header h2 {
-            color: #fff;
-            font-size: 1.3rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .sidebar-header p {
-            color: #bdc3c7;
-            font-size: 0.9rem;
-        }
-
-        .sidebar-menu {
-            padding: 1rem 0;
-        }
-
-        .menu-item {
-            display: block;
-            padding: 1rem 1.5rem;
-            color: #ecf0f1;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            border-left: 3px solid transparent;
-            position: relative;
-        }
-
-        .menu-item:hover,
-        .menu-item.active {
-            background-color: rgba(255,255,255,0.1);
-            border-left-color: #95a5a6;
-            color: #fff;
-        }
-
-        .menu-item i {
-            margin-right: 0.8rem;
-            font-size: 1.1rem;
-            width: 20px;
-            text-align: center;
-        }
-
-        /* Icon classes using Unicode */
-        .icon-dashboard::before { content: "📊"; }
-        .icon-users::before { content: "👥"; }
-        .icon-books::before { content: "📚"; }
-        .icon-customers::before { content: "🏢"; }
-        .icon-bills::before { content: "🧾"; }
-        .icon-logout::before { content: "🚪"; }
-
-        /* Main Content */
-        .main-content {
-            margin-left: 0;
-            min-height: 100vh;
-            transition: margin-left 0.3s ease;
-        }
-
-        /* Top Navigation */
-        .topbar {
+        /* Header */
+        .header {
             background: #fff;
+            border-bottom: 2px solid #e9ecef;
             padding: 1rem 2rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 999;
         }
 
-        .menu-toggle {
-            background: #2c3e50;
-            color: white;
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .back-btn {
+            background: #6c757d;
             border: none;
-            padding: 0.8rem;
+            color: white;
+            padding: 0.8rem 1.5rem;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 1.1rem;
-            transition: background-color 0.3s ease;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
         }
 
-        .menu-toggle:hover {
-            background: #34495e;
+        .back-btn:hover {
+            background: #5a6268;
+            transform: translateY(-1px);
         }
 
-        .page-title {
-            font-size: 1.5rem;
+        .store-title {
+            font-size: 1.8rem;
+            font-weight: 700;
             color: #2c3e50;
-            font-weight: 600;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-top: 0.2rem;
         }
 
         .user-info {
             display: flex;
             align-items: center;
             gap: 1rem;
-            color: #2c3e50;
+            background: #f8f9fa;
+            padding: 0.8rem 1.2rem;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
         }
 
         .user-avatar {
@@ -163,115 +114,86 @@
             justify-content: center;
             color: white;
             font-weight: bold;
-            font-size: 0.9rem;
-        }
-
-        /* Overlay for mobile */
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 999;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        /* Content Area */
-        .content-area {
-            padding: 2rem;
-        }
-
-        .page-header {
-            background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.07);
-        }
-
-        .page-header h1 {
-            color: #2c3e50;
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .breadcrumb {
-            color: #7f8c8d;
-            font-size: 0.9rem;
-        }
-
-        .breadcrumb a {
-            color: #2c3e50;
-            text-decoration: none;
-        }
-
-        .breadcrumb a:hover {
-            text-decoration: underline;
+            font-size: 1rem;
         }
 
         /* Alert Messages */
         .alert {
-            padding: 1rem 1.5rem;
+            max-width: 1400px;
+            margin: 1rem auto;
+            padding: 1rem 2rem;
             border-radius: 8px;
-            margin-bottom: 1.5rem;
-            border-left: 4px solid;
-        }
-
-        .alert-error {
-            background-color: #f8d7da;
-            border-left-color: #e74c3c;
-            color: #721c24;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+            animation: slideIn 0.5s ease;
         }
 
         .alert-success {
-            background-color: #d4edda;
-            border-left-color: #27ae60;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
             color: #155724;
         }
 
-        /* POS Interface Container */
-        .pos-container {
-            display: grid;
-            grid-template-columns: 1fr 400px;
-            gap: 1.5rem;
-            height: calc(100vh - 200px);
+        .alert-error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
         }
 
-        /* Left Panel - Item Selection & Bill Items */
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        /* Left Panel - Products & Customer */
         .left-panel {
             background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.07);
-            display: flex;
-            flex-direction: column;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border: 1px solid #dee2e6;
         }
 
         .panel-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid #eee;
             background: #2c3e50;
             color: white;
-            border-radius: 12px 12px 0 0;
+            padding: 1.5rem 2rem;
+            border-radius: 8px 8px 0 0;
         }
 
-        .panel-header h3 {
-            margin: 0;
-            font-size: 1.2rem;
+        .panel-header h2 {
+            font-size: 1.3rem;
+            margin-bottom: 0.3rem;
         }
 
-        /* Customer Selection */
+        .panel-header p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* Customer Section */
         .customer-section {
-            padding: 1.5rem;
-            border-bottom: 1px solid #eee;
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid #dee2e6;
+            background: #f8f9fa;
+        }
+
+        .customer-controls {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 1rem;
+            align-items: end;
         }
 
         .form-group {
@@ -282,20 +204,22 @@
             display: block;
             margin-bottom: 0.5rem;
             font-weight: 600;
-            color: #2c3e50;
+            color: #495057;
+            font-size: 0.95rem;
         }
 
         .required {
-            color: #e74c3c;
+            color: #dc3545;
         }
 
         .form-control {
             width: 100%;
             padding: 0.8rem;
-            border: 1px solid #ddd;
-            border-radius: 8px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
             font-size: 1rem;
-            transition: border-color 0.3s ease;
+            transition: all 0.3s ease;
+            background: white;
         }
 
         .form-control:focus {
@@ -304,67 +228,176 @@
             box-shadow: 0 0 0 2px rgba(44, 62, 80, 0.1);
         }
 
-        /* Items Grid */
-        .items-grid {
-            flex: 1;
-            padding: 1.5rem;
-            overflow-y: auto;
+        .add-customer-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.2rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            font-size: 0.9rem;
         }
 
-        .items-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 1rem;
+        .add-customer-btn:hover {
+            background: #218838;
+        }
+
+        /* Customer Search Results */
+        .customer-search {
+            position: relative;
+        }
+
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ced4da;
+            border-top: none;
+            border-radius: 0 0 6px 6px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 50;
+            display: none;
+        }
+
+        .search-result-item {
+            padding: 0.8rem;
+            cursor: pointer;
+            border-bottom: 1px solid #f8f9fa;
+            transition: background-color 0.3s ease;
+        }
+
+        .search-result-item:hover {
+            background: #f8f9fa;
+        }
+
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+
+        /* Product Search */
+        .product-search {
+            padding: 1.5rem 2rem;
+            background: white;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #2c3e50;
+            box-shadow: 0 0 0 2px rgba(44, 62, 80, 0.1);
+        }
+
+        /* Products Table */
+        .products-table-container {
+            padding: 1.5rem 2rem;
             max-height: 400px;
             overflow-y: auto;
         }
 
-        .item-card {
-            border: 2px solid #e0e0e0;
-            border-radius: 12px;
-            padding: 1rem;
+        .products-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        .products-table th,
+        .products-table td {
+            padding: 0.8rem;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .products-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .products-table tbody tr {
             cursor: pointer;
             transition: all 0.3s ease;
-            text-align: center;
+        }
+
+        .products-table tbody tr:hover {
             background: #f8f9fa;
         }
 
-        .item-card:hover {
-            border-color: #2c3e50;
-            background: #e8f4fd;
-            transform: translateY(-2px);
-        }
-
-        .item-card.selected {
-            border-color: #27ae60;
+        .products-table tbody tr.selected {
             background: #d4edda;
         }
 
-        .item-card h4 {
-            color: #2c3e50;
-            margin-bottom: 0.5rem;
-            font-size: 1rem;
+        .stock-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
         }
 
-        .item-price {
-            color: #27ae60;
-            font-weight: bold;
-            font-size: 1.1rem;
-            margin-bottom: 0.5rem;
+        .stock-badge.high {
+            background: #d4edda;
+            color: #155724;
         }
 
-        .item-stock {
-            color: #7f8c8d;
-            font-size: 0.9rem;
+        .stock-badge.medium {
+            background: #fff3cd;
+            color: #856404;
         }
 
-        /* Right Panel - Bill Summary */
+        .stock-badge.low {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .price-cell {
+            font-weight: 600;
+            color: #28a745;
+        }
+
+        /* Right Panel - Bill */
         .right-panel {
             background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.07);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border: 1px solid #dee2e6;
             display: flex;
             flex-direction: column;
+            max-height: calc(100vh - 200px);
+        }
+
+        .bill-header {
+            background: #28a745;
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .bill-header h2 {
+            font-size: 1.3rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .bill-number {
+            font-size: 0.9rem;
+            opacity: 0.9;
         }
 
         /* Bill Items */
@@ -372,105 +405,172 @@
             flex: 1;
             padding: 1.5rem;
             overflow-y: auto;
+            min-height: 250px;
         }
 
         .bill-item {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 1rem;
+            margin-bottom: 0.8rem;
+            border: 1px solid #dee2e6;
+            transition: all 0.3s ease;
+        }
+
+        .bill-item:hover {
+            background: #e9ecef;
+        }
+
+        .bill-item-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            padding: 1rem;
-            border: 1px solid #eee;
-            border-radius: 8px;
-            margin-bottom: 0.5rem;
-            background: #f8f9fa;
+            align-items: flex-start;
+            margin-bottom: 0.8rem;
         }
 
-        .bill-item-info {
-            flex: 1;
-        }
-
-        .bill-item-name {
+        .bill-item-info h4 {
+            color: #495057;
+            font-size: 0.95rem;
+            margin-bottom: 0.3rem;
             font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 0.25rem;
         }
 
         .bill-item-details {
-            font-size: 0.9rem;
-            color: #7f8c8d;
+            font-size: 0.85rem;
+            color: #6c757d;
         }
 
         .quantity-controls {
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            background: white;
+            padding: 0.4rem;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
         }
 
         .qty-btn {
-            width: 30px;
-            height: 30px;
+            width: 28px;
+            height: 28px;
             border: none;
-            border-radius: 50%;
+            border-radius: 4px;
             background: #2c3e50;
             color: white;
             cursor: pointer;
             font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
         .qty-btn:hover {
-            background: #34495e;
+            background: #495057;
         }
 
         .qty-input {
-            width: 60px;
+            width: 50px;
             text-align: center;
-            border: 1px solid #ddd;
+            border: 1px solid #ced4da;
             border-radius: 4px;
-            padding: 0.25rem;
+            padding: 0.3rem;
+            font-weight: 500;
         }
 
         .remove-btn {
-            background: #e74c3c;
+            background: #dc3545;
             color: white;
             border: none;
+            padding: 0.3rem 0.6rem;
             border-radius: 4px;
-            padding: 0.5rem;
             cursor: pointer;
             font-size: 0.8rem;
+            transition: all 0.3s ease;
         }
 
         .remove-btn:hover {
-            background: #c0392b;
+            background: #c82333;
+        }
+
+        .item-total {
+            font-weight: 600;
+            color: #28a745;
+            font-size: 1rem;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: #6c757d;
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            color: #495057;
+            margin-bottom: 0.5rem;
         }
 
         /* Bill Totals */
         .bill-totals {
             padding: 1.5rem;
             background: #f8f9fa;
-            border-top: 1px solid #eee;
-            border-radius: 0 0 12px 12px;
+            border-top: 1px solid #dee2e6;
         }
 
         .discount-section {
             margin-bottom: 1rem;
         }
 
+        .discount-input {
+            display: flex;
+            gap: 0.5rem;
+            align-items: end;
+        }
+
+        .discount-input input {
+            flex: 1;
+        }
+
+        .apply-discount-btn {
+            background: #17a2b8;
+            color: white;
+            border: none;
+            padding: 0.8rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .apply-discount-btn:hover {
+            background: #138496;
+        }
+
         .total-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 0.5rem;
-            color: #2c3e50;
+            align-items: center;
+            padding: 0.4rem 0;
+            font-size: 0.95rem;
+            color: #495057;
         }
 
         .total-row.final {
-            font-size: 1.3rem;
-            font-weight: bold;
-            padding-top: 0.5rem;
-            border-top: 2px solid #2c3e50;
-            color: #27ae60;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #28a745;
+            border-top: 2px solid #28a745;
+            padding-top: 0.8rem;
+            margin-top: 0.8rem;
         }
 
         /* Action Buttons */
@@ -484,373 +584,591 @@
             flex: 1;
             padding: 1rem;
             border: none;
-            border-radius: 8px;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 1rem;
             font-weight: 600;
             transition: all 0.3s ease;
             text-decoration: none;
             text-align: center;
-            display: inline-block;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
         }
 
         .btn-success {
-            background: #27ae60;
+            background: #28a745;
             color: white;
         }
 
         .btn-success:hover {
-            background: #229954;
-            transform: translateY(-2px);
+            background: #218838;
+            transform: translateY(-1px);
         }
 
-        .btn-secondary {
-            background: #7f8c8d;
+        .btn-clear {
+            background: #6c757d;
             color: white;
         }
 
-        .btn-secondary:hover {
-            background: #95a5a6;
-            transform: translateY(-2px);
+        .btn-clear:hover {
+            background: #5a6268;
+            transform: translateY(-1px);
         }
 
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 3rem;
-            color: #7f8c8d;
+        /* Add Customer Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
         }
 
-        .empty-state h3 {
-            margin-bottom: 1rem;
-            color: #2c3e50;
-        }
-
-        /* Quick Actions */
-        .quick-actions {
-            padding: 1rem 1.5rem;
-            border-top: 1px solid #eee;
+        .modal.active {
             display: flex;
-            gap: 0.5rem;
         }
 
-        .quick-btn {
-            padding: 0.5rem 1rem;
-            border: 1px solid #2c3e50;
+        .modal-content {
             background: white;
-            color: #2c3e50;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
+            border-radius: 8px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: modalSlideIn 0.3s ease;
+            border: 1px solid #dee2e6;
         }
 
-        .quick-btn:hover {
-            background: #2c3e50;
-            color: white;
+        @keyframes modalSlideIn {
+            from { opacity: 0; transform: translateY(-50px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Responsive Design */
-        @media (min-width: 1024px) {
-            .sidebar {
-                left: 0;
-            }
-            
-            .main-content {
-                margin-left: 280px;
-            }
-            
-            .menu-toggle {
-                display: none;
-            }
+        .modal-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #dee2e6;
         }
 
-        @media (max-width: 1200px) {
-            .pos-container {
-                grid-template-columns: 1fr;
-                height: auto;
-            }
-            
-            .right-panel {
-                order: -1;
-            }
+        .modal-header h3 {
+            color: #495057;
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
         }
 
-        @media (max-width: 768px) {
-            .topbar {
-                padding: 1rem;
-            }
-            
-            .content-area {
-                padding: 1rem;
-            }
-            
-            .page-header {
-                padding: 1.5rem;
-            }
-            
-            .items-container {
-                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            }
-            
-            .user-info span {
-                display: none;
-            }
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
         }
 
         /* Loading State */
         .loading {
-            opacity: 0.7;
+            position: relative;
             pointer-events: none;
+            opacity: 0.7;
         }
 
         .loading::after {
-            content: " Processing...";
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 16px;
+            height: 16px;
+            margin: -8px 0 0 -8px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #2c3e50;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .right-panel {
+                order: -1;
+                max-height: 400px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .main-container {
+                padding: 0 1rem;
+                margin: 1rem auto;
+            }
+            
+            .customer-controls {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .products-table {
+                font-size: 0.9rem;
+            }
+            
+            .products-table th,
+            .products-table td {
+                padding: 0.6rem 0.4rem;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
-  <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <h2>Redupahana</h2>
-            <p>Admin Panel</p>
-        </div>
-        <nav class="sidebar-menu">
-            <a href="dashboard" class="menu-item">
-                <i class="icon-dashboard"></i>
-                Dashboard
-            </a>
-            <% if (Constants.ROLE_ADMIN.equals(loggedUser.getRole())) { %>
-            <a href="user?action=list" class="menu-item">
-                <i class="icon-users"></i>
-                User Management
-            </a>
-            <% } %>
-            <a href="book?action=list" class="menu-item active">
-                <i class="icon-books"></i>
-                Book Management
-            </a>
-            <a href="customer?action=list" class="menu-item">
-                <i class="icon-customers"></i>
-                Customer Management
-            </a>
-            <a href="bill?action=list" class="menu-item">
-                <i class="icon-bills"></i>
-                Bill Management
-            </a>
-            <a href="auth?action=logout" class="menu-item" style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
-                <i class="icon-logout"></i>
-                Logout
-            </a>
-        </nav>
-    </div>
-
-
-    <!-- Overlay for mobile -->
-    <div class="overlay" id="overlay"></div>
-
-    <!-- Main Content -->
-    <div class="main-content" id="mainContent">
-        <!-- Top Navigation -->
-        <header class="topbar">
-            <div style="display: flex; align-items: center; gap: 1rem;">
-                <button class="menu-toggle" id="menuToggle">☰</button>
-                <h1 class="page-title">🧾 Create New Bill</h1>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <a href="bill?action=list" class="back-btn">
+                    ← Back to Bills
+                </a>
+                <div>
+                    <div class="store-title">🏪 Redupahana POS System</div>
+                    <div class="subtitle">Create New Bill</div>
+                </div>
             </div>
             <div class="user-info">
                 <div class="user-avatar"><%= loggedUser.getFullName().substring(0,1).toUpperCase() %></div>
-                <span><%= loggedUser.getFullName() %></span>
-            </div>
-        </header>
-
-        <!-- Content Area -->
-        <main class="content-area">
-            <!-- Page Header -->
-            <div class="page-header">
-                <h1>🏪 Point of Sale System</h1>
-                <div class="breadcrumb">
-                    <a href="dashboard">Dashboard</a> &gt; 
-                    <a href="bill?action=list">Bills</a> &gt; 
-                    Create Bill
+                <div>
+                    <div style="font-weight: 600;"><%= loggedUser.getFullName() %></div>
+                    <div style="font-size: 0.8rem; color: #6c757d;"><%= loggedUser.getRole() %></div>
                 </div>
             </div>
+        </div>
+    </header>
 
-            <!-- Success Message -->
-            <% if (successMessage != null) { %>
-            <div class="alert alert-success">
-                ✅ <%= successMessage %>
-            </div>
-            <% } %>
-
-            <!-- Error Message -->
-            <% if (errorMessage != null) { %>
-            <div class="alert alert-error">
-                ❌ <%= errorMessage %>
-            </div>
-            <% } %>
-
-            <!-- POS Interface -->
-            <form action="bill" method="post" id="createBillForm">
-                <input type="hidden" name="action" value="create">
-                
-                <div class="pos-container">
-                    <!-- Left Panel - Items & Customer -->
-                    <div class="left-panel">
-                        <div class="panel-header">
-                            <h3>📦 Select Items</h3>
-                        </div>
-                        
-                        <!-- Customer Selection -->
-                        <div class="customer-section">
-                            <div class="form-group">
-                                <label for="customerId">👤 Select Customer <span class="required">*</span></label>
-                                <select class="form-control" id="customerId" name="customerId" required>
-                                    <option value="">Choose a customer...</option>
-                                    <% if (customers != null) {
-                                        for (Customer customer : customers) { %>
-                                    <option value="<%= customer.getCustomerId() %>">
-                                        <%= customer.getName() %> - <%= customer.getAccountNumber() %>
-                                    </option>
-                                    <% } } %>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Items Grid -->
-                        <div class="items-grid">
-                            <div class="items-container">
-                                <% if (items != null && !items.isEmpty()) {
-                                    for (Item item : items) { %>
-                                <div class="item-card" onclick="addItemToBill(<%= item.getItemId() %>, '<%= item.getName() %>', <%= item.getPrice() %>, <%= item.getStockQuantity() %>)">
-                                    <h4><%= item.getName() %></h4>
-                                    <div class="item-price">Rs. <%= String.format("%.2f", item.getPrice()) %></div>
-                                    <div class="item-stock">Stock: <%= item.getStockQuantity() %></div>
-                                </div>
-                                <% } } else { %>
-                                <div class="empty-state">
-                                    <h3>No Items Available</h3>
-                                    <p>Please add items to inventory first</p>
-                                </div>
-                                <% } %>
-                            </div>
-                        </div>
-
-                        <!-- Quick Actions -->
-                        <div class="quick-actions">
-                            <button type="button" class="quick-btn" onclick="clearBill()">🗑️ Clear All</button>
-                            <button type="button" class="quick-btn" onclick="addDiscount()">💰 Add Discount</button>
-                        </div>
-                    </div>
-
-                    <!-- Right Panel - Bill Summary -->
-                    <div class="right-panel">
-                        <div class="panel-header">
-                            <h3>🧾 Bill Summary</h3>
-                        </div>
-
-                        <!-- Bill Items -->
-                        <div class="bill-items" id="billItems">
-                            <div class="empty-state">
-                                <h3>No Items Selected</h3>
-                                <p>Click on items to add them to the bill</p>
-                            </div>
-                        </div>
-
-                        <!-- Discount Section -->
-                        <div class="bill-totals">
-                            <div class="discount-section">
-                                <div class="form-group">
-                                    <label for="discount">💰 Discount (Rs.)</label>
-                                    <input type="number" class="form-control" id="discount" name="discount" 
-                                           value="0" min="0" step="0.01" onchange="calculateTotals()">
-                                </div>
-                            </div>
-
-                            <!-- Totals -->
-                            <div class="total-row">
-                                <span>Sub Total:</span>
-                                <span id="subTotal">Rs. 0.00</span>
-                            </div>
-                            <div class="total-row">
-                                <span>Discount:</span>
-                                <span id="discountAmount">Rs. 0.00</span>
-                            </div>
-                            <div class="total-row">
-                                <span>Tax (5%):</span>
-                                <span id="taxAmount">Rs. 0.00</span>
-                            </div>
-                            <div class="total-row final">
-                                <span>💰 TOTAL:</span>
-                                <span id="totalAmount">Rs. 0.00</span>
-                            </div>
-                        </div>
-
-                        <!-- Action Buttons -->
-                        <div class="action-buttons">
-                            <button type="submit" class="btn btn-success" id="submitBtn">
-                                ✅ Create Bill
-                            </button>
-                            <a href="bill?action=list" class="btn btn-secondary">
-                                ❌ Cancel
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Hidden input fields for form submission -->
-                <div id="hiddenInputs"></div>
-            </form>
-        </main>
+    <!-- Alert Messages -->
+    <% if (successMessage != null) { %>
+    <div class="alert alert-success">
+        ✅ <%= successMessage %>
     </div>
+    <% } %>
+
+    <% if (errorMessage != null) { %>
+    <div class="alert alert-error">
+        ❌ <%= errorMessage %>
+    </div>
+    <% } %>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Left Panel - Products & Customer -->
+        <div class="left-panel">
+            <div class="panel-header">
+                <h2>🛍️ Product Selection</h2>
+                <p>Choose customer and products for billing</p>
+            </div>
+
+            <!-- Customer Section -->
+            <div class="customer-section">
+                <div class="customer-controls">
+                    <div class="form-group">
+                        <label for="customerSearch">👤 Search & Select Customer <span class="required">*</span></label>
+                        <div class="customer-search">
+                            <input type="text" class="form-control" id="customerSearch" 
+                                   placeholder="Type customer name, phone, or account number..." 
+                                   onkeyup="searchCustomers(this.value)" 
+                                   onfocus="showCustomerSearch()" 
+                                   onblur="hideCustomerSearch()">
+                            <div class="search-results" id="customerSearchResults"></div>
+                        </div>
+                        <input type="hidden" id="selectedCustomerId" name="customerId">
+                        <div id="selectedCustomerInfo" style="margin-top: 0.5rem; font-size: 0.9rem; color: #28a745; font-weight: 500;"></div>
+                    </div>
+                    <button type="button" class="add-customer-btn" onclick="openAddCustomerModal()">
+                        ➕ Add New Customer
+                    </button>
+                </div>
+            </div>
+
+            <!-- Product Search -->
+            <div class="product-search">
+                <input type="text" class="search-input" placeholder="🔍 Search products by title, author, or ISBN..." 
+                       onkeyup="searchProducts(this.value)">
+            </div>
+
+            <!-- Products Table -->
+            <div class="products-table-container">
+                <table class="products-table" id="productsTable">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Author</th>
+                            <th>Price</th>
+                            <th>Stock</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productsTableBody">
+                        <% if (books != null && !books.isEmpty()) {
+                            for (Book book : books) { %>
+                        <tr onclick="selectProduct(<%= book.getBookId() %>, '<%= book.getTitle().replace("'", "\\'") %>', '<%= book.getAuthor() != null ? book.getAuthor().replace("'", "\\'") : "" %>', <%= book.getPrice() %>, <%= book.getStockQuantity() %>)">
+                            <td><strong><%= book.getTitle() %></strong></td>
+                            <td><%= book.getAuthor() != null ? book.getAuthor() : "N/A" %></td>
+                            <td class="price-cell">Rs. <%= String.format("%.2f", book.getPrice()) %></td>
+                            <td>
+                                <span class="stock-badge <%= book.getStockQuantity() > 10 ? "high" : (book.getStockQuantity() > 5 ? "medium" : "low") %>">
+                                    <%= book.getStockQuantity() %>
+                                </span>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm" style="background: #28a745; color: white; padding: 0.3rem 0.8rem; border: none; border-radius: 4px; font-size: 0.8rem;"
+                                        onclick="event.stopPropagation(); addProductToBill(<%= book.getBookId() %>, '<%= book.getTitle().replace("'", "\\'") %>', '<%= book.getAuthor() != null ? book.getAuthor().replace("'", "\\'") : "" %>', <%= book.getPrice() %>, <%= book.getStockQuantity() %>)">
+                                    Add
+                                </button>
+                            </td>
+                        </tr>
+                        <% } } else { %>
+                        <tr>
+                            <td colspan="5" class="empty-state">
+                                <div class="empty-state-icon">📚</div>
+                                <h3>No Products Available</h3>
+                                <p>Please add products to inventory first</p>
+                            </td>
+                        </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Right Panel - Bill -->
+        <div class="right-panel">
+            <div class="bill-header">
+                <h2>🧾 Current Bill</h2>
+                <div class="bill-number">Bill #<span id="billNumber"><%= System.currentTimeMillis() %></span></div>
+            </div>
+
+            <!-- Bill Items -->
+            <div class="bill-items" id="billItems">
+                <div class="empty-state">
+                    <div class="empty-state-icon">🛒</div>
+                    <h3>No Items Added</h3>
+                    <p>Select products to add them to the bill</p>
+                </div>
+            </div>
+
+            <!-- Bill Totals -->
+            <div class="bill-totals">
+                <div class="discount-section">
+                    <div class="form-group">
+                        <label for="discount">💰 Discount (Rs.)</label>
+                        <div class="discount-input">
+                            <input type="number" class="form-control" id="discount" name="discount" 
+                                   value="0" min="0" step="0.01" placeholder="0.00">
+                            <button type="button" class="apply-discount-btn" onclick="calculateTotals()">Apply</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="total-row">
+                    <span>Subtotal:</span>
+                    <span id="subTotal">Rs. 0.00</span>
+                </div>
+                <div class="total-row">
+                    <span>Discount:</span>
+                    <span id="discountAmount">Rs. 0.00</span>
+                </div>
+                <div class="total-row">
+                    <span>Tax (5%):</span>
+                    <span id="taxAmount">Rs. 0.00</span>
+                </div>
+                <div class="total-row final">
+                    <span>💳 TOTAL:</span>
+                    <span id="totalAmount">Rs. 0.00</span>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button type="button" class="btn btn-success" onclick="createBill()" id="createBillBtn">
+                    ✅ Create Bill
+                </button>
+                <button type="button" class="btn btn-clear" onclick="clearBill()">
+                    🗑️ Clear All
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Customer Modal -->
+    <div class="modal" id="addCustomerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>➕ Add New Customer</h3>
+                <p>Fill in customer details to add them to the system</p>
+            </div>
+            
+            <form id="addCustomerForm" onsubmit="handleAddCustomerSubmit(event)">
+                <div class="form-group">
+                    <label for="newCustomerName">Customer Name <span class="required">*</span></label>
+                    <input type="text" class="form-control" id="newCustomerName" name="name" required 
+                           placeholder="Enter customer full name">
+                </div>
+
+                <div class="form-group">
+                    <label for="newCustomerPhone">Phone Number <span class="required">*</span></label>
+                    <input type="tel" class="form-control" id="newCustomerPhone" name="phone" required 
+                           placeholder="Enter 10-digit phone number" pattern="[0-9]{10}">
+                </div>
+
+                <div class="form-group">
+                    <label for="newCustomerEmail">Email Address</label>
+                    <input type="email" class="form-control" id="newCustomerEmail" name="email"
+                           placeholder="Enter email address (optional)">
+                </div>
+
+                <div class="form-group">
+                    <label for="newCustomerAddress">Address</label>
+                    <textarea class="form-control" id="newCustomerAddress" name="address" rows="3" 
+                              placeholder="Enter customer address (optional)"></textarea>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-success" id="addCustomerBtn">✅ Add Customer</button>
+                    <button type="button" class="btn btn-clear" onclick="closeAddCustomerModal()">❌ Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Hidden Form for Bill Submission -->
+    <form action="bill" method="post" id="createBillForm" style="display: none;">
+        <input type="hidden" name="action" value="create">
+        <input type="hidden" name="customerId" id="hiddenCustomerId">
+        <input type="hidden" name="discount" id="hiddenDiscount">
+        <div id="hiddenInputs"></div>
+    </form>
 
     <script>
         // Global variables
         let billItems = [];
-        let itemRowCount = 0;
+        let allProducts = [];
+        let allCustomers = [];
+        let customerSearchTimeout;
 
-        // Sidebar Toggle
-        const menuToggle = document.getElementById('menuToggle');
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('overlay');
+        // Store data for search functionality
+        <% if (books != null) { %>
+        allProducts = [
+            <% for (int i = 0; i < books.size(); i++) {
+                Book book = books.get(i); %>
+            {
+                id: <%= book.getBookId() %>,
+                title: '<%= book.getTitle().replace("'", "\\'") %>',
+                author: '<%= book.getAuthor() != null ? book.getAuthor().replace("'", "\\'") : "" %>',
+                price: <%= book.getPrice() %>,
+                stock: <%= book.getStockQuantity() %>,
+                isbn: '<%= book.getIsbn() != null ? book.getIsbn() : "" %>'
+            }<%= i < books.size() - 1 ? "," : "" %>
+            <% } %>
+        ];
+        <% } %>
 
-        function toggleSidebar() {
-            sidebar.classList.toggle('active');
-            overlay.classList.toggle('active');
+        <% if (customers != null) { %>
+        allCustomers = [
+            <% for (int i = 0; i < customers.size(); i++) {
+                Customer customer = customers.get(i); %>
+            {
+                id: <%= customer.getCustomerId() %>,
+                name: '<%= customer.getName().replace("'", "\\'") %>',
+                phone: '<%= customer.getPhone() != null ? customer.getPhone() : "" %>',
+                accountNumber: '<%= customer.getAccountNumber() != null ? customer.getAccountNumber() : "" %>',
+                email: '<%= customer.getEmail() != null ? customer.getEmail() : "" %>'
+            }<%= i < customers.size() - 1 ? "," : "" %>
+            <% } %>
+        ];
+        <% } %>
+
+        // Customer search functions
+        function searchCustomers(query) {
+            clearTimeout(customerSearchTimeout);
+            customerSearchTimeout = setTimeout(() => {
+                const searchResults = document.getElementById('customerSearchResults');
+                
+                if (!query || query.length < 2) {
+                    searchResults.style.display = 'none';
+                    return;
+                }
+
+                const filteredCustomers = allCustomers.filter(customer => 
+                    customer.name.toLowerCase().includes(query.toLowerCase()) ||
+                    customer.phone.includes(query) ||
+                    customer.accountNumber.toLowerCase().includes(query.toLowerCase()) ||
+                    customer.email.toLowerCase().includes(query.toLowerCase())
+                );
+
+                displayCustomerResults(filteredCustomers);
+            }, 300);
         }
 
-        menuToggle.addEventListener('click', toggleSidebar);
-        overlay.addEventListener('click', toggleSidebar);
-
-        // Handle window resize
-        window.addEventListener('resize', function() {
-            if (window.innerWidth >= 1024) {
-                sidebar.classList.remove('active');
-                overlay.classList.remove('active');
-            }
-        });
-
-        // Add item to bill
-        function addItemToBill(itemId, itemName, price, stock) {
-            // Check if item already exists in bill
-            const existingItem = billItems.find(item => item.id === itemId);
+        function displayCustomerResults(customers) {
+            const searchResults = document.getElementById('customerSearchResults');
             
-            if (existingItem) {
-                if (existingItem.quantity < stock) {
-                    existingItem.quantity++;
+            if (customers.length === 0) {
+                searchResults.innerHTML = '<div class="search-result-item">No customers found</div>';
+                searchResults.style.display = 'block';
+                return;
+            }
+
+            searchResults.innerHTML = customers.map(customer => `
+                <div class="search-result-item" onclick="selectCustomer(${customer.id}, '${customer.name.replace(/'/g, "\\'")}', '${customer.phone}', '${customer.accountNumber}')">
+                    <strong>${customer.name}</strong><br>
+                    <small>${customer.phone} • ${customer.accountNumber}</small>
+                </div>
+            `).join('');
+            
+            searchResults.style.display = 'block';
+        }
+
+        function selectCustomer(id, name, phone, accountNumber) {
+            document.getElementById('selectedCustomerId').value = id;
+            document.getElementById('customerSearch').value = name;
+            document.getElementById('selectedCustomerInfo').innerHTML = `✅ Selected: ${name} (${accountNumber})`;
+            document.getElementById('customerSearchResults').style.display = 'none';
+        }
+
+        function showCustomerSearch() {
+            const query = document.getElementById('customerSearch').value;
+            if (query.length >= 2) {
+                searchCustomers(query);
+            }
+        }
+
+        function hideCustomerSearch() {
+            setTimeout(() => {
+                document.getElementById('customerSearchResults').style.display = 'none';
+            }, 200);
+        }
+
+        // Product search functions
+        function searchProducts(query) {
+            const tableBody = document.getElementById('productsTableBody');
+            
+            if (!query || query.length < 2) {
+                displayAllProducts();
+                return;
+            }
+
+            const filteredProducts = allProducts.filter(product => 
+                product.title.toLowerCase().includes(query.toLowerCase()) ||
+                product.author.toLowerCase().includes(query.toLowerCase()) ||
+                product.isbn.toLowerCase().includes(query.toLowerCase())
+            );
+
+            displayProductsInTable(filteredProducts);
+        }
+
+        function displayProductsInTable(products) {
+            const tableBody = document.getElementById('productsTableBody');
+            
+            if (products.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 2rem; color: #6c757d;">
+                            <div>🔍 No products found</div>
+                            <small>Try different search terms</small>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tableBody.innerHTML = products.map(product => `
+                <tr onclick="selectProduct(${product.id}, '${product.title.replace(/'/g, "\\'")}', '${product.author.replace(/'/g, "\\'")}', ${product.price}, ${product.stock})">
+                    <td><strong>${product.title}</strong></td>
+                    <td>${product.author || 'N/A'}</td>
+                    <td class="price-cell">Rs. ${product.price.toFixed(2)}</td>
+                    <td>
+                        <span class="stock-badge ${product.stock > 10 ? 'high' : (product.stock > 5 ? 'medium' : 'low')}">
+                            ${product.stock}
+                        </span>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-sm" style="background: #28a745; color: white; padding: 0.3rem 0.8rem; border: none; border-radius: 4px; font-size: 0.8rem;"
+                                onclick="event.stopPropagation(); addProductToBill(${product.id}, '${product.title.replace(/'/g, "\\'")}', '${product.author.replace(/'/g, "\\'")}', ${product.price}, ${product.stock})">
+                            Add
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function displayAllProducts() {
+            displayProductsInTable(allProducts);
+        }
+
+        function selectProduct(productId, title, author, price, stock) {
+            // Remove previous selection
+            document.querySelectorAll('.products-table tbody tr').forEach(row => {
+                row.classList.remove('selected');
+            });
+            
+            // Add selection to current row
+            event.currentTarget.classList.add('selected');
+            
+            // Auto add to bill after short delay
+            setTimeout(() => {
+                addProductToBill(productId, title, author, price, stock);
+                event.currentTarget.classList.remove('selected');
+            }, 200);
+        }
+
+        // Add product to bill
+        function addProductToBill(productId, title, author, price, stock) {
+            if (stock === 0) {
+                showAlert('❌ Product out of stock!', 'error');
+                return;
+            }
+
+            // Check if product already exists in bill
+            const existingProduct = billItems.find(item => item.id === productId);
+            
+            if (existingProduct) {
+                if (existingProduct.quantity < stock) {
+                    existingProduct.quantity++;
                     updateBillDisplay();
+                    showAlert(`✅ Added one more "${title}"`, 'success');
                 } else {
-                    alert(`Cannot add more ${itemName}. Stock limit reached.`);
+                    showAlert(`❌ Cannot add more "${title}". Stock limit reached.`, 'error');
                 }
             } else {
                 billItems.push({
-                    id: itemId,
-                    name: itemName,
+                    id: productId,
+                    title: title,
+                    author: author,
                     price: price,
                     quantity: 1,
                     stock: stock
                 });
                 updateBillDisplay();
+                showAlert(`✅ Added "${title}" to bill`, 'success');
             }
         }
 
@@ -861,29 +1179,34 @@
             if (billItems.length === 0) {
                 billItemsContainer.innerHTML = `
                     <div class="empty-state">
-                        <h3>No Items Selected</h3>
-                        <p>Click on items to add them to the bill</p>
+                        <div class="empty-state-icon">🛒</div>
+                        <h3>No Items Added</h3>
+                        <p>Select products to add them to the bill</p>
                     </div>
                 `;
             } else {
                 billItemsContainer.innerHTML = billItems.map((item, index) => `
                     <div class="bill-item">
-                        <div class="bill-item-info">
-                            <div class="bill-item-name">${item.name}</div>
-                            <div class="bill-item-details">Rs. ${item.price.toFixed(2)} each</div>
+                        <div class="bill-item-header">
+                            <div class="bill-item-info">
+                                <h4>${item.title}</h4>
+                                <div class="bill-item-details">
+                                    ${item.author ? `by ${item.author} • ` : ''}Rs. ${item.price.toFixed(2)} each
+                                </div>
+                            </div>
+                            <div class="item-total">Rs. ${(item.price * item.quantity).toFixed(2)}</div>
                         </div>
                         <div class="quantity-controls">
                             <button type="button" class="qty-btn" onclick="decreaseQuantity(${index})">-</button>
                             <input type="number" class="qty-input" value="${item.quantity}" min="1" max="${item.stock}" 
                                    onchange="updateQuantity(${index}, this.value)">
                             <button type="button" class="qty-btn" onclick="increaseQuantity(${index})">+</button>
-                            <button type="button" class="remove-btn" onclick="removeItem(${index})">🗑️</button>
+                            <button type="button" class="remove-btn" onclick="removeProduct(${index})">🗑️</button>
                         </div>
                     </div>
                 `).join('');
             }
             
-            updateHiddenInputs();
             calculateTotals();
         }
 
@@ -894,7 +1217,7 @@
                 item.quantity++;
                 updateBillDisplay();
             } else {
-                alert(`Cannot add more ${item.name}. Stock limit reached.`);
+                showAlert(`❌ Maximum quantity for "${item.title}" is ${item.stock}`, 'error');
             }
         }
 
@@ -914,34 +1237,28 @@
                 item.quantity = qty;
                 updateBillDisplay();
             } else if (qty > item.stock) {
-                alert(`Maximum quantity for ${item.name} is ${item.stock}`);
+                showAlert(`❌ Maximum quantity for "${item.title}" is ${item.stock}`, 'error');
                 updateBillDisplay(); // Reset to previous value
-            } else {
-                removeItem(index);
+            } else if (qty <= 0) {
+                removeProduct(index);
             }
         }
 
-        function removeItem(index) {
-            billItems.splice(index, 1);
-            updateBillDisplay();
+        function removeProduct(index) {
+            const item = billItems[index];
+            if (confirm(`Remove "${item.title}" from bill?`)) {
+                billItems.splice(index, 1);
+                updateBillDisplay();
+                showAlert(`✅ Removed "${item.title}" from bill`, 'success');
+            }
         }
 
-        // Clear all items
+        // Clear all products
         function clearBill() {
-            if (billItems.length > 0 && confirm('Are you sure you want to clear all items?')) {
+            if (billItems.length > 0 && confirm('Are you sure you want to clear all items from the bill?')) {
                 billItems = [];
                 updateBillDisplay();
-            }
-        }
-
-        // Add discount functionality
-        function addDiscount() {
-            const currentDiscount = document.getElementById('discount').value;
-            const newDiscount = prompt('Enter discount amount (Rs.):', currentDiscount);
-            
-            if (newDiscount !== null && !isNaN(newDiscount) && parseFloat(newDiscount) >= 0) {
-                document.getElementById('discount').value = parseFloat(newDiscount);
-                calculateTotals();
+                showAlert('✅ Bill cleared successfully', 'success');
             }
         }
 
@@ -954,7 +1271,7 @@
             });
             
             const discount = parseFloat(document.getElementById('discount').value) || 0;
-            const taxableAmount = subTotal - discount;
+            const taxableAmount = Math.max(0, subTotal - discount);
             const tax = taxableAmount * 0.05; // 5% tax
             const totalAmount = taxableAmount + tax;
             
@@ -964,123 +1281,255 @@
             document.getElementById('totalAmount').textContent = `Rs. ${totalAmount.toFixed(2)}`;
         }
 
-        // Update hidden inputs for form submission
-        function updateHiddenInputs() {
-            const hiddenInputsContainer = document.getElementById('hiddenInputs');
-            hiddenInputsContainer.innerHTML = '';
-            
-            billItems.forEach((item, index) => {
-                hiddenInputsContainer.innerHTML += `
-                    <input type="hidden" name="itemId" value="${item.id}">
-                    <input type="hidden" name="quantity" value="${item.quantity}">
-                    <input type="hidden" name="unitPrice" value="${item.price}">
-                `;
-            });
-        }
-
-        // Form validation and submission
-        document.getElementById('createBillForm').addEventListener('submit', function(e) {
-            const customerId = document.getElementById('customerId').value;
-            const submitBtn = document.getElementById('submitBtn');
+        // Create bill function
+        function createBill() {
+            const customerId = document.getElementById('selectedCustomerId').value;
+            const createBillBtn = document.getElementById('createBillBtn');
             
             // Validate customer selection
             if (!customerId) {
-                e.preventDefault();
-                alert('Please select a customer before creating the bill.');
+                showAlert('❌ Please select a customer before creating the bill.', 'error');
                 return;
             }
             
             // Validate bill items
             if (billItems.length === 0) {
-                e.preventDefault();
-                alert('Please add at least one item to the bill.');
+                showAlert('❌ Please add at least one product to the bill.', 'error');
                 return;
             }
             
             // Check total amount
             const totalAmount = parseFloat(document.getElementById('totalAmount').textContent.replace('Rs. ', ''));
             if (totalAmount <= 0) {
-                e.preventDefault();
-                alert('Bill total must be greater than 0.');
+                showAlert('❌ Bill total must be greater than 0.', 'error');
+                return;
+            }
+            
+            // Confirm bill creation
+            const customerName = document.getElementById('customerSearch').value;
+            if (!confirm(`Create bill for ${customerName}?\nTotal Amount: Rs. ${totalAmount.toFixed(2)}`)) {
                 return;
             }
             
             // Show loading state
-            submitBtn.classList.add('loading');
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '⏳ Creating Bill...';
-        });
+            createBillBtn.classList.add('loading');
+            createBillBtn.innerHTML = '⏳ Creating Bill...';
+            createBillBtn.disabled = true;
+            
+            // Prepare form data
+            document.getElementById('hiddenCustomerId').value = customerId;
+            document.getElementById('hiddenDiscount').value = document.getElementById('discount').value;
+            
+            const hiddenInputsContainer = document.getElementById('hiddenInputs');
+            hiddenInputsContainer.innerHTML = '';
+            
+            billItems.forEach((item) => {
+                hiddenInputsContainer.innerHTML += `
+                    <input type="hidden" name="bookId" value="${item.id}">
+                    <input type="hidden" name="quantity" value="${item.quantity}">
+                    <input type="hidden" name="unitPrice" value="${item.price}">
+                `;
+            });
+            
+            // Submit form
+            setTimeout(() => {
+                document.getElementById('createBillForm').submit();
+            }, 500);
+        }
 
-        // Auto-select customer if only one exists
-        document.addEventListener('DOMContentLoaded', function() {
-            const customerSelect = document.getElementById('customerId');
-            if (customerSelect.options.length === 2) { // Only "Choose customer" + 1 customer
-                customerSelect.selectedIndex = 1;
+        // Add Customer Modal Functions
+        function openAddCustomerModal() {
+            document.getElementById('addCustomerModal').classList.add('active');
+            document.getElementById('newCustomerName').focus();
+        }
+
+        function closeAddCustomerModal() {
+            document.getElementById('addCustomerModal').classList.remove('active');
+            document.getElementById('addCustomerForm').reset();
+        }
+
+        // Handle Add Customer Form Submission with AJAX
+        function handleAddCustomerSubmit(event) {
+            event.preventDefault();
+            
+            const addCustomerBtn = document.getElementById('addCustomerBtn');
+            const form = document.getElementById('addCustomerForm');
+            const formData = new FormData(form);
+            formData.append('action', 'add');
+            
+            const name = document.getElementById('newCustomerName').value.trim();
+            const phone = document.getElementById('newCustomerPhone').value.trim();
+            
+            // Validate required fields
+            if (!name || !phone) {
+                showAlert('❌ Please fill in all required fields.', 'error');
+                return;
             }
             
+            // Validate phone number
+            if (!/^[0-9]{10}$/.test(phone)) {
+                showAlert('❌ Please enter a valid 10-digit phone number.', 'error');
+                return;
+            }
+            
+            // Show loading
+            addCustomerBtn.classList.add('loading');
+            addCustomerBtn.innerHTML = '⏳ Adding Customer...';
+            addCustomerBtn.disabled = true;
+            
+            // Send AJAX request
+            fetch('customer', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(data => {
+                // Check if the response contains error (simple check)
+                if (data.includes('Error adding customer') || data.includes('Duplicate entry')) {
+                    throw new Error('Customer with this phone number or account already exists');
+                }
+                
+                // If successful, refresh customer data and close modal
+                refreshCustomerData()
+                    .then(() => {
+                        closeAddCustomerModal();
+                        showAlert('✅ Customer added successfully!', 'success');
+                        
+                        // Auto-select the newly added customer
+                        const newCustomerName = name;
+                        setTimeout(() => {
+                            document.getElementById('customerSearch').value = newCustomerName;
+                            searchCustomers(newCustomerName);
+                            setTimeout(() => {
+                                const searchResults = document.getElementById('customerSearchResults');
+                                const firstResult = searchResults.querySelector('.search-result-item');
+                                if (firstResult) {
+                                    firstResult.click();
+                                }
+                            }, 300);
+                        }, 500);
+                    });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('❌ Error adding customer: ' + error.message, 'error');
+            })
+            .finally(() => {
+                // Reset button state
+                addCustomerBtn.classList.remove('loading');
+                addCustomerBtn.innerHTML = '✅ Add Customer';
+                addCustomerBtn.disabled = false;
+            });
+        }
+
+        // Refresh customer data from server
+        function refreshCustomerData() {
+            return fetch('customer?action=list')
+                .then(response => response.text())
+                .then(data => {
+                    // Extract customer data from response (this is a simple approach)
+                    // In a real application, you might want to return JSON instead
+                    
+                    // For now, we'll make another request to get fresh data
+                    return fetch('bill?action=create')
+                        .then(response => response.text())
+                        .then(html => {
+                            // Parse the HTML to extract customer data
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(html, 'text/html');
+                            const scripts = doc.querySelectorAll('script');
+                            
+                            // Find the script that contains allCustomers array
+                            for (let script of scripts) {
+                                const content = script.textContent;
+                                if (content.includes('allCustomers = [')) {
+                                    const start = content.indexOf('allCustomers = [');
+                                    const end = content.indexOf('];', start) + 2;
+                                    const customerArrayCode = content.substring(start, end);
+                                    
+                                    // Execute the code to update allCustomers
+                                    try {
+                                        eval(customerArrayCode);
+                                        console.log('Customer data refreshed successfully');
+                                    } catch (e) {
+                                        console.error('Error parsing customer data:', e);
+                                    }
+                                    break;
+                                }
+                            }
+                        });
+                })
+                .catch(error => {
+                    console.error('Error refreshing customer data:', error);
+                });
+        }
+
+        // Show alert function
+        function showAlert(message, type) {
+            // Remove existing alerts
+            const existingAlerts = document.querySelectorAll('.alert');
+            existingAlerts.forEach(alert => alert.remove());
+            
+            // Create new alert
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.innerHTML = message;
+            
+            // Insert after header
+            const header = document.querySelector('.header');
+            header.insertAdjacentElement('afterend', alert);
+            
+            // Auto remove after 4 seconds
+            setTimeout(() => {
+                if (alert.parentNode) {
+                    alert.remove();
+                }
+            }, 4000);
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
             // Initialize discount change listener
             document.getElementById('discount').addEventListener('input', calculateTotals);
             
             // Initialize calculations
             calculateTotals();
-        });
-
-        // Search functionality for items (optional enhancement)
-        function searchItems(query) {
-            const itemCards = document.querySelectorAll('.item-card');
-            itemCards.forEach(card => {
-                const itemName = card.querySelector('h4').textContent.toLowerCase();
-                if (itemName.includes(query.toLowerCase())) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
+            
+            // Display all products initially
+            displayAllProducts();
+            
+            // Close modal when clicking outside
+            document.getElementById('addCustomerModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeAddCustomerModal();
                 }
             });
-        }
+            
+            // Auto-focus customer search
+            setTimeout(() => {
+                document.getElementById('customerSearch').focus();
+            }, 500);
+        });
 
         // Keyboard shortcuts
         document.addEventListener('keydown', function(e) {
-            // ESC key closes sidebar on mobile
-            if (e.key === 'Escape' && sidebar.classList.contains('active')) {
-                toggleSidebar();
+            // ESC key closes modal
+            if (e.key === 'Escape') {
+                closeAddCustomerModal();
             }
             
-            // Ctrl+S to submit form (prevent default save)
-            if (e.ctrlKey && e.key === 's') {
+            // Ctrl+Enter to create bill
+            if (e.ctrlKey && e.key === 'Enter') {
                 e.preventDefault();
-                document.getElementById('createBillForm').dispatchEvent(new Event('submit'));
+                createBill();
             }
             
-            // Ctrl+D to add discount
-            if (e.ctrlKey && e.key === 'd') {
+            // Ctrl+N to add new customer
+            if (e.ctrlKey && e.key === 'n') {
                 e.preventDefault();
-                addDiscount();
+                openAddCustomerModal();
             }
         });
-
-        // Item card selection visual feedback
-        function highlightSelectedItem(itemId) {
-            // Remove previous highlights
-            document.querySelectorAll('.item-card').forEach(card => {
-                card.classList.remove('selected');
-            });
-            
-            // Add highlight to current item
-            const selectedCard = document.querySelector(`[onclick*="${itemId}"]`);
-            if (selectedCard) {
-                selectedCard.classList.add('selected');
-                setTimeout(() => {
-                    selectedCard.classList.remove('selected');
-                }, 300);
-            }
-        }
-
-        // Enhanced addItemToBill with visual feedback
-        const originalAddItemToBill = addItemToBill;
-        addItemToBill = function(itemId, itemName, price, stock) {
-            highlightSelectedItem(itemId);
-            originalAddItemToBill(itemId, itemName, price, stock);
-        };
     </script>
 </body>
 </html>

@@ -3,24 +3,24 @@ package com.redupahana.model;
 public class BillItem {
     private int billItemId;
     private int billId;
-    private int itemId;
+    private int bookId;  // Changed from itemId to bookId
     private int quantity;
     private double unitPrice;
     private double totalPrice;
-    
-    // Additional fields for display
-    private String itemName;
-    private String itemCode;
-    private String itemCategory;
-    private String itemDescription;
-    private Item item;
+
+    // Additional fields for display - Book specific
+    private String bookTitle;
+    private String bookCode;
+    private String author;
+    private String isbn;
+    private Book book;
 
     // Constructors
     public BillItem() {}
 
-    public BillItem(int billId, int itemId, int quantity, double unitPrice) {
+    public BillItem(int billId, int bookId, int quantity, double unitPrice) {
         this.billId = billId;
-        this.itemId = itemId;
+        this.bookId = bookId;
         this.quantity = quantity;
         this.unitPrice = unitPrice;
         this.totalPrice = quantity * unitPrice;
@@ -33,8 +33,12 @@ public class BillItem {
     public int getBillId() { return billId; }
     public void setBillId(int billId) { this.billId = billId; }
 
-    public int getItemId() { return itemId; }
-    public void setItemId(int itemId) { this.itemId = itemId; }
+    public int getBookId() { return bookId; }  // Changed from getItemId
+    public void setBookId(int bookId) { this.bookId = bookId; }
+
+    // Backward compatibility methods
+    public int getItemId() { return bookId; }  // For compatibility
+    public void setItemId(int itemId) { this.bookId = itemId; }
 
     public int getQuantity() { return quantity; }
     public void setQuantity(int quantity) {
@@ -51,20 +55,36 @@ public class BillItem {
     public double getTotalPrice() { return totalPrice; }
     public void setTotalPrice(double totalPrice) { this.totalPrice = totalPrice; }
 
-    public String getItemName() { return itemName; }
-    public void setItemName(String itemName) { this.itemName = itemName; }
+    // Book specific getters and setters
+    public String getBookTitle() { return bookTitle; }
+    public void setBookTitle(String bookTitle) { this.bookTitle = bookTitle; }
 
-    public String getItemCode() { return itemCode; }
-    public void setItemCode(String itemCode) { this.itemCode = itemCode; }
+    public String getBookCode() { return bookCode; }
+    public void setBookCode(String bookCode) { this.bookCode = bookCode; }
 
-    public String getItemCategory() { return itemCategory; }
-    public void setItemCategory(String itemCategory) { this.itemCategory = itemCategory; }
+    public String getAuthor() { return author; }
+    public void setAuthor(String author) { this.author = author; }
 
-    public String getItemDescription() { return itemDescription; }
-    public void setItemDescription(String itemDescription) { this.itemDescription = itemDescription; }
+    public String getIsbn() { return isbn; }
+    public void setIsbn(String isbn) { this.isbn = isbn; }
 
-    public Item getItem() { return item; }
-    public void setItem(Item item) { this.item = item; }
+    public Book getBook() { return book; }
+    public void setBook(Book book) { this.book = book; }
+
+    // Backward compatibility methods for display
+    public String getItemName() { return bookTitle; }
+    public void setItemName(String itemName) { this.bookTitle = itemName; }
+
+    public String getItemCode() { return bookCode; }
+    public void setItemCode(String itemCode) { this.bookCode = itemCode; }
+
+    public String getItemCategory() { return "Books"; }
+    public void setItemCategory(String itemCategory) { /* Always Books */ }
+
+    public String getItemDescription() { 
+        return author != null ? "by " + author : null; 
+    }
+    public void setItemDescription(String itemDescription) { /* Not used for books */ }
 
     // Utility methods
     public void calculateTotalPrice() {
@@ -72,13 +92,14 @@ public class BillItem {
     }
 
     public boolean isBook() {
-        return "Books".equalsIgnoreCase(itemCategory);
+        return true; // Always true now
     }
 
     @Override
     public String toString() {
         return "BillItem{" +
-                "itemName='" + itemName + '\'' +
+                "bookTitle='" + bookTitle + '\'' +
+                ", author='" + author + '\'' +
                 ", quantity=" + quantity +
                 ", unitPrice=" + unitPrice +
                 ", totalPrice=" + totalPrice +

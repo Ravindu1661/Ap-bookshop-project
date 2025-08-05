@@ -1,5 +1,6 @@
 // BillController.java
 package com.redupahana.controller;
+
 import com.redupahana.service.UserService;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -14,11 +15,11 @@ import javax.servlet.http.HttpSession;
 import com.redupahana.model.Bill;
 import com.redupahana.model.BillItem;
 import com.redupahana.model.Customer;
-import com.redupahana.model.Item;
+import com.redupahana.model.Book;
 import com.redupahana.model.User;
 import com.redupahana.service.BillService;
 import com.redupahana.service.CustomerService;
-import com.redupahana.service.ItemService;
+import com.redupahana.service.BookService;
 import com.redupahana.util.Constants;
 
 @WebServlet("/bill")
@@ -27,12 +28,13 @@ public class BillController extends HttpServlet {
     
     private BillService billService;
     private CustomerService customerService;
-    private ItemService itemService;
+    private BookService bookService;
     private UserService userService;
+    
     public void init() throws ServletException {
         billService = BillService.getInstance();
         customerService = CustomerService.getInstance();
-        itemService = ItemService.getInstance();
+        bookService = BookService.getInstance();
         userService = UserService.getInstance();
     }
     
@@ -126,15 +128,15 @@ public class BillController extends HttpServlet {
             throws ServletException, IOException {
         try {
             List<Customer> customers = customerService.getAllCustomers();
-            List<Item> items = itemService.getAllItems();
+            List<Book> books = bookService.getAllBooks();
             
-            // Filter only active items with stock > 0
-            items = items.stream()
-                    .filter(item -> item.isActive() && item.getStockQuantity() > 0)
+            // Filter only active books with stock > 0
+            books = books.stream()
+                    .filter(book -> book.isActive() && book.getStockQuantity() > 0)
                     .collect(java.util.stream.Collectors.toList());
             
             request.setAttribute("customers", customers);
-            request.setAttribute("items", items);
+            request.setAttribute("books", books);
             request.getRequestDispatcher("WEB-INF/view/bill/createBill.jsp").forward(request, response);
         } catch (SQLException e) {
             request.setAttribute("errorMessage", "Error loading data: " + e.getMessage());
@@ -200,25 +202,25 @@ public class BillController extends HttpServlet {
                                 paymentStatus : Constants.PAYMENT_PAID);
             
             // Get bill items from request
-            String[] itemIds = request.getParameterValues("itemId");
+            String[] bookIds = request.getParameterValues("bookId");  // Changed from itemId to bookId
             String[] quantities = request.getParameterValues("quantity");
             String[] unitPrices = request.getParameterValues("unitPrice");
             
             List<BillItem> billItems = new ArrayList<>();
-            if (itemIds != null && quantities != null && unitPrices != null) {
-                for (int i = 0; i < itemIds.length; i++) {
+            if (bookIds != null && quantities != null && unitPrices != null) {
+                for (int i = 0; i < bookIds.length; i++) {
                     if (i < quantities.length && i < unitPrices.length &&
-                        !itemIds[i].trim().isEmpty() && 
+                        !bookIds[i].trim().isEmpty() && 
                         !quantities[i].trim().isEmpty() && 
                         !unitPrices[i].trim().isEmpty()) {
                         
                         try {
-                            int itemId = Integer.parseInt(itemIds[i]);
+                            int bookId = Integer.parseInt(bookIds[i]);
                             int quantity = Integer.parseInt(quantities[i]);
                             double unitPrice = Double.parseDouble(unitPrices[i]);
                             
-                            if (itemId <= 0) {
-                                request.setAttribute("errorMessage", "Invalid item selection.");
+                            if (bookId <= 0) {
+                                request.setAttribute("errorMessage", "Invalid book selection.");
                                 showCreateForm(request, response);
                                 return;
                             }
@@ -236,12 +238,12 @@ public class BillController extends HttpServlet {
                             }
                             
                             BillItem billItem = new BillItem();
-                            billItem.setItemId(itemId);
+                            billItem.setBookId(bookId);
                             billItem.setQuantity(quantity);
                             billItem.setUnitPrice(unitPrice);
                             billItems.add(billItem);
                         } catch (NumberFormatException e) {
-                            request.setAttribute("errorMessage", "Invalid number format in item data.");
+                            request.setAttribute("errorMessage", "Invalid number format in book data.");
                             showCreateForm(request, response);
                             return;
                         }
@@ -250,7 +252,7 @@ public class BillController extends HttpServlet {
             }
             
             if (billItems.isEmpty()) {
-                request.setAttribute("errorMessage", "At least one item is required.");
+                request.setAttribute("errorMessage", "At least one book is required.");
                 showCreateForm(request, response);
                 return;
             }
@@ -310,28 +312,29 @@ public class BillController extends HttpServlet {
                     System.err.println("Error loading customer details: " + e.getMessage());
                 }
                 
-                // Get cashier details - you'll need to implement this
+                // Get cashier details
                 User cashier = null;
                 try {
-                    // Uncomment and implement this when you have UserService
-                     cashier = userService.getUserById(bill.getCashierId());
+                    cashier = userService.getUserById(bill.getCashierId());
                 } catch (Exception e) {
                     // Log error but continue - cashier details will show as "not available"
                     System.err.println("Error loading cashier details: " + e.getMessage());
                 }
                 
-                // Get item details for bill items (if you want to show item names)
+                // Get book details for bill items
                 if (bill.getBillItems() != null && !bill.getBillItems().isEmpty()) {
                     for (BillItem billItem : bill.getBillItems()) {
                         try {
-                            Item item = itemService.getItemById(billItem.getItemId());
-                            if (item != null) {
-                                // You'll need to add setItemName method to BillItem class
-                                billItem.setItemName(item.getName());
+                            Book book = bookService.getBookById(billItem.getBookId());
+                            if (book != null) {
+                                billItem.setBookTitle(book.getTitle());
+                                billItem.setAuthor(book.getAuthor());
+                                billItem.setBookCode(book.getBookCode());
+                                billItem.setIsbn(book.getIsbn());
                             }
                         } catch (SQLException e) {
-                            System.err.println("Error loading item details for ID " + billItem.getItemId() + ": " + e.getMessage());
-                            // Continue without item name - will use item ID instead
+                            System.err.println("Error loading book details for ID " + billItem.getBookId() + ": " + e.getMessage());
+                            // Continue without book details - will use book ID instead
                         }
                     }
                 }
@@ -404,23 +407,25 @@ public class BillController extends HttpServlet {
                 // Get cashier details
                 User cashier = null;
                 try {
-                    // Uncomment this if you have UserService
-                    // cashier = userService.getUserById(bill.getCashierId());
+                    cashier = userService.getUserById(bill.getCashierId());
                 } catch (Exception e) {
                     // Cashier details not found, but continue with bill printing
                     System.err.println("Error loading cashier details: " + e.getMessage());
                 }
                 
-                // Get item details for bill items
+                // Get book details for bill items
                 if (bill.getBillItems() != null && !bill.getBillItems().isEmpty()) {
                     for (BillItem billItem : bill.getBillItems()) {
                         try {
-                            Item item = itemService.getItemById(billItem.getItemId());
-                            if (item != null) {
-                                billItem.setItemName(item.getName()); // Assuming you have setter for item name
+                            Book book = bookService.getBookById(billItem.getBookId());
+                            if (book != null) {
+                                billItem.setBookTitle(book.getTitle());
+                                billItem.setAuthor(book.getAuthor());
+                                billItem.setBookCode(book.getBookCode());
+                                billItem.setIsbn(book.getIsbn());
                             }
                         } catch (SQLException e) {
-                            System.err.println("Error loading item details for ID " + billItem.getItemId() + ": " + e.getMessage());
+                            System.err.println("Error loading book details for ID " + billItem.getBookId() + ": " + e.getMessage());
                         }
                     }
                 }
@@ -511,7 +516,7 @@ public class BillController extends HttpServlet {
             HttpSession session = request.getSession();
             session.setAttribute("successMessage", 
                 "Bill #" + billToDelete.getBillNumber() + " has been successfully deleted. " +
-                "Stock has been restored for all items.");
+                "Stock has been restored for all books.");
             
             response.sendRedirect("bill?action=list");
             

@@ -95,15 +95,24 @@ public class Bill {
     public List<BillItem> getBillItems() { return billItems; }
     public void setBillItems(List<BillItem> billItems) { this.billItems = billItems; }
 
-    // Utility methods
-    public int getTotalItemsCount() {
+    // Utility methods for books
+    public int getTotalBooksCount() {
         if (billItems == null) return 0;
         return billItems.stream().mapToInt(BillItem::getQuantity).sum();
     }
 
-    public int getUniqueItemsCount() {
+    public int getUniqueBooksCount() {
         if (billItems == null) return 0;
         return billItems.size();
+    }
+
+    // Backward compatibility methods
+    public int getTotalItemsCount() {
+        return getTotalBooksCount();
+    }
+
+    public int getUniqueItemsCount() {
+        return getUniqueBooksCount();
     }
 
     public boolean isPaid() {
@@ -114,6 +123,20 @@ public class Bill {
         return "PENDING".equalsIgnoreCase(paymentStatus);
     }
 
+    // Get summary of books in this bill
+    public String getBooksSummary() {
+        if (billItems == null || billItems.isEmpty()) {
+            return "No books";
+        }
+        
+        if (billItems.size() == 1) {
+            BillItem item = billItems.get(0);
+            return item.getBookTitle() + " (x" + item.getQuantity() + ")";
+        } else {
+            return billItems.size() + " different books (" + getTotalBooksCount() + " total)";
+        }
+    }
+
     @Override
     public String toString() {
         return "Bill{" +
@@ -121,6 +144,7 @@ public class Bill {
                 ", customerName='" + customerName + '\'' +
                 ", totalAmount=" + totalAmount +
                 ", paymentStatus='" + paymentStatus + '\'' +
+                ", booksCount=" + getTotalBooksCount() +
                 '}';
     }
 }

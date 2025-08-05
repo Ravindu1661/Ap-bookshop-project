@@ -22,6 +22,6 @@ public class Constants {
     public static final String ERROR_NOT_FOUND = "Record not found";
     
     // Default Values
-    public static final double DEFAULT_TAX_RATE = 0.05; // 5%
+    public static final double DEFAULT_TAX_RATE = 0.10; // 5%
     public static final double DEFAULT_DISCOUNT = 0.0;
 }

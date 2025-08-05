@@ -17,7 +17,7 @@ public class BillItemDAO {
              PreparedStatement statement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             
             statement.setInt(1, billItem.getBillId());
-            statement.setInt(2, billItem.getItemId());
+            statement.setInt(2, billItem.getBookId());  // Changed from getItemId to getBookId
             statement.setInt(3, billItem.getQuantity());
             statement.setDouble(4, billItem.getUnitPrice());
             statement.setDouble(5, billItem.getTotalPrice());
@@ -35,11 +35,12 @@ public class BillItemDAO {
     
     public List<BillItem> getBillItemsByBillId(int billId) throws SQLException {
         List<BillItem> billItems = new ArrayList<>();
-        String query = "SELECT bi.*, i.name as item_name, i.item_code, i.category, " +
-                      "i.description as item_description " +
+        String query = "SELECT bi.*, i.name as book_title, i.item_code as book_code, " +
+                      "i.author, i.isbn, i.description " +
                       "FROM bill_items bi " +
                       "LEFT JOIN items i ON bi.item_id = i.item_id " +
-                      "WHERE bi.bill_id = ? ORDER BY bi.bill_item_id";
+                      "WHERE bi.bill_id = ? AND i.category = 'Books' " +
+                      "ORDER BY bi.bill_item_id";
         
         try (Connection connection = DBConnectionFactory.getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
@@ -55,11 +56,11 @@ public class BillItemDAO {
     }
     
     public BillItem getBillItemById(int billItemId) throws SQLException {
-        String query = "SELECT bi.*, i.name as item_name, i.item_code, i.category, " +
-                      "i.description as item_description " +
+        String query = "SELECT bi.*, i.name as book_title, i.item_code as book_code, " +
+                      "i.author, i.isbn, i.description " +
                       "FROM bill_items bi " +
                       "LEFT JOIN items i ON bi.item_id = i.item_id " +
-                      "WHERE bi.bill_item_id = ?";
+                      "WHERE bi.bill_item_id = ? AND i.category = 'Books'";
         
         try (Connection connection = DBConnectionFactory.getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
@@ -110,20 +111,21 @@ public class BillItemDAO {
         }
     }
     
-    public List<BillItem> getBillItemsByItemId(int itemId) throws SQLException {
+    public List<BillItem> getBillItemsByBookId(int bookId) throws SQLException {
         List<BillItem> billItems = new ArrayList<>();
-        String query = "SELECT bi.*, i.name as item_name, i.item_code, i.category, " +
-                      "i.description as item_description, " +
+        String query = "SELECT bi.*, i.name as book_title, i.item_code as book_code, " +
+                      "i.author, i.isbn, i.description, " +
                       "b.bill_number, b.bill_date " +
                       "FROM bill_items bi " +
                       "LEFT JOIN items i ON bi.item_id = i.item_id " +
                       "LEFT JOIN bills b ON bi.bill_id = b.bill_id " +
-                      "WHERE bi.item_id = ? ORDER BY b.bill_date DESC";
+                      "WHERE bi.item_id = ? AND i.category = 'Books' " +
+                      "ORDER BY b.bill_date DESC";
         
         try (Connection connection = DBConnectionFactory.getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
             
-            statement.setInt(1, itemId);
+            statement.setInt(1, bookId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
                     billItems.add(mapResultSetToBillItem(resultSet));
@@ -137,17 +139,17 @@ public class BillItemDAO {
         BillItem billItem = new BillItem();
         billItem.setBillItemId(resultSet.getInt("bill_item_id"));
         billItem.setBillId(resultSet.getInt("bill_id"));
-        billItem.setItemId(resultSet.getInt("item_id"));
+        billItem.setBookId(resultSet.getInt("item_id"));  // Map item_id to bookId
         billItem.setQuantity(resultSet.getInt("quantity"));
         billItem.setUnitPrice(resultSet.getDouble("unit_price"));
         billItem.setTotalPrice(resultSet.getDouble("total_price"));
         
-        // Set additional item info if available
+        // Set additional book info if available
         try {
-            billItem.setItemName(resultSet.getString("item_name"));
-            billItem.setItemCode(resultSet.getString("item_code"));
-            billItem.setItemCategory(resultSet.getString("category"));
-            billItem.setItemDescription(resultSet.getString("item_description"));
+            billItem.setBookTitle(resultSet.getString("book_title"));
+            billItem.setBookCode(resultSet.getString("book_code"));
+            billItem.setAuthor(resultSet.getString("author"));
+            billItem.setIsbn(resultSet.getString("isbn"));
         } catch (SQLException e) {
             // Columns may not be available in all queries
         }

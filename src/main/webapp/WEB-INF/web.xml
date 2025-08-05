@@ -59,10 +59,10 @@
     <url-pattern>/auth</url-pattern>
   </servlet-mapping>
   
-  <servlet-mapping>
+<servlet-mapping>
     <servlet-name>BillController</servlet-name>
     <url-pattern>/Bill</url-pattern>
-  </servlet-mapping>
+</servlet-mapping>
   
   <servlet-mapping>
     <servlet-name>CustomerController</servlet-name>
