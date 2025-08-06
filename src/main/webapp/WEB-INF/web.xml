@@ -58,6 +58,7 @@
   	<description></description>
   	<servlet-class>com.redupahana.controller.CustomerPortalController</servlet-class>
   </servlet>
+
   
   <!-- Servlet Mappings -->
   <servlet-mapping>
@@ -93,6 +94,7 @@
   	<servlet-name>CustomerPortalController</servlet-name>
   	<url-pattern>/CustomerPortalController</url-pattern>
   </servlet-mapping>
+
   
   
   <!-- Error Pages -->

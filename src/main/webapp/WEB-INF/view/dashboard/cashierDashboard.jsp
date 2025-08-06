@@ -7,274 +7,326 @@
         response.sendRedirect("auth");
         return;
     }
+    
+    // Set page attributes for sidebar
+    request.setAttribute("currentPage", "dashboard");
+    request.setAttribute("pageTitle", "Cashier Dashboard");
 %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cashier Dashboard - Redupahana</title>
+    <title>Cashier Dashboard - R-edupahana</title>
+    
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f5f5;
-        }
-
-        .navbar {
-            background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+        /* Professional Cashier Dashboard Styles */
+        .cashier-welcome {
+            background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
             color: white;
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
         }
 
-        .navbar h1 {
+        .cashier-welcome h1 {
             font-size: 1.8rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
         }
 
-        .cashier-icon {
-            font-size: 2rem;
+        .cashier-welcome .subtitle {
+            opacity: 0.9;
+            font-size: 1rem;
+            margin-bottom: 1rem;
         }
 
-        .user-info {
+        .user-info-box {
             display: flex;
             align-items: center;
             gap: 1rem;
+            padding: 1rem;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            margin-top: 1rem;
         }
 
-        .user-welcome {
+        .user-avatar-large {
+            width: 50px;
+            height: 50px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
             display: flex;
-            flex-direction: column;
-            align-items: flex-end;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
         }
 
-        .user-name {
-            font-weight: 600;
+        .user-details h3 {
+            margin: 0;
             font-size: 1.1rem;
         }
 
-        .user-role {
+        .user-details p {
+            margin: 0;
+            opacity: 0.8;
             font-size: 0.9rem;
-            opacity: 0.9;
         }
 
-        .logout-btn {
-            background-color: rgba(255,255,255,0.2);
-            color: white;
-            border: none;
-            padding: 0.6rem 1.2rem;
-            border-radius: 6px;
-            cursor: pointer;
-            text-decoration: none;
-            font-size: 0.9rem;
-            transition: background-color 0.3s;
-        }
-
-        .logout-btn:hover {
-            background-color: rgba(255,255,255,0.3);
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-        }
-
-        .welcome-section {
-            background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-
-        .welcome-section h2 {
-            color: #2c3e50;
-            margin-bottom: 1rem;
-            font-size: 2rem;
-        }
-
-        .welcome-section p {
-            color: #7f8c8d;
-            font-size: 1.1rem;
-        }
-
-        .quick-stats {
+        /* Simple Stats Cards */
+        .stats-overview {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 1.5rem;
             margin-bottom: 2rem;
         }
 
-        .stat-card {
+        .stat-box {
             background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            text-align: center;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            padding: 1.8rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            border-top: 4px solid #3498db;
         }
 
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 15px rgba(0,0,0,0.15);
+        .stat-box.sales {
+            border-top-color: #27ae60;
+        }
+
+        .stat-box.bills {
+            border-top-color: #e74c3c;
+        }
+
+        .stat-box.customers {
+            border-top-color: #f39c12;
+        }
+
+        .stat-box:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .stat-title {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .stat-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-
-        .stat-card.sales {
-            border-left: 5px solid #3498db;
-        }
-
-        .stat-card.bills {
-            border-left: 5px solid #27ae60;
-        }
-
-        .stat-card.customers {
-            border-left: 5px solid #f39c12;
-        }
-
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-label {
-            color: #7f8c8d;
-            font-size: 1rem;
-        }
-
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        .action-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            text-align: center;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .action-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 15px rgba(0,0,0,0.15);
-        }
-
-        .action-icon {
-            font-size: 4rem;
-            margin-bottom: 1.5rem;
-            display: block;
-        }
-
-        .action-card h3 {
-            color: #2c3e50;
-            margin-bottom: 1rem;
-            font-size: 1.3rem;
-        }
-
-        .action-card p {
-            color: #7f8c8d;
-            margin-bottom: 1.5rem;
-            font-size: 0.95rem;
-            line-height: 1.5;
-        }
-
-        .action-btn {
-            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-            color: white;
-            padding: 0.8rem 2rem;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            display: inline-block;
-        }
-
-        .action-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
-        }
-
-        .action-btn.create-bill {
-            background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
-        }
-
-        .action-btn.create-bill:hover {
-            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.4);
-        }
-
-        .action-btn.secondary {
-            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
-        }
-
-        .action-btn.secondary:hover {
-            box-shadow: 0 5px 15px rgba(243, 156, 18, 0.4);
-        }
-
-        .recent-activities {
-            background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-
-        .recent-activities h3 {
-            color: #2c3e50;
-            margin-bottom: 1.5rem;
-            font-size: 1.3rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .activity-list {
-            list-style: none;
-        }
-
-        .activity-item {
-            padding: 1rem;
-            border-bottom: 1px solid #ecf0f1;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .activity-item:last-child {
-            border-bottom: none;
-        }
-
-        .activity-icon {
-            background-color: #3498db;
-            color: white;
             width: 40px;
             height: 40px;
-            border-radius: 50%;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 1.2rem;
+            background: #ecf0f1;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .stat-change {
+            font-size: 0.8rem;
+            color: #27ae60;
+            margin-top: 0.5rem;
+        }
+
+        /* Action Cards Grid */
+        .actions-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            color: #2c3e50;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .action-item {
+            background: white;
+            padding: 1.8rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #3498db;
+        }
+
+        .action-item.primary::before {
+            background: #27ae60;
+        }
+
+        .action-item.secondary::before {
+            background: #f39c12;
+        }
+
+        .action-item.danger::before {
+            background: #e74c3c;
+        }
+
+        .action-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+        }
+
+        .action-symbol {
+            width: 60px;
+            height: 60px;
+            background: #ecf0f1;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin: 0 auto 1rem;
+        }
+
+        .action-item.primary .action-symbol {
+            background: #d5f4e6;
+            color: #27ae60;
+        }
+
+        .action-item.secondary .action-symbol {
+            background: #fef9e7;
+            color: #f39c12;
+        }
+
+        .action-item.danger .action-symbol {
+            background: #fadbd8;
+            color: #e74c3c;
+        }
+
+        .action-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.8rem;
+        }
+
+        .action-desc {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 1.5rem;
+        }
+
+        .action-button {
+            background: #3498db;
+            color: white;
+            padding: 0.7rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        .action-button:hover {
+            background: #2980b9;
+            transform: translateY(-1px);
+            color: white;
+        }
+
+        .action-item.primary .action-button {
+            background: #27ae60;
+        }
+
+        .action-item.primary .action-button:hover {
+            background: #229954;
+        }
+
+        .action-item.secondary .action-button {
+            background: #f39c12;
+        }
+
+        .action-item.secondary .action-button:hover {
+            background: #e67e22;
+        }
+
+        .action-item.danger .action-button {
+            background: #e74c3c;
+        }
+
+        .action-item.danger .action-button:hover {
+            background: #c0392b;
+        }
+
+        /* Recent Activity */
+        .activity-section {
+            background: white;
+            padding: 1.8rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .activity-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .activity-entry {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .activity-entry:last-child {
+            border-bottom: none;
+        }
+
+        .activity-symbol {
+            width: 35px;
+            height: 35px;
+            background: #ecf0f1;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
         }
 
         .activity-content {
@@ -284,88 +336,63 @@
         .activity-title {
             font-weight: 600;
             color: #2c3e50;
-            margin-bottom: 0.25rem;
+            font-size: 0.95rem;
+            margin-bottom: 0.2rem;
         }
 
         .activity-time {
+            color: #95a5a6;
+            font-size: 0.85rem;
+        }
+
+        /* Time Display */
+        .time-display {
+            text-align: right;
             color: #7f8c8d;
             font-size: 0.9rem;
+            margin-top: 0.5rem;
         }
 
-        .keyboard-shortcuts {
-            background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
-            color: white;
-            padding: 1.5rem;
-            border-radius: 12px;
-            margin-top: 2rem;
-        }
-
-        .keyboard-shortcuts h4 {
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .shortcuts-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-        }
-
-        .shortcut-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.5rem;
-            background-color: rgba(255,255,255,0.1);
-            border-radius: 6px;
-        }
-
-        .shortcut-key {
-            background-color: rgba(255,255,255,0.2);
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-family: monospace;
-            font-size: 0.8rem;
-        }
-
+        /* Responsive Design */
         @media (max-width: 768px) {
-            .navbar {
-                flex-direction: column;
-                gap: 1rem;
-                padding: 1rem;
+            .cashier-welcome {
+                padding: 1.5rem;
             }
 
-            .navbar h1 {
+            .cashier-welcome h1 {
                 font-size: 1.5rem;
             }
 
-            .user-welcome {
-                align-items: center;
+            .user-info-box {
+                flex-direction: column;
+                text-align: center;
             }
 
-            .container {
-                padding: 0 0.5rem;
-                margin: 1rem auto;
-            }
-
-            .quick-stats {
-                grid-template-columns: 1fr;
-            }
-
-            .dashboard-grid {
+            .stats-overview {
                 grid-template-columns: 1fr;
                 gap: 1rem;
             }
 
-            .shortcuts-grid {
+            .actions-grid {
                 grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .stat-box,
+            .action-item,
+            .activity-section {
+                padding: 1.2rem;
             }
         }
 
-        /* Animation for page load */
-        @keyframes fadeInUp {
+        /* Smooth animations */
+        .stat-box,
+        .action-item,
+        .activity-section {
+            animation: slideUp 0.4s ease-out;
+        }
+
+        @keyframes slideUp {
             from {
                 opacity: 0;
                 transform: translateY(20px);
@@ -375,355 +402,230 @@
                 transform: translateY(0);
             }
         }
-
-        .stat-card, .action-card, .recent-activities {
-            animation: fadeInUp 0.6s ease-out;
-        }
-
-        .stat-card:nth-child(1) { animation-delay: 0.1s; }
-        .stat-card:nth-child(2) { animation-delay: 0.2s; }
-        .stat-card:nth-child(3) { animation-delay: 0.3s; }
-        .action-card:nth-child(1) { animation-delay: 0.4s; }
-        .action-card:nth-child(2) { animation-delay: 0.5s; }
-        .action-card:nth-child(3) { animation-delay: 0.6s; }
     </style>
 </head>
 <body>
-    <nav class="navbar">
-        <h1>
-            <span class="cashier-icon">💼</span>
-            Cashier Dashboard
-        </h1>
-        <div class="user-info">
-            <div class="user-welcome">
-                <div class="user-name">Welcome, <%= loggedUser.getFullName() %></div>
-                <div class="user-role">Cashier</div>
-            </div>
-            <a href="auth?action=logout" class="logout-btn">Logout</a>
-        </div>
-    </nav>
+    <!-- Include sidebar -->
+    <%@ include file="../../includes/sidebar.jsp" %>
 
-    <div class="container">
-        <div class="welcome-section">
-            <h2>Ready for Business! ⚡</h2>
-            <p>Start processing sales and managing customer transactions</p>
-        </div>
-
-        <div class="quick-stats">
-            <div class="stat-card sales">
-                <div class="stat-icon">💰</div>
-                <div class="stat-number" id="todaySales">Rs. 0.00</div>
-                <div class="stat-label">Today's Sales</div>
-            </div>
-            <div class="stat-card bills">
-                <div class="stat-icon">🧾</div>
-                <div class="stat-number" id="todayBills">0</div>
-                <div class="stat-label">Bills Processed</div>
-            </div>
-            <div class="stat-card customers">
-                <div class="stat-icon">👥</div>
-                <div class="stat-number" id="totalCustomers">0</div>
-                <div class="stat-label">Total Customers</div>
-            </div>
-        </div>
-
-        <div class="dashboard-grid">
-            <div class="action-card">
-                <span class="action-icon">💳</span>
-                <h3>Create New Bill</h3>
-                <p>Process customer purchases and generate invoices quickly and efficiently</p>
-                <a href="bill?action=create" class="action-btn create-bill">Start Billing</a>
-            </div>
-
-            <div class="action-card">
-                <span class="action-icon">👥</span>
-                <h3>Manage Customers</h3>
-                <p>Add new customers, update information, and view customer history</p>
-                <a href="customer?action=list" class="action-btn">View Customers</a>
-            </div>
-
-            <div class="action-card">
-                <span class="action-icon">📦</span>
-                <h3>View Inventory</h3>
-                <p>Check product availability, prices, and stock levels</p>
-                <a href="item?action=list" class="action-btn secondary">Browse Items</a>
-            </div>
-
-            <div class="action-card">
-                <span class="action-icon">📊</span>
-                <h3>View Bills</h3>
-                <p>Access transaction history, print receipts, and track payments</p>
-                <a href="bill?action=list" class="action-btn secondary">View Bills</a>
-            </div>
-
-            <div class="action-card">
-                <span class="action-icon">🔍</span>
-                <h3>Search & Reports</h3>
-                <p>Find customers, items, or bills quickly with powerful search tools</p>
-                <a href="javascript:void(0)" onclick="showSearchModal()" class="action-btn">Quick Search</a>
-            </div>
-
-            <div class="action-card">
-                <span class="action-icon">⚙️</span>
-                <h3>Cashier Tools</h3>
-                <p>Access cashier-specific tools and utilities for daily operations</p>
-                <a href="javascript:void(0)" onclick="showToolsModal()" class="action-btn secondary">Open Tools</a>
-            </div>
-        </div>
-
-        <div class="recent-activities">
-            <h3>
-                <span>📈</span>
-                Recent Activities
-            </h3>
-            <ul class="activity-list" id="activityList">
-                <li class="activity-item">
-                    <div class="activity-icon">💳</div>
-                    <div class="activity-content">
-                        <div class="activity-title">System Ready</div>
-                        <div class="activity-time">Ready to process transactions</div>
+    <!-- Main Content -->
+    <div class="main-content">
+        <main class="content-area">
+            <!-- Welcome Section -->
+            <div class="cashier-welcome">
+                <h1>Cashier Dashboard</h1>
+                <p class="subtitle">Manage daily transactions and customer services</p>
+                
+                <div class="user-info-box">
+                    <div class="user-avatar-large">
+                        <%= loggedUser.getFullName().substring(0,1).toUpperCase() %>
                     </div>
-                </li>
-                <li class="activity-item">
-                    <div class="activity-icon">👤</div>
-                    <div class="activity-content">
-                        <div class="activity-title">Cashier Login</div>
-                        <div class="activity-time">Logged in successfully</div>
+                    <div class="user-details">
+                        <h3><%= loggedUser.getFullName() %></h3>
+                        <p>Cashier • <%= loggedUser.getUsername() %></p>
                     </div>
-                </li>
-            </ul>
-        </div>
-
-        <div class="keyboard-shortcuts">
-            <h4>
-                <span>⌨️</span>
-                Keyboard Shortcuts
-            </h4>
-            <div class="shortcuts-grid">
-                <div class="shortcut-item">
-                    <span>New Bill</span>
-                    <span class="shortcut-key">Ctrl + N</span>
-                </div>
-                <div class="shortcut-item">
-                    <span>Find Customer</span>
-                    <span class="shortcut-key">Ctrl + F</span>
-                </div>
-                <div class="shortcut-item">
-                    <span>View Items</span>
-                    <span class="shortcut-key">Ctrl + I</span>
-                </div>
-                <div class="shortcut-item">
-                    <span>Quick Search</span>
-                    <span class="shortcut-key">Ctrl + /</span>
+                    <div class="time-display" id="currentTime"></div>
                 </div>
             </div>
-        </div>
+
+            <!-- Statistics Overview -->
+            <div class="stats-overview">
+                <div class="stat-box sales">
+                    <div class="stat-header">
+                        <span class="stat-title">Today's Sales</span>
+                        <div class="stat-icon">💰</div>
+                    </div>
+                    <div class="stat-value" id="todaySales">Rs. 0.00</div>
+                    <div class="stat-change">+12% from yesterday</div>
+                </div>
+
+                <div class="stat-box bills">
+                    <div class="stat-header">
+                        <span class="stat-title">Bills Processed</span>
+                        <div class="stat-icon">📋</div>
+                    </div>
+                    <div class="stat-value" id="todayBills">0</div>
+                    <div class="stat-change">+3 new today</div>
+                </div>
+
+                <div class="stat-box customers">
+                    <div class="stat-header">
+                        <span class="stat-title">Customers Served</span>
+                        <div class="stat-icon">👥</div>
+                    </div>
+                    <div class="stat-value" id="customersServed">0</div>
+                    <div class="stat-change">Active customers</div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="actions-section">
+                <h2 class="section-header">
+                    <span>⚡</span>
+                    Quick Actions
+                </h2>
+                
+                <div class="actions-grid">
+                    <div class="action-item primary">
+                        <div class="action-symbol">💳</div>
+                        <h3 class="action-title">Create New Bill</h3>
+                        <p class="action-desc">Start a new transaction and process customer purchases</p>
+                        <a href="bill?action=create" class="action-button">Create Bill</a>
+                    </div>
+
+                    <div class="action-item">
+                        <div class="action-symbol">👤</div>
+                        <h3 class="action-title">Customer Management</h3>
+                        <p class="action-desc">View, add, or update customer information</p>
+                        <a href="customer?action=list" class="action-button">Manage Customers</a>
+                    </div>
+
+                    <div class="action-item secondary">
+                        <div class="action-symbol">📚</div>
+                        <h3 class="action-title">View Books</h3>
+                        <p class="action-desc">Browse book inventory and check availability</p>
+                        <a href="book?action=list" class="action-button">View Books</a>
+                    </div>
+
+                    <div class="action-item danger">
+                        <div class="action-symbol">📊</div>
+                        <h3 class="action-title">Bill History</h3>
+                        <p class="action-desc">View transaction history and previous bills</p>
+                        <a href="bill?action=list" class="action-button">View Bills</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="activity-section">
+                <h2 class="section-header">
+                    <span>📈</span>
+                    Recent Activity
+                </h2>
+                
+                <ul class="activity-list" id="activityList">
+                    <li class="activity-entry">
+                        <div class="activity-symbol">✅</div>
+                        <div class="activity-content">
+                            <div class="activity-title">System Ready</div>
+                            <div class="activity-time">Ready to process transactions</div>
+                        </div>
+                    </li>
+                    <li class="activity-entry">
+                        <div class="activity-symbol">👤</div>
+                        <div class="activity-content">
+                            <div class="activity-title">Cashier Login</div>
+                            <div class="activity-time">Successfully logged into the system</div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </main>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Initialize dashboard
-            initializeDashboard();
+            initializeCashierDashboard();
             
-            // Setup keyboard shortcuts
-            setupKeyboardShortcuts();
+            // Update time display
+            updateTimeDisplay();
+            setInterval(updateTimeDisplay, 1000);
             
-            // Load statistics (mock data for now)
-            loadStatistics();
+            // Load statistics
+            loadDashboardStats();
             
-            console.log('Cashier Dashboard initialized successfully');
+            console.log('Cashier Dashboard loaded successfully');
         });
 
-        function initializeDashboard() {
-            // Add current time display
-            updateCurrentTime();
-            setInterval(updateCurrentTime, 1000);
-            
-            // Animate numbers
-            animateCounters();
-        }
-
-        function updateCurrentTime() {
-            const now = new Date();
-            const timeString = now.toLocaleTimeString();
-            const dateString = now.toLocaleDateString();
-            
-            // You can add a time display element if needed
-            document.title = `Cashier Dashboard - ${timeString}`;
-        }
-
-        function animateCounters() {
-            const counters = document.querySelectorAll('.stat-number');
-            counters.forEach(counter => {
-                const target = parseInt(counter.textContent.replace(/[^\d]/g, '')) || 0;
-                const increment = target / 100;
-                let current = 0;
+        function initializeCashierDashboard() {
+            // Add welcome activity
+            setTimeout(() => {
+                const hour = new Date().getHours();
+                let greeting = 'Good morning';
+                if (hour >= 12) greeting = 'Good afternoon';
+                if (hour >= 18) greeting = 'Good evening';
                 
-                const timer = setInterval(() => {
-                    current += increment;
-                    if (current >= target) {
-                        current = target;
-                        clearInterval(timer);
-                    }
-                    
-                    if (counter.textContent.includes('Rs.')) {
-                        counter.textContent = 'Rs. ' + Math.floor(current).toLocaleString() + '.00';
-                    } else {
-                        counter.textContent = Math.floor(current).toLocaleString();
-                    }
-                }, 20);
-            });
+                addActivityEntry('👋', `${greeting}, <%= loggedUser.getFullName() %>!`, 'Welcome to your dashboard');
+            }, 1500);
+
+            // Animate statistics
+            animateNumbers();
         }
 
-        function loadStatistics() {
-            // Mock data - replace with actual API calls
+        function updateTimeDisplay() {
+            const now = new Date();
+            const timeString = now.toLocaleString('en-US', {
+                weekday: 'short',
+                month: 'short', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            const timeElement = document.getElementById('currentTime');
+            if (timeElement) {
+                timeElement.textContent = timeString;
+            }
+        }
+
+        function loadDashboardStats() {
+            // Simulate loading statistics
             setTimeout(() => {
                 document.getElementById('todaySales').textContent = 'Rs. 45,250.00';
                 document.getElementById('todayBills').textContent = '12';
-                document.getElementById('totalCustomers').textContent = '248';
-                animateCounters();
-            }, 1000);
+                document.getElementById('customersServed').textContent = '8';
+                animateNumbers();
+            }, 800);
         }
 
-        function setupKeyboardShortcuts() {
-            document.addEventListener('keydown', function(e) {
-                if (e.ctrlKey) {
-                    switch(e.key) {
-                        case 'n':
-                            e.preventDefault();
-                            window.location.href = 'bill?action=create';
-                            break;
-                        case 'f':
-                            e.preventDefault();
-                            window.location.href = 'customer?action=list';
-                            break;
-                        case 'i':
-                            e.preventDefault();
-                            window.location.href = 'item?action=list';
-                            break;
-                        case '/':
-                            e.preventDefault();
-                            showSearchModal();
-                            break;
-                    }
+        function animateNumbers() {
+            const numbers = document.querySelectorAll('.stat-value');
+            numbers.forEach(element => {
+                const finalValue = element.textContent;
+                const isRupees = finalValue.includes('Rs.');
+                const numValue = parseInt(finalValue.replace(/[^\d]/g, '')) || 0;
+                
+                if (numValue > 0) {
+                    let current = 0;
+                    const increment = numValue / 30;
+                    
+                    const timer = setInterval(() => {
+                        current += increment;
+                        if (current >= numValue) {
+                            current = numValue;
+                            clearInterval(timer);
+                        }
+                        
+                        if (isRupees) {
+                            element.textContent = 'Rs. ' + Math.floor(current).toLocaleString() + '.00';
+                        } else {
+                            element.textContent = Math.floor(current).toString();
+                        }
+                    }, 50);
                 }
             });
         }
 
-        function showSearchModal() {
-            const searchTerm = prompt('Quick Search - Enter customer name, item name, or bill number:');
-            if (searchTerm && searchTerm.trim()) {
-                // Determine search type and redirect
-                if (searchTerm.toUpperCase().startsWith('BILL')) {
-                    window.location.href = 'bill?action=list&search=' + encodeURIComponent(searchTerm);
-                } else if (searchTerm.includes('@') || /^\d+$/.test(searchTerm)) {
-                    window.location.href = 'customer?action=search&searchTerm=' + encodeURIComponent(searchTerm);
-                } else {
-                    window.location.href = 'item?action=search&searchTerm=' + encodeURIComponent(searchTerm);
-                }
-            }
-        }
-
-        function showToolsModal() {
-            const tools = [
-                'Calculator',
-                'Date/Time',
-                'Currency Converter',
-                'Quick Notes',
-                'Print Test'
-            ];
-            
-            const selectedTool = prompt('Select a tool:\n' + tools.map((tool, index) => `${index + 1}. ${tool}`).join('\n'));
-            
-            if (selectedTool) {
-                const toolIndex = parseInt(selectedTool) - 1;
-                if (toolIndex >= 0 && toolIndex < tools.length) {
-                    switch(toolIndex) {
-                        case 0:
-                            openCalculator();
-                            break;
-                        case 1:
-                            alert('Current Date/Time: ' + new Date().toLocaleString());
-                            break;
-                        case 2:
-                            openCurrencyConverter();
-                            break;
-                        case 3:
-                            openQuickNotes();
-                            break;
-                        case 4:
-                            window.print();
-                            break;
-                    }
-                }
-            }
-        }
-
-        function openCalculator() {
-            const calculation = prompt('Enter calculation (e.g., 123 + 456):');
-            if (calculation) {
-                try {
-                    const result = eval(calculation.replace(/[^0-9+\-*/.() ]/g, ''));
-                    alert(`Result: ${calculation} = ${result}`);
-                } catch (e) {
-                    alert('Invalid calculation');
-                }
-            }
-        }
-
-        function openCurrencyConverter() {
-            const amount = prompt('Enter amount in LKR:');
-            if (amount && !isNaN(amount)) {
-                // Mock conversion rates
-                const usd = (parseFloat(amount) / 320).toFixed(2);
-                const eur = (parseFloat(amount) / 350).toFixed(2);
-                alert(`LKR ${amount}\n≈ USD ${usd}\n≈ EUR ${eur}`);
-            }
-        }
-
-        function openQuickNotes() {
-            const note = prompt('Quick Note:');
-            if (note) {
-                const notes = JSON.parse(localStorage.getItem('cashierNotes') || '[]');
-                notes.push({
-                    text: note,
-                    timestamp: new Date().toLocaleString()
-                });
-                localStorage.setItem('cashierNotes', JSON.stringify(notes));
-                alert('Note saved!');
-            }
-        }
-
-        // Add activity to recent activities
-        function addActivity(icon, title, time) {
+        function addActivityEntry(icon, title, description) {
             const activityList = document.getElementById('activityList');
-            const newActivity = document.createElement('li');
-            newActivity.className = 'activity-item';
-            newActivity.innerHTML = `
-                <div class="activity-icon">${icon}</div>
+            const newEntry = document.createElement('li');
+            newEntry.className = 'activity-entry';
+            newEntry.innerHTML = `
+                <div class="activity-symbol">${icon}</div>
                 <div class="activity-content">
                     <div class="activity-title">${title}</div>
-                    <div class="activity-time">${time}</div>
+                    <div class="activity-time">${description}</div>
                 </div>
             `;
             
-            activityList.insertBefore(newActivity, activityList.firstChild);
+            activityList.insertBefore(newEntry, activityList.firstChild);
             
-            // Keep only latest 5 activities
-            while (activityList.children.length > 5) {
+            // Keep only latest 4 activities
+            while (activityList.children.length > 4) {
                 activityList.removeChild(activityList.lastChild);
             }
         }
-
-        // Welcome message
-        setTimeout(() => {
-            const hour = new Date().getHours();
-            let greeting = 'Good morning';
-            if (hour >= 12) greeting = 'Good afternoon';
-            if (hour >= 18) greeting = 'Good evening';
-            
-            addActivity('👋', `${greeting}, <%= loggedUser.getFullName() %>!`, 'Just now');
-        }, 2000);
     </script>
 </body>
 </html>

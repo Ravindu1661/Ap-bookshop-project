@@ -11,8 +11,10 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #667eea;
-            --secondary-color: #764ba2;
+            --primary-blue: #2B6CB0;
+            --secondary-blue: #3182CE;
+            --light-blue: #4299E1;
+            --darker-blue: #2A4365;
             --success-color: #10b981;
             --info-color: #3b82f6;
             --warning-color: #f59e0b;
@@ -26,102 +28,213 @@
         }
 
         body {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--light-blue) 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             padding: 20px;
+            position: relative;
+            overflow: hidden;
         }
 
-        .login-wrapper {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+        /* Background Geometric Shapes */
+        body::before,
+        body::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 0;
+        }
+
+        body::before {
+            width: 400px;
+            height: 400px;
+            top: -200px;
+            left: -200px;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        body::after {
+            width: 300px;
+            height: 300px;
+            bottom: -150px;
+            right: -150px;
+            animation: float 8s ease-in-out infinite reverse;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .login-container {
             width: 100%;
-            max-width: 450px;
+            max-width: 900px;
+            height: auto;
+            max-height: 600px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            display: flex;
             overflow: hidden;
-            animation: slideUp 0.6s ease;
+            position: relative;
+            z-index: 1;
+            animation: slideUp 0.8s ease;
         }
 
         @keyframes slideUp {
             from {
                 opacity: 0;
-                transform: translateY(30px);
+                transform: translateY(50px) scale(0.95);
             }
             to {
                 opacity: 1;
-                transform: translateY(0);
+                transform: translateY(0) scale(1);
             }
         }
 
-        .login-header {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        /* Left Welcome Section */
+        .welcome-section {
+            flex: 0 0 45%;
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
             color: white;
+            padding: 50px 35px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
             text-align: center;
-            padding: 30px;
+            position: relative;
+            overflow: hidden;
         }
 
-        .logo {
-            font-size: 3.5rem;
-            margin-bottom: 10px;
-            animation: pulse 2s infinite;
+        .welcome-section::before {
+            content: '';
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            top: -100px;
+            left: -100px;
         }
 
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+        .welcome-section::after {
+            content: '';
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 50%;
+            bottom: -75px;
+            right: -75px;
         }
 
-        .login-title {
-            font-size: 1.8rem;
-            margin-bottom: 5px;
+        .welcome-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .welcome-title {
+            font-size: 2.5rem;
             font-weight: 700;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         }
 
-        .login-subtitle {
+        .welcome-subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .welcome-features {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .welcome-features li {
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
             font-size: 0.9rem;
             opacity: 0.9;
         }
 
-        .login-content {
-            padding: 40px;
+        .welcome-features i {
+            color: #FFD700;
+            font-size: 1.2rem;
         }
 
+        /* Right Login Section */
+        .login-section {
+            flex: 0 0 55%;
+            padding: 25px 20px;
+            background: #fafafa;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow-y: auto;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .login-title {
+            font-size: 1.4rem;
+            color: var(--darker-blue);
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .login-subtitle {
+            color: #666;
+            font-size: 0.75rem;
+        }
+
+        /* Tab System */
         .login-tabs {
             display: flex;
-            margin-bottom: 30px;
-            background: #f8fafc;
-            border-radius: 12px;
-            padding: 4px;
+            margin-bottom: 14px;
+            background: white;
+            border-radius: 6px;
+            padding: 3px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
 
         .tab-button {
             flex: 1;
             background: transparent;
             border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
+            padding: 8px 12px;
+            border-radius: 4px;
             font-weight: 600;
             transition: all 0.3s ease;
             cursor: pointer;
             position: relative;
+            color: #666;
+            font-size: 0.75rem;
         }
 
         .tab-button.active {
-            background: white;
-            color: var(--primary-color);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .tab-button:not(.active) {
-            color: #64748b;
+            background: var(--primary-blue);
+            color: white;
+            box-shadow: 0 4px 15px rgba(43, 108, 176, 0.3);
         }
 
         .tab-button:hover:not(.active) {
-            color: var(--primary-color);
+            color: var(--primary-blue);
+            background: rgba(43, 108, 176, 0.05);
         }
 
         .tab-content {
@@ -138,33 +251,17 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* Form Styles */
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 12px;
         }
 
         .form-label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
             font-weight: 600;
-            color: #374151;
-            font-size: 0.9rem;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 14px 16px;
-            border: 2px solid #e5e7eb;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            background: #fafbfc;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            background: white;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            color: var(--darker-blue);
+            font-size: 0.75rem;
         }
 
         .input-group {
@@ -173,26 +270,44 @@
 
         .input-icon {
             position: absolute;
-            left: 16px;
+            left: 10px;
             top: 50%;
             transform: translateY(-50%);
-            color: #9ca3af;
-            font-size: 1.1rem;
+            color: #999;
+            font-size: 0.85rem;
+            z-index: 2;
         }
 
-        .form-control.with-icon {
-            padding-left: 48px;
+        .form-control {
+            width: 100%;
+            padding: 10px 10px 10px 32px;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 13px;
+            transition: all 0.3s ease;
+            background: white;
         }
 
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.1);
+        }
+
+        .form-control:valid {
+            border-color: var(--success-color);
+        }
+
+        /* Buttons */
         .btn-login {
             width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            padding: 10px;
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
             border: none;
             color: white;
-            font-size: 16px;
+            font-size: 13px;
             font-weight: 600;
-            border-radius: 10px;
+            border-radius: 6px;
             transition: all 0.3s ease;
             cursor: pointer;
             position: relative;
@@ -201,7 +316,7 @@
 
         .btn-login:hover {
             transform: translateY(-2px);
-            box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 15px 35px rgba(43, 108, 176, 0.4);
         }
 
         .btn-login:active {
@@ -213,15 +328,16 @@
         }
 
         .btn-customer:hover {
-            box-shadow: 0 12px 30px rgba(16, 185, 129, 0.4);
+            box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4);
         }
 
+        /* Alert Messages */
         .alert {
-            padding: 12px 16px;
-            border-radius: 10px;
-            margin-bottom: 20px;
+            padding: 8px 10px;
+            border-radius: 6px;
+            margin-bottom: 12px;
             border: none;
-            font-size: 0.9rem;
+            font-size: 0.75rem;
             animation: slideIn 0.4s ease;
         }
 
@@ -248,39 +364,42 @@
             border-left: 4px solid #059669;
         }
 
+        /* Demo Accounts */
         .demo-accounts {
-            margin-top: 25px;
-            padding: 20px;
-            background: #f8fafc;
-            border-radius: 12px;
+            margin-top: 12px;
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
             border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
 
         .demo-title {
             text-align: center;
             font-weight: 700;
-            margin-bottom: 15px;
-            color: #374151;
-            font-size: 0.9rem;
+            margin-bottom: 8px;
+            color: var(--darker-blue);
+            font-size: 0.7rem;
         }
 
         .demo-account {
-            background: white;
-            padding: 14px;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            padding: 8px;
+            border-radius: 4px;
+            margin-bottom: 4px;
+            border: 2px solid transparent;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 6px;
         }
 
         .demo-account:hover {
-            border-color: var(--primary-color);
+            border-color: var(--primary-blue);
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            box-shadow: 0 6px 15px rgba(43, 108, 176, 0.12);
+            background: white;
         }
 
         .demo-account:last-child {
@@ -288,13 +407,13 @@
         }
 
         .demo-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
+            width: 28px;
+            height: 28px;
+            border-radius: 4px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
+            font-size: 0.85rem;
             color: white;
             flex-shrink: 0;
         }
@@ -307,76 +426,71 @@
             background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
         }
 
+        .customer-icon {
+            background: linear-gradient(135deg, var(--info-color) 0%, #1d4ed8 100%);
+        }
+
         .demo-info {
             flex: 1;
         }
 
         .demo-role {
             font-weight: 600;
-            color: #374151;
-            font-size: 0.9rem;
+            color: var(--darker-blue);
+            font-size: 0.7rem;
         }
 
         .demo-credentials {
-            font-size: 0.8rem;
+            font-size: 0.65rem;
             color: #6b7280;
-            margin-top: 2px;
+            margin-top: 0px;
         }
 
-        .feature-highlight {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-            padding: 16px;
-            border-radius: 10px;
-            margin-top: 20px;
-            border: 1px solid rgba(102, 126, 234, 0.2);
-        }
-
-        .feature-text {
-            font-size: 0.85rem;
-            color: #4b5563;
-            text-align: center;
-            margin: 0;
-        }
-
+        /* Customer Info */
         .customer-info {
             background: rgba(16, 185, 129, 0.1);
-            padding: 16px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            border-left: 4px solid var(--success-color);
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            border-left: 3px solid var(--success-color);
         }
 
         .customer-info-text {
-            font-size: 0.9rem;
+            font-size: 0.75rem;
             color: #065f46;
             margin: 0;
             font-weight: 500;
         }
 
-        .footer {
+        /* Feature Highlight */
+        .feature-highlight {
+            background: rgba(43, 108, 176, 0.1);
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+            border: 1px solid rgba(43, 108, 176, 0.2);
+        }
+
+        .feature-text {
+            font-size: 0.7rem;
+            color: var(--darker-blue);
             text-align: center;
-            margin-top: 25px;
-            padding-top: 20px;
-            border-top: 1px solid #e2e8f0;
+            margin: 0;
         }
 
-        .footer-text {
-            font-size: 0.8rem;
-            color: #6b7280;
-        }
-
+        /* Loading */
         .loading {
             display: none;
             text-align: center;
-            margin-top: 10px;
+            margin-top: 8px;
         }
 
         .spinner {
             display: inline-block;
-            width: 20px;
-            height: 20px;
+            width: 16px;
+            height: 16px;
             border: 2px solid #f3f3f3;
-            border-top: 2px solid var(--primary-color);
+            border-top: 2px solid var(--primary-blue);
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
@@ -386,66 +500,106 @@
             100% { transform: rotate(360deg); }
         }
 
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
         /* Responsive Design */
+        @media (max-width: 1200px) {
+            .login-container {
+                max-width: 800px;
+                max-height: 550px;
+            }
+        }
+
         @media (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
-
-            .login-wrapper {
+            .login-container {
+                flex-direction: column;
                 max-width: 100%;
+                max-height: none;
+                border-radius: 15px;
             }
 
-            .login-content {
-                padding: 30px 25px;
+            .welcome-section {
+                flex: none;
+                padding: 40px 30px;
+                order: 2;
             }
 
-            .logo {
-                font-size: 3rem;
+            .login-section {
+                flex: none;
+                padding: 40px 30px;
+                order: 1;
+            }
+
+            .welcome-title {
+                font-size: 2.2rem;
             }
 
             .login-title {
-                font-size: 1.5rem;
+                font-size: 1.6rem;
+            }
+
+            body {
+                padding: 10px;
             }
         }
 
-        /* Micro-interactions */
-        .form-control:valid {
-            border-color: var(--success-color);
+        @media (max-width: 480px) {
+            .welcome-section,
+            .login-section {
+                padding: 30px 20px;
+            }
+
+            .welcome-title {
+                font-size: 1.8rem;
+            }
+
+            .login-title {
+                font-size: 1.4rem;
+            }
         }
 
-        .form-control:invalid:not(:placeholder-shown) {
-            border-color: var(--danger-color);
+        /* Additional Micro-animations */
+        .form-control:focus + .input-icon {
+            color: var(--primary-blue);
         }
 
-        .tab-button::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            width: 0;
-            height: 2px;
-            background: var(--primary-color);
-            transition: all 0.3s ease;
-            transform: translateX(-50%);
+        .demo-account:active {
+            transform: scale(0.98);
         }
 
-        .tab-button.active::after {
-            width: 80%;
+        .tab-button:active {
+            transform: scale(0.98);
         }
     </style>
 </head>
 <body>
-    <div class="login-wrapper">
-        <!-- Header -->
-        <div class="login-header">
-            <div class="logo">📚</div>
-            <h1 class="login-title">R-edupahana</h1>
-            <p class="login-subtitle">Online Billing & Library Management System</p>
+    <div class="login-container">
+        <!-- Left Welcome Section -->
+        <div class="welcome-section">
+            <div class="welcome-content">
+                <h1 class="welcome-title">WELCOME</h1>
+                <p class="welcome-subtitle">Your Complete Library & Billing Management System</p>
+                
+                <ul class="welcome-features">
+                    <li><i class="fas fa-book"></i> Comprehensive Book Management</li>
+                    <li><i class="fas fa-users"></i> Customer Portal Access</li>
+                    <li><i class="fas fa-chart-line"></i> Advanced Analytics & Reports</li>
+                    <li><i class="fas fa-mobile-alt"></i> Mobile-Friendly Interface</li>
+                    <li><i class="fas fa-shield-alt"></i> Secure & Reliable System</li>
+                </ul>
+            </div>
         </div>
 
-        <!-- Content -->
-        <div class="login-content">
+        <!-- Right Login Section -->
+        <div class="login-section">
+            <div class="login-header">
+                <h2 class="login-title">Sign In</h2>
+                <p class="login-subtitle">Please enter your credentials to access your account</p>
+            </div>
+
             <!-- Alert Messages -->
             <c:if test="${not empty errorMessage}">
                 <div class="alert alert-danger">
@@ -462,7 +616,7 @@
             </c:if>
 
             <c:if test="${not empty successMessage}">
-                <div class="alert alert-success">
+                <div class="alert alert-success" id="successAlert">
                     <i class="fas fa-check-circle me-2"></i>
                     ${successMessage}
                 </div>
@@ -485,15 +639,13 @@
                     <input type="hidden" name="loginType" value="staff">
                     
                     <div class="form-group">
-                        <label for="username" class="form-label">
-                            <i class="fas fa-user me-2"></i>Username
-                        </label>
+                        <label for="username" class="form-label">User Name</label>
                         <div class="input-group">
                             <i class="fas fa-user input-icon"></i>
                             <input type="text" 
                                    id="username" 
                                    name="username" 
-                                   class="form-control with-icon" 
+                                   class="form-control" 
                                    placeholder="Enter your username"
                                    required
                                    autocomplete="username">
@@ -501,15 +653,13 @@
                     </div>
                     
                     <div class="form-group">
-                        <label for="password" class="form-label">
-                            <i class="fas fa-lock me-2"></i>Password
-                        </label>
+                        <label for="password" class="form-label">Password</label>
                         <div class="input-group">
                             <i class="fas fa-lock input-icon"></i>
                             <input type="password" 
                                    id="password" 
                                    name="password" 
-                                   class="form-control with-icon" 
+                                   class="form-control" 
                                    placeholder="Enter your password"
                                    required
                                    autocomplete="current-password">
@@ -518,7 +668,7 @@
                     
                     <button type="submit" class="btn-login">
                         <i class="fas fa-sign-in-alt me-2"></i>
-                        Sign In to Dashboard
+                        Sign In
                     </button>
                 </form>
 
@@ -562,15 +712,13 @@
                     <input type="hidden" name="loginType" value="customer">
                     
                     <div class="form-group">
-                        <label for="accountNumber" class="form-label">
-                            <i class="fas fa-id-card me-2"></i>Account Number
-                        </label>
+                        <label for="accountNumber" class="form-label">Account Number</label>
                         <div class="input-group">
                             <i class="fas fa-hashtag input-icon"></i>
                             <input type="text" 
                                    id="accountNumber" 
                                    name="accountNumber" 
-                                   class="form-control with-icon" 
+                                   class="form-control" 
                                    placeholder="Enter your account number (e.g., ACC001)"
                                    required
                                    pattern="[A-Za-z0-9]+"
@@ -589,7 +737,7 @@
                     <div class="demo-title">🎯 Demo Customer Account</div>
                     
                     <div class="demo-account" onclick="fillCustomerLogin('ACC001')">
-                        <div class="demo-icon" style="background: linear-gradient(135deg, var(--info-color) 0%, #1d4ed8 100%);">
+                        <div class="demo-icon customer-icon">
                             <i class="fas fa-user"></i>
                         </div>
                         <div class="demo-info">
@@ -611,11 +759,6 @@
             <div class="loading" id="loadingIndicator">
                 <div class="spinner"></div>
                 <span class="ms-2">Signing in...</span>
-            </div>
-
-            <!-- Footer -->
-            <div class="footer">
-                <p class="footer-text">© 2025 R-edupahana. All rights reserved.</p>
             </div>
         </div>
     </div>
@@ -681,10 +824,46 @@
             }
         });
 
-        // Auto-focus functionality
+        // Auto-focus functionality and success redirect
         document.addEventListener('DOMContentLoaded', function() {
             // Focus on username field when page loads
             document.getElementById('username').focus();
+            
+            // Handle success message and auto-redirect
+            const showSuccess = '<c:out value="${showSuccess}" />';
+            const redirectUrl = '<c:out value="${redirectUrl}" />';
+            
+            if (showSuccess === 'true' && redirectUrl) {
+                // Show success message with animation
+                const successAlert = document.getElementById('successAlert');
+                if (successAlert) {
+                    successAlert.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+                    successAlert.style.color = 'white';
+                    successAlert.style.borderLeft = '4px solid #065f46';
+                    successAlert.style.animation = 'pulse 0.5s ease-in-out';
+                    
+                    // Disable all form inputs and buttons
+                    document.querySelectorAll('input, button').forEach(element => {
+                        element.disabled = true;
+                        element.style.opacity = '0.6';
+                    });
+                    
+                    // Show loading spinner in the success alert
+                    setTimeout(() => {
+                        successAlert.innerHTML = `
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                                <div class="spinner" style="border-color: rgba(255,255,255,0.3); border-top-color: white;"></div>
+                                <span>Redirecting...</span>
+                            </div>
+                        `;
+                    }, 1500);
+                    
+                    // Redirect after 3 seconds
+                    setTimeout(() => {
+                        window.location.href = redirectUrl;
+                    }, 3000);
+                }
+            }
             
             // Add enter key navigation
             document.querySelectorAll('input').forEach(input => {
@@ -706,16 +885,16 @@
         // Add subtle animations on input focus
         document.querySelectorAll('.form-control').forEach(input => {
             input.addEventListener('focus', function() {
-                this.parentElement.style.transform = 'scale(1.02)';
-                this.parentElement.style.transition = 'transform 0.2s ease';
+                this.closest('.input-group').style.transform = 'scale(1.02)';
+                this.closest('.input-group').style.transition = 'transform 0.2s ease';
             });
             
             input.addEventListener('blur', function() {
-                this.parentElement.style.transform = 'scale(1)';
+                this.closest('.input-group').style.transform = 'scale(1)';
             });
         });
 
-        // Add click sound effect (optional)
+        // Add click effect for interactive elements
         document.querySelectorAll('.demo-account, .tab-button').forEach(element => {
             element.addEventListener('click', function() {
                 this.style.transform = 'scale(0.98)';
