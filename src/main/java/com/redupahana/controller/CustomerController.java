@@ -1,4 +1,3 @@
-
 // CustomerController.java
 package com.redupahana.controller;
 
@@ -10,6 +9,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import com.redupahana.model.Customer;
 import com.redupahana.service.CustomerService;
 import com.redupahana.util.Constants;
@@ -59,6 +59,15 @@ public class CustomerController extends HttpServlet {
         try {
             List<Customer> customers = customerService.getAllCustomers();
             request.setAttribute("customers", customers);
+            
+            // Check for success message in session and display it
+            HttpSession session = request.getSession();
+            String successMessage = (String) session.getAttribute("successMessage");
+            if (successMessage != null) {
+                request.setAttribute("successMessage", successMessage);
+                session.removeAttribute("successMessage"); // Remove after displaying
+            }
+            
             request.getRequestDispatcher("WEB-INF/view/customer/listCustomers.jsp").forward(request, response);
         } catch (SQLException e) {
             request.setAttribute("errorMessage", "Error loading customers: " + e.getMessage());
@@ -75,20 +84,39 @@ public class CustomerController extends HttpServlet {
             throws ServletException, IOException {
         try {
             Customer customer = new Customer();
-            customer.setAccountNumber(request.getParameter("accountNumber"));
-            customer.setName(request.getParameter("name"));
-            customer.setAddress(request.getParameter("address"));
-            customer.setPhone(request.getParameter("phone"));
-            customer.setEmail(request.getParameter("email"));
             
+            // Get form data
+            String accountNumber = request.getParameter("accountNumber");
+            String name = request.getParameter("name");
+            String address = request.getParameter("address");
+            String phone = request.getParameter("phone");
+            String email = request.getParameter("email");
+            
+            // Set customer data
+            customer.setAccountNumber(accountNumber != null && !accountNumber.trim().isEmpty() ? accountNumber.trim() : null);
+            customer.setName(name != null ? name.trim() : "");
+            customer.setAddress(address != null && !address.trim().isEmpty() ? address.trim() : null);
+            customer.setPhone(phone != null ? phone.trim() : "");
+            customer.setEmail(email != null && !email.trim().isEmpty() ? email.trim() : null);
+            
+            // Add customer through service
             customerService.addCustomer(customer);
-            request.setAttribute("successMessage", Constants.SUCCESS_ADD);
+            
+            // Set success message in session
+            HttpSession session = request.getSession();
+            session.setAttribute("successMessage", "Customer '" + customer.getName() + "' has been added successfully!");
+            
+            // Redirect to customer list
             response.sendRedirect("customer?action=list");
+            
         } catch (SQLException e) {
-            request.setAttribute("errorMessage", "Error adding customer: " + e.getMessage());
+            request.setAttribute("errorMessage", "Database Error: " + e.getMessage());
+            request.getRequestDispatcher("WEB-INF/view/customer/addCustomer.jsp").forward(request, response);
+        } catch (IllegalArgumentException e) {
+            request.setAttribute("errorMessage", "Validation Error: " + e.getMessage());
             request.getRequestDispatcher("WEB-INF/view/customer/addCustomer.jsp").forward(request, response);
         } catch (Exception e) {
-            request.setAttribute("errorMessage", e.getMessage());
+            request.setAttribute("errorMessage", "Unexpected Error: " + e.getMessage());
             request.getRequestDispatcher("WEB-INF/view/customer/addCustomer.jsp").forward(request, response);
         }
     }
@@ -106,6 +134,9 @@ public class CustomerController extends HttpServlet {
                 request.setAttribute("errorMessage", Constants.ERROR_NOT_FOUND);
                 request.getRequestDispatcher("WEB-INF/view/error.jsp").forward(request, response);
             }
+        } catch (NumberFormatException e) {
+            request.setAttribute("errorMessage", "Invalid customer ID format");
+            request.getRequestDispatcher("WEB-INF/view/error.jsp").forward(request, response);
         } catch (SQLException e) {
             request.setAttribute("errorMessage", "Error loading customer: " + e.getMessage());
             request.getRequestDispatcher("WEB-INF/view/error.jsp").forward(request, response);
@@ -116,20 +147,40 @@ public class CustomerController extends HttpServlet {
             throws ServletException, IOException {
         try {
             Customer customer = new Customer();
-            customer.setCustomerId(Integer.parseInt(request.getParameter("customerId")));
-            customer.setName(request.getParameter("name"));
-            customer.setAddress(request.getParameter("address"));
-            customer.setPhone(request.getParameter("phone"));
-            customer.setEmail(request.getParameter("email"));
+            
+            // Get form data
+            int customerId = Integer.parseInt(request.getParameter("customerId"));
+            String name = request.getParameter("name");
+            String address = request.getParameter("address");
+            String phone = request.getParameter("phone");
+            String email = request.getParameter("email");
+            
+            // Set customer data
+            customer.setCustomerId(customerId);
+            customer.setName(name != null ? name.trim() : "");
+            customer.setAddress(address != null && !address.trim().isEmpty() ? address.trim() : null);
+            customer.setPhone(phone != null ? phone.trim() : "");
+            customer.setEmail(email != null && !email.trim().isEmpty() ? email.trim() : null);
             
             customerService.updateCustomer(customer);
-            request.setAttribute("successMessage", Constants.SUCCESS_UPDATE);
+            
+            // Set success message in session
+            HttpSession session = request.getSession();
+            session.setAttribute("successMessage", "Customer '" + customer.getName() + "' has been updated successfully!");
+            
             response.sendRedirect("customer?action=list");
+            
+        } catch (NumberFormatException e) {
+            request.setAttribute("errorMessage", "Invalid customer ID format");
+            showEditForm(request, response);
         } catch (SQLException e) {
-            request.setAttribute("errorMessage", "Error updating customer: " + e.getMessage());
+            request.setAttribute("errorMessage", "Database Error: " + e.getMessage());
+            showEditForm(request, response);
+        } catch (IllegalArgumentException e) {
+            request.setAttribute("errorMessage", "Validation Error: " + e.getMessage());
             showEditForm(request, response);
         } catch (Exception e) {
-            request.setAttribute("errorMessage", e.getMessage());
+            request.setAttribute("errorMessage", "Unexpected Error: " + e.getMessage());
             showEditForm(request, response);
         }
     }
@@ -138,11 +189,26 @@ public class CustomerController extends HttpServlet {
             throws ServletException, IOException {
         try {
             int customerId = Integer.parseInt(request.getParameter("id"));
+            
+            // Get customer details before deletion for success message
+            Customer customer = customerService.getCustomerById(customerId);
+            String customerName = customer != null ? customer.getName() : "Customer";
+            
             customerService.deleteCustomer(customerId);
-            request.setAttribute("successMessage", Constants.SUCCESS_DELETE);
+            
+            // Set success message in session
+            HttpSession session = request.getSession();
+            session.setAttribute("successMessage", "Customer '" + customerName + "' has been deleted successfully!");
+            
+            response.sendRedirect("customer?action=list");
+            
+        } catch (NumberFormatException e) {
+            HttpSession session = request.getSession();
+            session.setAttribute("errorMessage", "Invalid customer ID format");
             response.sendRedirect("customer?action=list");
         } catch (SQLException e) {
-            request.setAttribute("errorMessage", "Error deleting customer: " + e.getMessage());
+            HttpSession session = request.getSession();
+            session.setAttribute("errorMessage", "Error deleting customer: " + e.getMessage());
             response.sendRedirect("customer?action=list");
         }
     }
@@ -151,13 +217,31 @@ public class CustomerController extends HttpServlet {
             throws ServletException, IOException {
         try {
             String searchTerm = request.getParameter("searchTerm");
-            List<Customer> customers = customerService.searchCustomers(searchTerm);
+            
+            if (searchTerm == null || searchTerm.trim().isEmpty()) {
+                // If no search term, show all customers
+                listCustomers(request, response);
+                return;
+            }
+            
+            List<Customer> customers = customerService.searchCustomers(searchTerm.trim());
             request.setAttribute("customers", customers);
-            request.setAttribute("searchTerm", searchTerm);
+            request.setAttribute("searchTerm", searchTerm.trim());
+            
+            // Add search result message
+            if (customers.isEmpty()) {
+                request.setAttribute("infoMessage", "No customers found matching '" + searchTerm + "'");
+            } else {
+                request.setAttribute("infoMessage", "Found " + customers.size() + " customer(s) matching '" + searchTerm + "'");
+            }
+            
             request.getRequestDispatcher("WEB-INF/view/customer/listCustomers.jsp").forward(request, response);
         } catch (SQLException e) {
             request.setAttribute("errorMessage", "Error searching customers: " + e.getMessage());
             request.getRequestDispatcher("WEB-INF/view/error.jsp").forward(request, response);
+        } catch (IllegalArgumentException e) {
+            request.setAttribute("errorMessage", "Search Error: " + e.getMessage());
+            listCustomers(request, response);
         }
     }
     
@@ -174,6 +258,9 @@ public class CustomerController extends HttpServlet {
                 request.setAttribute("errorMessage", Constants.ERROR_NOT_FOUND);
                 request.getRequestDispatcher("WEB-INF/view/error.jsp").forward(request, response);
             }
+        } catch (NumberFormatException e) {
+            request.setAttribute("errorMessage", "Invalid customer ID format");
+            request.getRequestDispatcher("WEB-INF/view/error.jsp").forward(request, response);
         } catch (SQLException e) {
             request.setAttribute("errorMessage", "Error loading customer: " + e.getMessage());
             request.getRequestDispatcher("WEB-INF/view/error.jsp").forward(request, response);

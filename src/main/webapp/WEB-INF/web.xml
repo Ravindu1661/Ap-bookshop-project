@@ -52,6 +52,12 @@
     <description></description>
     <servlet-class>com.redupahana.controller.UserController</servlet-class>
   </servlet>
+  <servlet>
+  	<servlet-name>CustomerPortalController</servlet-name>
+  	<display-name>CustomerPortalController</display-name>
+  	<description></description>
+  	<servlet-class>com.redupahana.controller.CustomerPortalController</servlet-class>
+  </servlet>
   
   <!-- Servlet Mappings -->
   <servlet-mapping>
@@ -82,6 +88,10 @@
   <servlet-mapping>
     <servlet-name>UserController</servlet-name>
     <url-pattern>/User</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+  	<servlet-name>CustomerPortalController</servlet-name>
+  	<url-pattern>/CustomerPortalController</url-pattern>
   </servlet-mapping>
   
   

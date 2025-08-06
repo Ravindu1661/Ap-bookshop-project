@@ -1,4 +1,4 @@
-// BookController.java
+// BookController.java - Improved with better error handling for book code generation
 package com.redupahana.controller;
 
 import java.io.IOException;
@@ -90,14 +90,14 @@ public class BookController extends HttpServlet {
             String successMessage = (String) session.getAttribute("successMessage");
             if (successMessage != null) {
                 request.setAttribute("successMessage", successMessage);
-                session.removeAttribute("successMessage"); // Remove after displaying
+                session.removeAttribute("successMessage");
             }
             
             // Check for error messages in session
             String errorMessage = (String) session.getAttribute("errorMessage");
             if (errorMessage != null) {
                 request.setAttribute("errorMessage", errorMessage);
-                session.removeAttribute("errorMessage"); // Remove after displaying
+                session.removeAttribute("errorMessage");
             }
             
             request.getRequestDispatcher("WEB-INF/view/book/listBooks.jsp").forward(request, response);
@@ -109,169 +109,268 @@ public class BookController extends HttpServlet {
     
     private void showAddForm(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
+        
+        // Get suggested book code for display
+        try {
+            String suggestedCode = bookService.getNextAvailableBookCode();
+            request.setAttribute("suggestedBookCode", suggestedCode);
+        } catch (SQLException e) {
+            // If we can't get suggested code, that's okay, just continue without it
+            System.err.println("Could not generate suggested book code: " + e.getMessage());
+        }
+        
         request.getRequestDispatcher("WEB-INF/view/book/addBook.jsp").forward(request, response);
     }
     
+    /**
+     * Improved addBook method with better error handling and retry logic
+     */
     private void addBook(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
-        try {
-            // Get form parameters
-            String bookCode = request.getParameter("bookCode");
-            String title = request.getParameter("title");
-            String author = request.getParameter("author");
-            String description = request.getParameter("description");
-            String priceStr = request.getParameter("price");
-            String stockStr = request.getParameter("stockQuantity");
-            String isbn = request.getParameter("isbn");
-            String publisher = request.getParameter("publisher");
-            String publicationYearStr = request.getParameter("publicationYear");
-            String pagesStr = request.getParameter("pages");
-            String language = request.getParameter("language");
-            
-            // Basic validation
-            if (title == null || title.trim().isEmpty()) {
-                request.setAttribute("errorMessage", "Book title is required.");
-                request.getRequestDispatcher("WEB-INF/view/book/addBook.jsp").forward(request, response);
-                return;
-            }
-            
-            if (author == null || author.trim().isEmpty()) {
-                request.setAttribute("errorMessage", "Author name is required.");
-                request.getRequestDispatcher("WEB-INF/view/book/addBook.jsp").forward(request, response);
-                return;
-            }
-            
-            if (priceStr == null || priceStr.trim().isEmpty()) {
-                request.setAttribute("errorMessage", "Price is required.");
-                request.getRequestDispatcher("WEB-INF/view/book/addBook.jsp").forward(request, response);
-                return;
-            }
-            
-            if (stockStr == null || stockStr.trim().isEmpty()) {
-                request.setAttribute("errorMessage", "Stock quantity is required.");
-                request.getRequestDispatcher("WEB-INF/view/book/addBook.jsp").forward(request, response);
-                return;
-            }
-            
-            double price;
-            int stockQuantity;
-            int publicationYear = 0;
-            int pages = 0;
-            
+        
+        int maxRetries = 3;
+        int retryCount = 0;
+        
+        while (retryCount < maxRetries) {
             try {
-                price = Double.parseDouble(priceStr);
-                if (price <= 0) {
-                    request.setAttribute("errorMessage", "Price must be greater than 0.");
-                    request.getRequestDispatcher("WEB-INF/view/book/addBook.jsp").forward(request, response);
+                // Get form parameters
+                String bookCode = request.getParameter("bookCode");
+                String title = request.getParameter("title");
+                String author = request.getParameter("author");
+                String description = request.getParameter("description");
+                String priceStr = request.getParameter("price");
+                String stockStr = request.getParameter("stockQuantity");
+                String isbn = request.getParameter("isbn");
+                String publisher = request.getParameter("publisher");
+                String publicationYearStr = request.getParameter("publicationYear");
+                String pagesStr = request.getParameter("pages");
+                String language = request.getParameter("language");
+                
+                // Basic validation
+                if (title == null || title.trim().isEmpty()) {
+                    request.setAttribute("errorMessage", "Book title is required.");
+                    showAddFormWithError(request, response);
                     return;
                 }
-            } catch (NumberFormatException e) {
-                request.setAttribute("errorMessage", "Invalid price format.");
-                request.getRequestDispatcher("WEB-INF/view/book/addBook.jsp").forward(request, response);
-                return;
-            }
-            
-            try {
-                stockQuantity = Integer.parseInt(stockStr);
-                if (stockQuantity < 0) {
-                    request.setAttribute("errorMessage", "Stock quantity cannot be negative.");
-                    request.getRequestDispatcher("WEB-INF/view/book/addBook.jsp").forward(request, response);
+                
+                if (author == null || author.trim().isEmpty()) {
+                    request.setAttribute("errorMessage", "Author name is required.");
+                    showAddFormWithError(request, response);
                     return;
                 }
-            } catch (NumberFormatException e) {
-                request.setAttribute("errorMessage", "Invalid stock quantity format.");
-                request.getRequestDispatcher("WEB-INF/view/book/addBook.jsp").forward(request, response);
-                return;
-            }
-            
-            // Parse optional fields
-            if (publicationYearStr != null && !publicationYearStr.trim().isEmpty()) {
+                
+                if (priceStr == null || priceStr.trim().isEmpty()) {
+                    request.setAttribute("errorMessage", "Price is required.");
+                    showAddFormWithError(request, response);
+                    return;
+                }
+                
+                if (stockStr == null || stockStr.trim().isEmpty()) {
+                    request.setAttribute("errorMessage", "Stock quantity is required.");
+                    showAddFormWithError(request, response);
+                    return;
+                }
+                
+                double price;
+                int stockQuantity;
+                int publicationYear = 0;
+                int pages = 0;
+                
                 try {
-                    publicationYear = Integer.parseInt(publicationYearStr);
-                    if (publicationYear < 1000 || publicationYear > java.time.Year.now().getValue()) {
-                        request.setAttribute("errorMessage", "Invalid publication year.");
-                        request.getRequestDispatcher("WEB-INF/view/book/addBook.jsp").forward(request, response);
+                    price = Double.parseDouble(priceStr);
+                    if (price <= 0) {
+                        request.setAttribute("errorMessage", "Price must be greater than 0.");
+                        showAddFormWithError(request, response);
                         return;
                     }
                 } catch (NumberFormatException e) {
-                    request.setAttribute("errorMessage", "Invalid publication year format.");
-                    request.getRequestDispatcher("WEB-INF/view/book/addBook.jsp").forward(request, response);
+                    request.setAttribute("errorMessage", "Invalid price format.");
+                    showAddFormWithError(request, response);
                     return;
                 }
-            }
-            
-            if (pagesStr != null && !pagesStr.trim().isEmpty()) {
+                
                 try {
-                    pages = Integer.parseInt(pagesStr);
-                    if (pages < 0) {
-                        request.setAttribute("errorMessage", "Number of pages cannot be negative.");
-                        request.getRequestDispatcher("WEB-INF/view/book/addBook.jsp").forward(request, response);
+                    stockQuantity = Integer.parseInt(stockStr);
+                    if (stockQuantity < 0) {
+                        request.setAttribute("errorMessage", "Stock quantity cannot be negative.");
+                        showAddFormWithError(request, response);
                         return;
                     }
                 } catch (NumberFormatException e) {
-                    request.setAttribute("errorMessage", "Invalid pages format.");
-                    request.getRequestDispatcher("WEB-INF/view/book/addBook.jsp").forward(request, response);
+                    request.setAttribute("errorMessage", "Invalid stock quantity format.");
+                    showAddFormWithError(request, response);
                     return;
                 }
+                
+                // Parse optional fields
+                if (publicationYearStr != null && !publicationYearStr.trim().isEmpty()) {
+                    try {
+                        publicationYear = Integer.parseInt(publicationYearStr);
+                        if (publicationYear < 1000 || publicationYear > java.time.Year.now().getValue()) {
+                            request.setAttribute("errorMessage", "Invalid publication year.");
+                            showAddFormWithError(request, response);
+                            return;
+                        }
+                    } catch (NumberFormatException e) {
+                        request.setAttribute("errorMessage", "Invalid publication year format.");
+                        showAddFormWithError(request, response);
+                        return;
+                    }
+                }
+                
+                if (pagesStr != null && !pagesStr.trim().isEmpty()) {
+                    try {
+                        pages = Integer.parseInt(pagesStr);
+                        if (pages < 0) {
+                            request.setAttribute("errorMessage", "Number of pages cannot be negative.");
+                            showAddFormWithError(request, response);
+                            return;
+                        }
+                    } catch (NumberFormatException e) {
+                        request.setAttribute("errorMessage", "Invalid pages format.");
+                        showAddFormWithError(request, response);
+                        return;
+                    }
+                }
+                
+                // Create book object
+                Book book = new Book();
+                
+                // Handle book code - Let service auto-generate if empty or invalid
+                if (bookCode != null && !bookCode.trim().isEmpty()) {
+                    // Only set if user provided a code, otherwise let service generate
+                    book.setBookCode(bookCode.trim());
+                }
+                
+                book.setTitle(title.trim());
+                book.setAuthor(author.trim());
+                book.setPrice(price);
+                book.setStockQuantity(stockQuantity);
+                
+                // Handle optional fields
+                if (description != null && !description.trim().isEmpty()) {
+                    book.setDescription(description.trim());
+                }
+                
+                if (isbn != null && !isbn.trim().isEmpty()) {
+                    book.setIsbn(isbn.trim());
+                }
+                
+                if (publisher != null && !publisher.trim().isEmpty()) {
+                    book.setPublisher(publisher.trim());
+                }
+                
+                if (publicationYear > 0) {
+                    book.setPublicationYear(publicationYear);
+                }
+                
+                if (pages > 0) {
+                    book.setPages(pages);
+                }
+                
+                if (language != null && !language.trim().isEmpty()) {
+                    book.setLanguage(language.trim());
+                } else {
+                    book.setLanguage("Sinhala"); // Default language
+                }
+                
+                // Try to add book to database
+                bookService.addBook(book);
+                
+                // If we reach here, book was added successfully
+                HttpSession session = request.getSession();
+                String finalBookCode = book.getBookCode(); // Get the assigned book code
+                session.setAttribute("successMessage", 
+                    "📚 Book '" + title + "' by " + author + " has been successfully added to the library with code: " + finalBookCode);
+                
+                // Redirect to book list
+                response.sendRedirect("book?action=list");
+                return; // Exit the retry loop
+                
+            } catch (SQLException e) {
+                retryCount++;
+                
+                // Check if it's a duplicate key error
+                if (e.getMessage().contains("already exists") || e.getMessage().contains("Duplicate entry")) {
+                    if (retryCount < maxRetries) {
+                        // Clear the book code to force auto-generation on retry
+                        System.out.println("Retry attempt " + retryCount + " - Book code conflict, trying again...");
+                        
+                        // Add a small delay to avoid rapid retries
+                        try {
+                            Thread.sleep(10); // 10ms delay
+                        } catch (InterruptedException ie) {
+                            Thread.currentThread().interrupt();
+                        }
+                        
+                        continue; // Retry the operation
+                    } else {
+                        // Maximum retries reached
+                        request.setAttribute("errorMessage", 
+                            "❌ Unable to generate a unique book code after " + maxRetries + " attempts. Please try again in a moment.");
+                        showAddFormWithError(request, response);
+                        return;
+                    }
+                } else {
+                    // Other SQL errors
+                    request.setAttribute("errorMessage", "Database error: " + e.getMessage());
+                    showAddFormWithError(request, response);
+                    return;
+                }
+                
+            } catch (IllegalArgumentException e) {
+                // Validation errors from service layer
+                if (e.getMessage().contains("already exists")) {
+                    // Suggest alternative book code
+                    try {
+                        String originalCode = request.getParameter("bookCode");
+                        if (originalCode != null && !originalCode.trim().isEmpty()) {
+                            String suggestedCode = bookService.suggestAlternativeBookCode(originalCode.trim());
+                            request.setAttribute("suggestedBookCode", suggestedCode);
+                            request.setAttribute("errorMessage", 
+                                "❌ Book code '" + originalCode.trim() + "' already exists. " +
+                                "Suggested alternative: " + suggestedCode + " (or leave blank for auto-generation)");
+                        } else {
+                            request.setAttribute("errorMessage", e.getMessage());
+                        }
+                    } catch (SQLException sqlEx) {
+                        request.setAttribute("errorMessage", e.getMessage());
+                    }
+                } else {
+                    request.setAttribute("errorMessage", e.getMessage());
+                }
+                showAddFormWithError(request, response);
+                return;
+                
+            } catch (Exception e) {
+                // Other unexpected errors
+                request.setAttribute("errorMessage", "Unexpected error: " + e.getMessage());
+                showAddFormWithError(request, response);
+                return;
             }
-            
-            // Create book object
-            Book book = new Book();
-            
-            // Handle book code (auto-generate if empty)
-            if (bookCode != null && !bookCode.trim().isEmpty()) {
-                book.setBookCode(bookCode.trim());
-            }
-            
-            book.setTitle(title.trim());
-            book.setAuthor(author.trim());
-            book.setPrice(price);
-            book.setStockQuantity(stockQuantity);
-            
-            // Handle optional fields
-            if (description != null && !description.trim().isEmpty()) {
-                book.setDescription(description.trim());
-            }
-            
-            if (isbn != null && !isbn.trim().isEmpty()) {
-                book.setIsbn(isbn.trim());
-            }
-            
-            if (publisher != null && !publisher.trim().isEmpty()) {
-                book.setPublisher(publisher.trim());
-            }
-            
-            if (publicationYear > 0) {
-                book.setPublicationYear(publicationYear);
-            }
-            
-            if (pages > 0) {
-                book.setPages(pages);
-            }
-            
-            if (language != null && !language.trim().isEmpty()) {
-                book.setLanguage(language.trim());
-            } else {
-                book.setLanguage("Sinhala"); // Default language
-            }
-            
-            // Add book to database
-            bookService.addBook(book);
-            
-            // Set success message in session for redirect
-            HttpSession session = request.getSession();
-            session.setAttribute("successMessage", "Book '" + title + "' by " + author + " has been successfully added to the library.");
-            
-            // Redirect to book list
-            response.sendRedirect("book?action=list");
-            
-        } catch (SQLException e) {
-            request.setAttribute("errorMessage", "Error adding book: " + e.getMessage());
-            request.getRequestDispatcher("WEB-INF/view/book/addBook.jsp").forward(request, response);
-        } catch (Exception e) {
-            request.setAttribute("errorMessage", "Error: " + e.getMessage());
-            request.getRequestDispatcher("WEB-INF/view/book/addBook.jsp").forward(request, response);
         }
+    }
+    
+    /**
+     * Helper method to show add form with error and preserve form data
+     */
+    private void showAddFormWithError(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+        
+        // Preserve form data
+        request.setAttribute("formData", request.getParameterMap());
+        
+        // Get suggested book code for display
+        try {
+            String suggestedCode = bookService.getNextAvailableBookCode();
+            if (request.getAttribute("suggestedBookCode") == null) {
+                request.setAttribute("suggestedBookCode", suggestedCode);
+            }
+        } catch (SQLException e) {
+            System.err.println("Could not generate suggested book code: " + e.getMessage());
+        }
+        
+        request.getRequestDispatcher("WEB-INF/view/book/addBook.jsp").forward(request, response);
     }
     
     private void showEditForm(HttpServletRequest request, HttpServletResponse response) 
@@ -460,7 +559,7 @@ public class BookController extends HttpServlet {
             
             // Set success message in session for redirect
             HttpSession session = request.getSession();
-            session.setAttribute("successMessage", "Book '" + title + "' has been successfully updated.");
+            session.setAttribute("successMessage", "📚 Book '" + title + "' has been successfully updated.");
             
             // Redirect to book list
             response.sendRedirect("book?action=list");
@@ -504,7 +603,8 @@ public class BookController extends HttpServlet {
             
             // Set success message
             HttpSession session = request.getSession();
-            session.setAttribute("successMessage", "Book '" + bookToDelete.getTitle() + "' by " + bookToDelete.getAuthor() + " has been successfully deleted.");
+            session.setAttribute("successMessage", 
+                "🗑️ Book '" + bookToDelete.getTitle() + "' by " + bookToDelete.getAuthor() + " has been successfully deleted.");
             
             // Redirect to book list
             response.sendRedirect("book?action=list");
@@ -525,7 +625,6 @@ public class BookController extends HttpServlet {
         try {
             String searchTerm = request.getParameter("searchTerm");
             if (searchTerm == null || searchTerm.trim().isEmpty()) {
-                // If search term is empty, redirect to list all books
                 response.sendRedirect("book?action=list");
                 return;
             }
@@ -534,7 +633,6 @@ public class BookController extends HttpServlet {
             request.setAttribute("books", books);
             request.setAttribute("searchTerm", searchTerm.trim());
             
-            // Add search result message
             if (books.isEmpty()) {
                 request.setAttribute("errorMessage", "No books found matching '" + searchTerm + "'.");
             } else {

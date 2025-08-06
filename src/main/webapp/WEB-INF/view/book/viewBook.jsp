@@ -11,6 +11,10 @@
     
     Book book = (Book) request.getAttribute("book");
     String errorMessage = (String) request.getAttribute("errorMessage");
+    
+    // Set page attributes for sidebar
+    request.setAttribute("currentPage", "book");
+    request.setAttribute("pageTitle", "View Book");
 %>
 <!DOCTYPE html>
 <html lang="en">
@@ -18,280 +22,151 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>View Book - Redupahana</title>
+    
+    <!-- Page-specific styles -->
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f6fa;
+            background-color: #f8f9fa;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #2c3e50;
             overflow-x: hidden;
         }
 
-        /* Sidebar Styles */
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: -280px;
-            width: 280px;
-            height: 100vh;
-            background: #2c3e50;
-            transition: left 0.3s ease;
-            z-index: 1000;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-        }
-
-        .sidebar.active { left: 0; }
-
-        .sidebar-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            text-align: center;
-        }
-
-        .sidebar-header h2 {
-            color: #fff;
-            font-size: 1.3rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .sidebar-header p {
-            color: #bdc3c7;
-            font-size: 0.9rem;
-        }
-
-        .sidebar-menu { padding: 1rem 0; }
-
-        .menu-item {
-            display: block;
-            padding: 1rem 1.5rem;
-            color: #ecf0f1;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            border-left: 3px solid transparent;
-        }
-
-        .menu-item:hover,
-        .menu-item.active {
-            background-color: rgba(255,255,255,0.1);
-            border-left-color: #95a5a6;
-            color: #fff;
-        }
-
-        .menu-item i {
-            margin-right: 0.8rem;
-            font-size: 1.1rem;
-            width: 20px;
-            text-align: center;
-        }
-
-        .icon-dashboard::before { content: "📊"; }
-        .icon-users::before { content: "👥"; }
-        .icon-books::before { content: "📚"; }
-        .icon-customers::before { content: "🏢"; }
-        .icon-bills::before { content: "🧾"; }
-        .icon-logout::before { content: "🚪"; }
-
-        /* Main Content */
-        .main-content {
-            margin-left: 0;
-            min-height: 100vh;
-            transition: margin-left 0.3s ease;
-        }
-
-        /* Top Navigation */
-        .topbar {
-            background: #fff;
-            padding: 1rem 2rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 999;
-        }
-
-        .menu-toggle {
-            background: #2c3e50;
-            color: white;
-            border: none;
-            padding: 0.8rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 1.1rem;
-            transition: background-color 0.3s ease;
-        }
-
-        .menu-toggle:hover { background: #34495e; }
-
-        .page-title {
-            font-size: 1.5rem;
-            color: #2c3e50;
-            font-weight: 600;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            color: #2c3e50;
-        }
-
-        .user-avatar {
-            width: 35px;
-            height: 35px;
-            background: #2c3e50;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 0.9rem;
-        }
-
-        /* Overlay */
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 999;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
         /* Content Area */
-        .content-area { padding: 2rem; }
+        .content-area {
+            padding: 1.5rem;
+        }
 
         .page-header {
             background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.07);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
         .page-header h1 {
             color: #2c3e50;
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
+            font-size: 1.4rem;
+            margin-bottom: 0.3rem;
+            font-weight: 600;
         }
 
         .breadcrumb {
-            color: #7f8c8d;
-            font-size: 0.9rem;
+            color: #6c757d;
+            font-size: 0.85rem;
         }
 
         .breadcrumb a {
-            color: #2c3e50;
+            color: #495057;
             text-decoration: none;
         }
 
-        .breadcrumb a:hover { text-decoration: underline; }
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
 
         /* Alert Messages */
         .alert {
-            padding: 1rem 1.5rem;
-            border-radius: 8px;
-            margin-bottom: 1.5rem;
+            padding: 0.8rem 1rem;
+            border-radius: 6px;
+            margin-bottom: 1.2rem;
             border-left: 4px solid;
+            font-size: 0.9rem;
+            animation: slideIn 0.3s ease;
         }
 
         .alert-error {
             background-color: #f8d7da;
-            border-left-color: #e74c3c;
+            border-left-color: #dc3545;
             color: #721c24;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         /* Book Profile Card */
         .book-profile {
             background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.07);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
             overflow: hidden;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
         }
 
         .profile-header {
-            background: #2c3e50;
+            background: #007bff;
             color: white;
-            padding: 2.5rem;
+            padding: 2rem;
             text-align: center;
         }
 
         .profile-avatar {
-            width: 100px;
-            height: 100px;
+            width: 80px;
+            height: 80px;
             background-color: rgba(255, 255, 255, 0.2);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 1rem;
-            font-size: 3rem;
+            margin: 0 auto 0.8rem;
+            font-size: 2.5rem;
         }
 
         .profile-title {
-            font-size: 2rem;
+            font-size: 1.6rem;
             font-weight: 600;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.4rem;
         }
 
         .profile-author {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             opacity: 0.9;
-            margin-bottom: 1rem;
+            margin-bottom: 0.8rem;
         }
 
         .profile-code {
-            font-size: 1rem;
+            font-size: 0.9rem;
             opacity: 0.8;
             display: inline-block;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
+            padding: 0.4rem 0.8rem;
+            border-radius: 15px;
             background-color: rgba(255, 255, 255, 0.2);
         }
 
-        .profile-content { padding: 2rem; }
+        .profile-content {
+            padding: 1.5rem;
+        }
 
         .info-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-bottom: 2rem;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.2rem;
+            margin-bottom: 1.5rem;
         }
 
         .info-section {
             background-color: #f8f9fa;
-            padding: 1.5rem;
-            border-radius: 12px;
-            border-left: 4px solid #2c3e50;
+            padding: 1.2rem;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
         }
 
         .info-section h4 {
             color: #2c3e50;
-            margin-bottom: 1rem;
-            font-size: 1.1rem;
+            margin-bottom: 0.8rem;
+            font-size: 1rem;
         }
 
         .info-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1rem;
+            margin-bottom: 0.8rem;
             padding-bottom: 0.5rem;
             border-bottom: 1px solid #e9ecef;
         }
@@ -302,27 +177,29 @@
         }
 
         .info-label {
-            font-weight: 600;
-            color: #7f8c8d;
+            font-weight: 500;
+            color: #6c757d;
             flex: 1;
+            font-size: 0.85rem;
         }
 
         .info-value {
             color: #2c3e50;
             flex: 2;
             text-align: right;
+            font-size: 0.9rem;
         }
 
         .info-value.empty {
-            color: #bdc3c7;
+            color: #adb5bd;
             font-style: italic;
         }
 
         /* Price Display */
         .price {
             font-weight: 600;
-            color: #27ae60;
-            font-size: 1.2rem;
+            color: #28a745;
+            font-size: 1.1rem;
         }
 
         /* Stock Badge */
@@ -372,74 +249,71 @@
         /* Action Buttons */
         .action-buttons {
             display: flex;
-            gap: 1rem;
+            gap: 0.8rem;
             justify-content: center;
             flex-wrap: wrap;
-            margin-top: 2rem;
-            padding-top: 2rem;
-            border-top: 1px solid #eee;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #dee2e6;
         }
 
         .btn {
-            padding: 0.8rem 2rem;
+            padding: 0.7rem 1.4rem;
             border: none;
-            border-radius: 8px;
+            border-radius: 5px;
             cursor: pointer;
             text-decoration: none;
-            display: inline-block;
-            transition: all 0.3s ease;
-            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.9rem;
             font-weight: 500;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
         }
 
         .btn-primary {
-            background-color: #2c3e50;
+            background: #007bff;
             color: white;
         }
 
         .btn-primary:hover {
-            background-color: #34495e;
-            transform: translateY(-2px);
+            background: #0056b3;
         }
 
         .btn-warning {
-            background-color: #f39c12;
-            color: white;
+            background: #ffc107;
+            color: #212529;
         }
 
         .btn-warning:hover {
-            background-color: #e67e22;
-            transform: translateY(-2px);
-        }
-
-        .btn-secondary {
-            background-color: #7f8c8d;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background-color: #95a5a6;
-            transform: translateY(-2px);
+            background: #e0a800;
         }
 
         /* Not Found State */
         .not-found {
             background: white;
-            padding: 3rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.07);
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
             text-align: center;
         }
 
         .not-found h3 {
-            color: #e74c3c;
-            margin-bottom: 1rem;
-            font-size: 1.5rem;
+            color: #dc3545;
+            margin-bottom: 0.8rem;
+            font-size: 1.2rem;
         }
 
         .not-found p {
-            color: #7f8c8d;
-            margin-bottom: 2rem;
+            color: #6c757d;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
         }
 
         /* Description Box */
@@ -451,91 +325,117 @@
             margin-top: 0.5rem;
             line-height: 1.6;
             color: #2c3e50;
+            font-size: 0.9rem;
         }
 
         .description-box.empty {
-            color: #bdc3c7;
+            color: #adb5bd;
             font-style: italic;
             text-align: center;
-            padding: 2rem;
+            padding: 1.5rem;
         }
 
         /* Responsive Design */
-        @media (min-width: 1024px) {
-            .sidebar { left: 0; }
-            .main-content { margin-left: 280px; }
-            .menu-toggle { display: none; }
+        @media (max-width: 768px) {
+            .content-area {
+                padding: 1rem;
+            }
+
+            .page-header {
+                padding: 1rem;
+            }
+
+            .profile-header {
+                padding: 1.2rem;
+            }
+
+            .profile-title {
+                font-size: 1.3rem;
+            }
+
+            .profile-content {
+                padding: 1rem;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+                gap: 0.8rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .info-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.25rem;
+            }
+
+            .info-value {
+                text-align: left;
+            }
+
+            .btn {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
         }
 
-        @media (max-width: 768px) {
-            .topbar { padding: 1rem; }
-            .content-area { padding: 1rem; }
-            .page-header { padding: 1.5rem; }
-            .profile-header { padding: 1.5rem; }
-            .profile-title { font-size: 1.5rem; }
-            .profile-content { padding: 1rem; }
-            .info-grid { grid-template-columns: 1fr; gap: 1rem; }
-            .action-buttons { flex-direction: column; }
-            .info-row { flex-direction: column; align-items: flex-start; gap: 0.25rem; }
-            .info-value { text-align: left; }
-            .user-info span { display: none; }
+        @media (max-width: 480px) {
+            .profile-avatar {
+                width: 60px;
+                height: 60px;
+                font-size: 2rem;
+            }
+
+            .profile-title {
+                font-size: 1.1rem;
+            }
+
+            .profile-author {
+                font-size: 0.9rem;
+            }
+
+            .btn {
+                font-size: 0.85rem;
+                padding: 0.6rem 1rem;
+            }
+
+            .info-section h4 {
+                font-size: 0.9rem;
+            }
+
+            .info-label,
+            .info-value {
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Subtle animations */
+        .book-profile,
+        .not-found {
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <h2>Redupahana</h2>
-            <p>Admin Panel</p>
-        </div>
-        <nav class="sidebar-menu">
-            <a href="dashboard" class="menu-item">
-                <i class="icon-dashboard"></i>
-                Dashboard
-            </a>
-            <% if (Constants.ROLE_ADMIN.equals(loggedUser.getRole())) { %>
-            <a href="user?action=list" class="menu-item">
-                <i class="icon-users"></i>
-                User Management
-            </a>
-            <% } %>
-            <a href="book?action=list" class="menu-item active">
-                <i class="icon-books"></i>
-                Book Management
-            </a>
-            <a href="customer?action=list" class="menu-item">
-                <i class="icon-customers"></i>
-                Customer Management
-            </a>
-            <a href="bill?action=list" class="menu-item">
-                <i class="icon-bills"></i>
-                Bill Management
-            </a>
-            <a href="auth?action=logout" class="menu-item" style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
-                <i class="icon-logout"></i>
-                Logout
-            </a>
-        </nav>
-    </div>
-
-    <!-- Overlay for mobile -->
-    <div class="overlay" id="overlay"></div>
+    <!-- Include complete sidebar component -->
+    <%@ include file="../../includes/sidebar.jsp" %>
 
     <!-- Main Content -->
-    <div class="main-content" id="mainContent">
-        <!-- Top Navigation -->
-        <header class="topbar">
-            <div style="display: flex; align-items: center; gap: 1rem;">
-                <button class="menu-toggle" id="menuToggle">☰</button>
-                <h1 class="page-title">Book Details</h1>
-            </div>
-            <div class="user-info">
-                <div class="user-avatar"><%= loggedUser.getFullName().substring(0,1).toUpperCase() %></div>
-                <span><%= loggedUser.getFullName() %></span>
-            </div>
-        </header>
-
+    <div class="main-content">
         <!-- Content Area -->
         <main class="content-area">
             <!-- Page Header -->
@@ -705,27 +605,6 @@
     </div>
 
     <script>
-        // Sidebar Toggle
-        const menuToggle = document.getElementById('menuToggle');
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('overlay');
-
-        function toggleSidebar() {
-            sidebar.classList.toggle('active');
-            overlay.classList.toggle('active');
-        }
-
-        menuToggle.addEventListener('click', toggleSidebar);
-        overlay.addEventListener('click', toggleSidebar);
-
-        // Handle window resize
-        window.addEventListener('resize', function() {
-            if (window.innerWidth >= 1024) {
-                sidebar.classList.remove('active');
-                overlay.classList.remove('active');
-            }
-        });
-
         // Calculate days in library
         <% if (book != null) { %>
         const createdDate = new Date('<%= book.getCreatedDate() %>');
@@ -748,13 +627,11 @@
 
         // Keyboard shortcuts
         document.addEventListener('keydown', function(e) {
-            // E key for edit
             if (e.key === 'e' || e.key === 'E') {
                 const editBtn = document.querySelector('.btn-warning');
                 if (editBtn) editBtn.click();
             }
             
-            // B key for back
             if (e.key === 'b' || e.key === 'B') {
                 const backBtn = document.querySelector('.btn-primary');
                 if (backBtn) backBtn.click();

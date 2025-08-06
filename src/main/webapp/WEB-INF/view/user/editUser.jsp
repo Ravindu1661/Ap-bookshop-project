@@ -10,6 +10,10 @@
     
     User user = (User) request.getAttribute("user");
     String errorMessage = (String) request.getAttribute("errorMessage");
+    
+    // Set page attributes for sidebar
+    request.setAttribute("currentPage", "user");
+    request.setAttribute("pageTitle", "Edit User");
 %>
 <!DOCTYPE html>
 <html lang="en">
@@ -17,203 +21,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit User - Redupahana</title>
+    
+    <!-- Page-specific styles -->
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f6fa;
-            overflow-x: hidden;
-        }
-
-        /* Sidebar Styles (same as previous pages) */
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: -280px;
-            width: 280px;
-            height: 100vh;
-            background: #2c3e50;
-            transition: left 0.3s ease;
-            z-index: 1000;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-        }
-
-        .sidebar.active { left: 0; }
-
-        .sidebar-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            text-align: center;
-        }
-
-        .sidebar-header h2 {
-            color: #fff;
-            font-size: 1.3rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .sidebar-header p {
-            color: #bdc3c7;
-            font-size: 0.9rem;
-        }
-
-        .sidebar-menu { padding: 1rem 0; }
-
-        .menu-item {
-            display: block;
-            padding: 1rem 1.5rem;
-            color: #ecf0f1;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            border-left: 3px solid transparent;
-        }
-
-        .menu-item:hover,
-        .menu-item.active {
-            background-color: rgba(255,255,255,0.1);
-            border-left-color: #95a5a6;
-            color: #fff;
-        }
-
-        .menu-item i {
-            margin-right: 0.8rem;
-            font-size: 1.1rem;
-            width: 20px;
-            text-align: center;
-        }
-
-        /* Icon classes using Unicode */
-        .icon-dashboard::before { content: "📊"; }
-        .icon-users::before { content: "👥"; }
-        .icon-books::before { content: "📚"; }
-        .icon-customers::before { content: "🏢"; }
-        .icon-bills::before { content: "🧾"; }
-        .icon-logout::before { content: "🚪"; }
-
-        /* Main Content */
-        .main-content {
-            margin-left: 0;
-            min-height: 100vh;
-            transition: margin-left 0.3s ease;
-        }
-
-        /* Top Navigation */
-        .topbar {
-            background: #fff;
-            padding: 1rem 2rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 999;
-        }
-
-        .menu-toggle {
-            background: #2c3e50;
-            color: white;
-            border: none;
-            padding: 0.8rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 1.1rem;
-            transition: background-color 0.3s ease;
-        }
-
-        .menu-toggle:hover { background: #34495e; }
-
-        .page-title {
-            font-size: 1.5rem;
-            color: #2c3e50;
-            font-weight: 600;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            color: #2c3e50;
-        }
-
-        .user-avatar {
-            width: 35px;
-            height: 35px;
-            background: #2c3e50;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 0.9rem;
-        }
-
-        /* Overlay */
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 999;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        /* Content Area */
-        .content-area { padding: 2rem; }
-
-        .page-header {
-            background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.07);
-        }
-
-        .page-header h1 {
-            color: #2c3e50;
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .breadcrumb {
-            color: #7f8c8d;
-            font-size: 0.9rem;
-        }
-
-        .breadcrumb a {
-            color: #2c3e50;
-            text-decoration: none;
-        }
-
-        .breadcrumb a:hover { text-decoration: underline; }
-
         /* User Info Card */
         .user-info-card {
             background: #e8f4fd;
             padding: 1.5rem;
             border-radius: 12px;
             margin-bottom: 2rem;
-            border-left: 4px solid #2c3e50;
+            border-left: 4px solid #007bff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
 
         .user-info-card h4 {
             color: #2c3e50;
             margin-bottom: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .info-grid {
@@ -229,80 +56,15 @@
 
         .info-label {
             font-weight: 600;
-            color: #7f8c8d;
-            font-size: 0.9rem;
+            color: #6c757d;
+            font-size: 0.85rem;
             margin-bottom: 0.25rem;
         }
 
         .info-value {
             color: #2c3e50;
-            font-size: 1rem;
-        }
-
-        /* Alert Messages */
-        .alert {
-            padding: 1rem 1.5rem;
-            border-radius: 8px;
-            margin-bottom: 1.5rem;
-            border-left: 4px solid;
-        }
-
-        .alert-error {
-            background-color: #f8d7da;
-            border-left-color: #e74c3c;
-            color: #721c24;
-        }
-
-        /* Form Styles */
-        .form-container {
-            background: white;
-            padding: 2.5rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.07);
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group { margin-bottom: 1.5rem; }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-            color: #2c3e50;
-        }
-
-        .required { color: #e74c3c; }
-
-        .form-control {
-            width: 100%;
-            padding: 0.8rem;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: border-color 0.3s ease;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: #2c3e50;
-            box-shadow: 0 0 0 2px rgba(44, 62, 80, 0.1);
-        }
-
-        .form-control:disabled {
-            background-color: #f8f9fa;
-            cursor: not-allowed;
-        }
-
-        .form-text {
-            font-size: 0.85rem;
-            color: #7f8c8d;
-            margin-top: 0.25rem;
+            font-size: 0.9rem;
+            font-weight: 500;
         }
 
         /* Role Selection */
@@ -320,154 +82,94 @@
             cursor: pointer;
             transition: all 0.3s ease;
             text-align: center;
+            background: white;
         }
 
         .role-option:hover {
-            border-color: #2c3e50;
+            border-color: #007bff;
             background-color: #f8f9fa;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
         }
 
         .role-option.selected {
-            border-color: #2c3e50;
+            border-color: #007bff;
             background-color: #e8f4fd;
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2);
         }
 
-        .role-option input[type="radio"] { display: none; }
+        .role-option input[type="radio"] {
+            display: none;
+        }
 
         .role-option h4 {
             color: #2c3e50;
             margin-bottom: 0.5rem;
+            font-weight: 600;
         }
 
         .role-option p {
-            color: #7f8c8d;
+            color: #6c757d;
             font-size: 0.9rem;
+            margin: 0;
         }
 
         .role-icon {
             font-size: 2rem;
             margin-bottom: 1rem;
+            display: block;
         }
 
-        /* Buttons */
-        .btn {
-            padding: 0.8rem 2rem;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            transition: all 0.3s ease;
-            font-size: 1rem;
-            font-weight: 500;
-            margin-right: 1rem;
+        /* Disabled field styling */
+        .form-control:disabled {
+            background-color: #f8f9fa;
+            cursor: not-allowed;
+            opacity: 0.8;
         }
 
-        .btn-primary {
-            background-color: #2c3e50;
-            color: white;
+        /* Loading button state */
+        .btn.loading {
+            opacity: 0.7;
+            pointer-events: none;
         }
 
-        .btn-primary:hover {
-            background-color: #34495e;
-            transform: translateY(-2px);
+        /* Current user badge */
+        .current-user-badge {
+            background: #ffc107;
+            color: #212529;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
         }
 
-        .btn-secondary {
-            background-color: #7f8c8d;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background-color: #95a5a6;
-            transform: translateY(-2px);
-        }
-
-        .form-actions {
-            margin-top: 2rem;
-            padding-top: 2rem;
-            border-top: 1px solid #eee;
-            text-align: center;
-        }
-
-        /* Responsive Design */
-        @media (min-width: 1024px) {
-            .sidebar { left: 0; }
-            .main-content { margin-left: 280px; }
-            .menu-toggle { display: none; }
-        }
-
+        /* Responsive adjustments */
         @media (max-width: 768px) {
-            .topbar { padding: 1rem; }
-            .content-area { padding: 1rem; }
-            .page-header { padding: 1.5rem; }
-            .form-container { padding: 1.5rem; }
-            .form-row { grid-template-columns: 1fr; gap: 1rem; }
-            .role-selection { grid-template-columns: 1fr; }
-            .btn { display: block; margin-bottom: 0.5rem; margin-right: 0; text-align: center; }
-            .info-grid { grid-template-columns: 1fr; }
-            .user-info span { display: none; }
+            .role-selection {
+                grid-template-columns: 1fr;
+            }
+            
+            .user-info-card {
+                padding: 1rem;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
-  <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <h2>Redupahana</h2>
-            <p>Admin Panel</p>
-        </div>
-        <nav class="sidebar-menu">
-            <a href="dashboard" class="menu-item">
-                <i class="icon-dashboard"></i>
-                Dashboard
-            </a>
-            <% if (Constants.ROLE_ADMIN.equals(loggedUser.getRole())) { %>
-            <a href="user?action=list" class="menu-item">
-                <i class="icon-users"></i>
-                User Management
-            </a>
-            <% } %>
-            <a href="book?action=list" class="menu-item active">
-                <i class="icon-books"></i>
-                Book Management
-            </a>
-            <a href="customer?action=list" class="menu-item">
-                <i class="icon-customers"></i>
-                Customer Management
-            </a>
-            <a href="bill?action=list" class="menu-item">
-                <i class="icon-bills"></i>
-                Bill Management
-            </a>
-            <a href="auth?action=logout" class="menu-item" style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
-                <i class="icon-logout"></i>
-                Logout
-            </a>
-        </nav>
-    </div>
-    <!-- Overlay for mobile -->
-    <div class="overlay" id="overlay"></div>
+    <!-- Include complete sidebar component -->
+    <%@ include file="../../includes/sidebar.jsp" %>
 
     <!-- Main Content -->
-    <div class="main-content" id="mainContent">
-        <!-- Top Navigation -->
-        <header class="topbar">
-            <div style="display: flex; align-items: center; gap: 1rem;">
-                <button class="menu-toggle" id="menuToggle">☰</button>
-                <h1 class="page-title">Edit User</h1>
-            </div>
-            <div class="user-info">
-                <div class="user-avatar"><%= loggedUser.getFullName().substring(0,1).toUpperCase() %></div>
-                <span><%= loggedUser.getFullName() %></span>
-            </div>
-        </header>
-
-        <!-- Content Area -->
+    <div class="main-content">
         <main class="content-area">
             <!-- Page Header -->
             <div class="page-header">
-                <h1>Edit User</h1>
+                <h1>✏️ Edit User</h1>
                 <div class="breadcrumb">
                     <a href="dashboard">Dashboard</a> &gt; 
                     <a href="user?action=list">User Management</a> &gt; 
@@ -478,7 +180,11 @@
             <% if (user != null) { %>
             <!-- Current User Info -->
             <div class="user-info-card">
-                <h4>📝 Current User Information</h4>
+                <h4>📝 Current User Information 
+                    <% if (user.getUserId() == loggedUser.getUserId()) { %>
+                    <span class="current-user-badge">Current User</span>
+                    <% } %>
+                </h4>
                 <div class="info-grid">
                     <div class="info-item">
                         <span class="info-label">User ID</span>
@@ -490,16 +196,18 @@
                     </div>
                     <div class="info-item">
                         <span class="info-label">Current Role</span>
-                        <span class="info-value"><%= user.getRole() %></span>
+                        <span class="info-value">
+                            <%= Constants.ROLE_ADMIN.equals(user.getRole()) ? "👑 " + user.getRole() : "💼 " + user.getRole() %>
+                        </span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">Created Date</span>
-                        <span class="info-value"><%= user.getCreatedDate() %></span>
+                        <span class="info-value"><%= user.getCreatedDate().toString().substring(0, 10) %></span>
                     </div>
                 </div>
             </div>
 
-            <!-- Error Message -->
+            <!-- Alert Messages -->
             <% if (errorMessage != null) { %>
             <div class="alert alert-error">
                 ❌ <%= errorMessage %>
@@ -512,59 +220,60 @@
                     <input type="hidden" name="action" value="update">
                     <input type="hidden" name="userId" value="<%= user.getUserId() %>">
                     
-                    <div class="form-group">
-                        <label for="username">Username</label>
-                        <input type="text" class="form-control" id="username" name="username" 
-                               value="<%= user.getUsername() %>" disabled>
-                        <div class="form-text">Username cannot be changed</div>
-                    </div>
-
-                    <div class="form-row">
+                    <div class="form-grid">
                         <div class="form-group">
-                            <label for="fullName">Full Name <span class="required">*</span></label>
+                            <label for="username">👤 Username</label>
+                            <input type="text" class="form-control" id="username" name="username" 
+                                   value="<%= user.getUsername() %>" disabled>
+                            <div class="form-text">Username cannot be changed</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="fullName">📝 Full Name <span class="required">*</span></label>
                             <input type="text" class="form-control" id="fullName" name="fullName" 
                                    value="<%= user.getFullName() %>" required 
                                    placeholder="Enter full name">
                         </div>
 
                         <div class="form-group">
-                            <label for="email">Email Address</label>
+                            <label for="email">📧 Email Address</label>
                             <input type="email" class="form-control" id="email" name="email" 
                                    value="<%= user.getEmail() != null ? user.getEmail() : "" %>"
                                    placeholder="Enter email address (optional)">
                         </div>
-                    </div>
 
-                    <div class="form-group">
-                        <label for="phone">Phone Number</label>
-                        <input type="tel" class="form-control" id="phone" name="phone" 
-                               value="<%= user.getPhone() != null ? user.getPhone() : "" %>"
-                               placeholder="Enter 10-digit phone number" pattern="[0-9]{10}">
-                        <div class="form-text">Enter a valid 10-digit phone number</div>
-                    </div>
+                        <div class="form-group">
+                            <label for="phone">📞 Phone Number</label>
+                            <input type="tel" class="form-control" id="phone" name="phone" 
+                                   value="<%= user.getPhone() != null ? user.getPhone() : "" %>"
+                                   placeholder="Enter 10-digit phone number" pattern="[0-9]{10}">
+                            <div class="form-text">Enter a valid 10-digit phone number</div>
+                        </div>
 
-                    <div class="form-group">
-                        <label>User Role <span class="required">*</span></label>
-                        <div class="role-selection">
-                            <div class="role-option <%= Constants.ROLE_ADMIN.equals(user.getRole()) ? "selected" : "" %>" onclick="selectRole('ADMIN')">
-                                <input type="radio" name="role" value="ADMIN" id="roleAdmin" 
-                                       <%= Constants.ROLE_ADMIN.equals(user.getRole()) ? "checked" : "" %> required>
-                                <div class="role-icon">👑</div>
-                                <h4>Administrator</h4>
-                                <p>Full system access including user management</p>
-                            </div>
-                            <div class="role-option <%= Constants.ROLE_CASHIER.equals(user.getRole()) ? "selected" : "" %>" onclick="selectRole('CASHIER')">
-                                <input type="radio" name="role" value="CASHIER" id="roleCashier" 
-                                       <%= Constants.ROLE_CASHIER.equals(user.getRole()) ? "checked" : "" %> required>
-                                <div class="role-icon">💼</div>
-                                <h4>Cashier</h4>
-                                <p>Access to billing and customer management</p>
+                        <div class="form-group full-width">
+                            <label>🔑 User Role <span class="required">*</span></label>
+                            <div class="role-selection">
+                                <div class="role-option <%= Constants.ROLE_ADMIN.equals(user.getRole()) ? "selected" : "" %>" onclick="selectRole('ADMIN')">
+                                    <input type="radio" name="role" value="ADMIN" id="roleAdmin" 
+                                           <%= Constants.ROLE_ADMIN.equals(user.getRole()) ? "checked" : "" %> required>
+                                    <div class="role-icon">👑</div>
+                                    <h4>Administrator</h4>
+                                    <p>Full system access including user management</p>
+                                </div>
+                                <div class="role-option <%= Constants.ROLE_CASHIER.equals(user.getRole()) ? "selected" : "" %>" onclick="selectRole('CASHIER')">
+                                    <input type="radio" name="role" value="CASHIER" id="roleCashier" 
+                                           <%= Constants.ROLE_CASHIER.equals(user.getRole()) ? "checked" : "" %> required>
+                                    <div class="role-icon">💼</div>
+                                    <h4>Cashier</h4>
+                                    <p>Access to billing and customer management</p>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="form-actions">
-                        <button type="submit" class="btn btn-primary">💾 Update User</button>
+                        <button type="submit" class="btn btn-success">💾 Update User</button>
+                        <a href="user?action=view&id=<%= user.getUserId() %>" class="btn btn-primary">👁️ View Details</a>
                         <a href="user?action=list" class="btn btn-secondary">❌ Cancel</a>
                     </div>
                 </form>
@@ -572,36 +281,55 @@
 
             <% } else { %>
             <!-- User Not Found -->
-            <div class="alert alert-error">
-                ❌ User not found or invalid user ID.
-            </div>
-            <div style="text-align: center; margin-top: 2rem;">
-                <a href="user?action=list" class="btn btn-primary">Back to User List</a>
+            <div class="empty-state">
+                <div class="icon">❌</div>
+                <h3>User Not Found</h3>
+                <p>The requested user could not be found or may have been deleted.</p>
+                <a href="user?action=list" class="btn btn-primary">📋 Back to User List</a>
             </div>
             <% } %>
         </main>
     </div>
 
+    <!-- Page-specific JavaScript -->
     <script>
-        // Sidebar Toggle
-        const menuToggle = document.getElementById('menuToggle');
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('overlay');
-
-        function toggleSidebar() {
-            sidebar.classList.toggle('active');
-            overlay.classList.toggle('active');
-        }
-
-        menuToggle.addEventListener('click', toggleSidebar);
-        overlay.addEventListener('click', toggleSidebar);
-
-        // Handle window resize
-        window.addEventListener('resize', function() {
-            if (window.innerWidth >= 1024) {
-                sidebar.classList.remove('active');
-                overlay.classList.remove('active');
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('✏️ Edit User page loaded');
+            <% if (user != null) { %>
+            console.log('Editing user: <%= user.getUsername() %>');
+            <% } %>
+            
+            // Focus on full name field
+            const fullNameField = document.getElementById('fullName');
+            if (fullNameField) {
+                fullNameField.focus();
+                fullNameField.select();
             }
+            
+            // Simple keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                // Escape key to cancel
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    window.location.href = 'user?action=list';
+                }
+                
+                // Ctrl+S to save
+                if (e.ctrlKey && e.key === 's') {
+                    e.preventDefault();
+                    document.getElementById('editUserForm').submit();
+                }
+                
+                // Alt+V to view details
+                if (e.altKey && e.key === 'v') {
+                    e.preventDefault();
+                    <% if (user != null) { %>
+                    window.location.href = 'user?action=view&id=<%= user.getUserId() %>';
+                    <% } %>
+                }
+            });
+            
+            console.log('💡 Shortcuts: Escape=Cancel, Ctrl+S=Save, Alt+V=View Details');
         });
 
         // Role Selection
@@ -628,27 +356,23 @@
             const role = document.querySelector('input[name="role"]:checked');
 
             let isValid = true;
-            let errorMessage = '';
 
             if (!fullName) {
-                errorMessage += 'Full name is required. ';
                 isValid = false;
             }
 
             if (!role) {
-                errorMessage += 'Please select a user role. ';
                 isValid = false;
             }
 
             if (!isValid) {
                 e.preventDefault();
-                alert('Please fix the following errors:\n' + errorMessage);
                 return false;
             }
 
             // Add loading state
             const submitBtn = this.querySelector('button[type="submit"]');
-            submitBtn.style.opacity = '0.7';
+            submitBtn.classList.add('loading');
             submitBtn.innerHTML = '⏳ Updating User...';
             submitBtn.disabled = true;
         });
@@ -660,14 +384,6 @@
                 this.value = this.value.replace(/\D/g, '').substring(0, 10);
             });
         }
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Edit User page loaded');
-            
-            // Focus on full name field
-            document.getElementById('fullName').focus();
-        });
     </script>
 </body>
 </html>

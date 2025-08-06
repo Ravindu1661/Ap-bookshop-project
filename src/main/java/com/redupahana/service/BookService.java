@@ -1,16 +1,18 @@
-// BookService.java - Fixed Version
+// BookService.java - Fixed Version with Thread-safe Book Code Generation
 package com.redupahana.service;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 import com.redupahana.dao.BookDAO;
 import com.redupahana.model.Book;
-import com.redupahana.util.BillNumberGenerator;
 import com.redupahana.util.ValidationUtil;
 
 public class BookService {
     
     private static BookService instance;
+    private static final ReentrantLock instanceLock = new ReentrantLock();
+    private static final ReentrantLock codeGenerationLock = new ReentrantLock();
     private BookDAO bookDAO;
     
     private BookService() {
@@ -19,10 +21,13 @@ public class BookService {
     
     public static BookService getInstance() {
         if (instance == null) {
-            synchronized (BookService.class) {
+            instanceLock.lock();
+            try {
                 if (instance == null) {
                     instance = new BookService();
                 }
+            } finally {
+                instanceLock.unlock();
             }
         }
         return instance;
@@ -31,59 +36,88 @@ public class BookService {
     public void addBook(Book book) throws SQLException {
         validateBook(book);
         
-        // Generate unique book code if not provided
-        if (book.getBookCode() == null || book.getBookCode().isEmpty()) {
-            book.setBookCode(generateUniqueBookCode());
-        } else {
-            // Check if provided code already exists
-            Book existingBook = bookDAO.getBookByCode(book.getBookCode());
-            if (existingBook != null) {
-                throw new IllegalArgumentException("Book code '" + book.getBookCode() + "' already exists. Please use a different code.");
+        // Thread-safe book code generation
+        codeGenerationLock.lock();
+        try {
+            // Generate unique book code if not provided
+            if (book.getBookCode() == null || book.getBookCode().trim().isEmpty()) {
+                String uniqueCode = generateUniqueBookCodeSafe();
+                book.setBookCode(uniqueCode);
+            } else {
+                // Check if provided code already exists
+                if (!isBookCodeAvailable(book.getBookCode().trim())) {
+                    throw new IllegalArgumentException("Book code '" + book.getBookCode() + "' already exists. Please use a different code.");
+                }
+                book.setBookCode(book.getBookCode().trim());
             }
-        }
-        
-        // Check for duplicate ISBN
-        if (book.getIsbn() != null && !book.getIsbn().trim().isEmpty()) {
-            Book existingBook = bookDAO.getBookByIsbn(book.getIsbn());
-            if (existingBook != null) {
-                throw new IllegalArgumentException("A book with ISBN " + book.getIsbn() + " already exists.");
+            
+            // Check for duplicate ISBN
+            if (book.getIsbn() != null && !book.getIsbn().trim().isEmpty()) {
+                Book existingBook = bookDAO.getBookByIsbn(book.getIsbn().trim());
+                if (existingBook != null) {
+                    throw new IllegalArgumentException("A book with ISBN " + book.getIsbn() + " already exists.");
+                }
             }
+            
+            // Add book to database
+            bookDAO.addBook(book);
+            
+        } finally {
+            codeGenerationLock.unlock();
         }
-        
-        bookDAO.addBook(book);
     }
     
     /**
-     * Generate a unique book code by checking existing codes in database
+     * Thread-safe method to generate unique book code with database verification
      */
-    private String generateUniqueBookCode() throws SQLException {
-        String baseCode = "BOO";
-        int counter = 1;
-        String bookCode;
+    private String generateUniqueBookCodeSafe() throws SQLException {
+        int attempts = 0;
+        int maxAttempts = 100;
         
-        do {
-            bookCode = baseCode + String.format("%03d", counter);
-            Book existingBook = bookDAO.getBookByCode(bookCode);
-            if (existingBook == null) {
-                return bookCode; // Found unique code
+        while (attempts < maxAttempts) {
+            attempts++;
+            
+            // Method 1: Try sequential numbering first
+            String sequentialCode = generateSequentialBookCode();
+            if (isBookCodeAvailable(sequentialCode)) {
+                return sequentialCode;
             }
-            counter++;
-        } while (counter <= 9999); // Prevent infinite loop
+            
+            // Method 2: If sequential fails, try timestamp-based
+            String timestampCode = generateTimestampBookCode();
+            if (isBookCodeAvailable(timestampCode)) {
+                return timestampCode;
+            }
+            
+            // Method 3: Random number based (fallback)
+            String randomCode = generateRandomBookCode();
+            if (isBookCodeAvailable(randomCode)) {
+                return randomCode;
+            }
+            
+            // Small delay to avoid tight loop
+            try {
+                Thread.sleep(1);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
         
-        // If we reach here, generate timestamp-based code
-        return baseCode + System.currentTimeMillis() % 100000;
+        throw new SQLException("Unable to generate unique book code after " + maxAttempts + " attempts");
     }
     
     /**
-     * Alternative method: Get next available book code number
+     * Generate sequential book code (BOO001, BOO002, etc.)
      */
     private String generateSequentialBookCode() throws SQLException {
         List<Book> allBooks = bookDAO.getAllBooks();
         int maxNumber = 0;
         
+        // Find the highest existing number in BOO### format
         for (Book book : allBooks) {
             String code = book.getBookCode();
-            if (code != null && code.startsWith("BOO") && code.length() >= 6) {
+            if (code != null && code.startsWith("BOO") && code.length() == 6) {
                 try {
                     String numberPart = code.substring(3);
                     int number = Integer.parseInt(numberPart);
@@ -94,7 +128,49 @@ public class BookService {
             }
         }
         
-        return "BOO" + String.format("%03d", maxNumber + 1);
+        // Generate next available code
+        int nextNumber = maxNumber + 1;
+        return "BOO" + String.format("%03d", nextNumber);
+    }
+    
+    /**
+     * Generate timestamp-based book code
+     */
+    private String generateTimestampBookCode() {
+        long timestamp = System.currentTimeMillis();
+        String timestampStr = String.valueOf(timestamp);
+        String last5Digits = timestampStr.substring(Math.max(0, timestampStr.length() - 5));
+        return "BOO" + last5Digits;
+    }
+    
+    /**
+     * Generate random number based book code
+     */
+    private String generateRandomBookCode() {
+        int randomNum = (int) (Math.random() * 99999) + 1;
+        return "BOO" + String.format("%05d", randomNum);
+    }
+    
+    /**
+     * Alternative method using database auto-increment simulation
+     */
+    private String generateDatabaseBasedCode() throws SQLException {
+        // This method tries to use a more database-centric approach
+        try {
+            // Get current max item_id and use it as base
+            List<Book> books = bookDAO.getAllBooks();
+            int maxId = 0;
+            for (Book book : books) {
+                maxId = Math.max(maxId, book.getBookId());
+            }
+            
+            // Generate code based on next expected ID
+            int nextId = maxId + 1;
+            return "BOO" + String.format("%03d", nextId);
+        } catch (Exception e) {
+            // Fallback to timestamp if this fails
+            return generateTimestampBookCode();
+        }
     }
     
     public List<Book> getAllBooks() throws SQLException {
@@ -175,13 +251,15 @@ public class BookService {
     }
     
     /**
-     * Check if a book code is available
+     * Thread-safe method to check if a book code is available
      */
     public boolean isBookCodeAvailable(String bookCode) throws SQLException {
         if (bookCode == null || bookCode.trim().isEmpty()) {
             return false;
         }
-        Book existingBook = bookDAO.getBookByCode(bookCode);
+        
+        // Double-check with database to ensure accuracy
+        Book existingBook = bookDAO.getBookByCode(bookCode.trim());
         return existingBook == null;
     }
     
@@ -193,7 +271,7 @@ public class BookService {
             return requestedCode;
         }
         
-        // Extract base and try with incremental numbers
+        // Try variations of the requested code
         String base = requestedCode.replaceAll("\\d+$", "");
         if (base.equals(requestedCode)) {
             base = requestedCode + "_";
@@ -206,10 +284,25 @@ public class BookService {
             }
         }
         
-        // Fallback to timestamp
-        return base + System.currentTimeMillis() % 1000;
+        // If all variations fail, generate a new unique code
+        return generateUniqueBookCodeSafe();
     }
     
+    /**
+     * Get the next available book code for display purposes
+     */
+    public String getNextAvailableBookCode() throws SQLException {
+        codeGenerationLock.lock();
+        try {
+            return generateUniqueBookCodeSafe();
+        } finally {
+            codeGenerationLock.unlock();
+        }
+    }
+    
+    /**
+     * Validate book data
+     */
     private void validateBook(Book book) {
         if (!ValidationUtil.isNotEmpty(book.getTitle())) {
             throw new IllegalArgumentException("Book title is required");
@@ -231,10 +324,46 @@ public class BookService {
         }
     }
     
+    /**
+     * Validate book data for update operations
+     */
     private void validateBookForUpdate(Book book) {
         if (book.getBookId() <= 0) {
             throw new IllegalArgumentException("Invalid book ID");
         }
         validateBook(book);
+    }
+    
+    /**
+     * Get book statistics
+     */
+    public BookStatistics getBookStatistics() throws SQLException {
+        List<Book> allBooks = getAllBooks();
+        return new BookStatistics(allBooks);
+    }
+    
+    /**
+     * Inner class for book statistics
+     */
+    public static class BookStatistics {
+        private final int totalBooks;
+        private final int booksInStock;
+        private final int booksOutOfStock;
+        private final double totalInventoryValue;
+        
+        public BookStatistics(List<Book> books) {
+            this.totalBooks = books.size();
+            this.booksInStock = (int) books.stream().filter(b -> b.getStockQuantity() > 0).count();
+            this.booksOutOfStock = totalBooks - booksInStock;
+            this.totalInventoryValue = books.stream()
+                .mapToDouble(b -> b.getPrice() * b.getStockQuantity())
+                .sum();
+        }
+        
+        // Getters
+        public int getTotalBooks() { return totalBooks; }
+        public int getBooksInStock() { return booksInStock; }
+        public int getBooksOutOfStock() { return booksOutOfStock; }
+        public double getTotalInventoryValue() { return totalInventoryValue; }
     }
 }

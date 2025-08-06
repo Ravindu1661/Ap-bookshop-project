@@ -9,6 +9,10 @@
     }
     
     String errorMessage = (String) request.getAttribute("errorMessage");
+    
+    // Set page attributes for sidebar
+    request.setAttribute("currentPage", "book");
+    request.setAttribute("pageTitle", "Add Book");
 %>
 <!DOCTYPE html>
 <html lang="en">
@@ -16,193 +20,45 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Book - Redupahana</title>
+    
+    <!-- Page-specific styles -->
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f6fa;
+            background-color: #f8f9fa;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #2c3e50;
             overflow-x: hidden;
-        }
-
-        /* Sidebar Styles */
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: -280px;
-            width: 280px;
-            height: 100vh;
-            background: #2c3e50;
-            transition: left 0.3s ease;
-            z-index: 1000;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-        }
-
-        .sidebar.active {
-            left: 0;
-        }
-
-        .sidebar-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            text-align: center;
-        }
-
-        .sidebar-header h2 {
-            color: #fff;
-            font-size: 1.3rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .sidebar-header p {
-            color: #bdc3c7;
-            font-size: 0.9rem;
-        }
-
-        .sidebar-menu {
-            padding: 1rem 0;
-        }
-
-        .menu-item {
-            display: block;
-            padding: 1rem 1.5rem;
-            color: #ecf0f1;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            border-left: 3px solid transparent;
-        }
-
-        .menu-item:hover,
-        .menu-item.active {
-            background-color: rgba(255,255,255,0.1);
-            border-left-color: #95a5a6;
-            color: #fff;
-        }
-
-        .menu-item i {
-            margin-right: 0.8rem;
-            font-size: 1.1rem;
-            width: 20px;
-            text-align: center;
-        }
-
-        .icon-dashboard::before { content: "📊"; }
-        .icon-users::before { content: "👥"; }
-        .icon-books::before { content: "📚"; }
-        .icon-customers::before { content: "🏢"; }
-        .icon-bills::before { content: "🧾"; }
-        .icon-logout::before { content: "🚪"; }
-
-        /* Main Content */
-        .main-content {
-            margin-left: 0;
-            min-height: 100vh;
-            transition: margin-left 0.3s ease;
-        }
-
-        /* Top Navigation */
-        .topbar {
-            background: #fff;
-            padding: 1rem 2rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 999;
-        }
-
-        .menu-toggle {
-            background: #2c3e50;
-            color: white;
-            border: none;
-            padding: 0.8rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 1.1rem;
-            transition: background-color 0.3s ease;
-        }
-
-        .menu-toggle:hover {
-            background: #34495e;
-        }
-
-        .page-title {
-            font-size: 1.5rem;
-            color: #2c3e50;
-            font-weight: 600;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            color: #2c3e50;
-        }
-
-        .user-avatar {
-            width: 35px;
-            height: 35px;
-            background: #2c3e50;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 0.9rem;
-        }
-
-        /* Overlay for mobile */
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 999;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .overlay.active {
-            opacity: 1;
-            visibility: visible;
         }
 
         /* Content Area */
         .content-area {
-            padding: 2rem;
+            padding: 1.5rem;
         }
 
         .page-header {
             background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.07);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
         .page-header h1 {
             color: #2c3e50;
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
+            font-size: 1.4rem;
+            margin-bottom: 0.3rem;
+            font-weight: 600;
         }
 
         .breadcrumb {
-            color: #7f8c8d;
-            font-size: 0.9rem;
+            color: #6c757d;
+            font-size: 0.85rem;
         }
 
         .breadcrumb a {
-            color: #2c3e50;
+            color: #495057;
             text-decoration: none;
         }
 
@@ -212,31 +68,39 @@
 
         /* Alert Messages */
         .alert {
-            padding: 1rem 1.5rem;
-            border-radius: 8px;
-            margin-bottom: 1.5rem;
+            padding: 0.8rem 1rem;
+            border-radius: 6px;
+            margin-bottom: 1.2rem;
             border-left: 4px solid;
+            font-size: 0.9rem;
+            animation: slideIn 0.3s ease;
         }
 
         .alert-error {
             background-color: #f8d7da;
-            border-left-color: #e74c3c;
+            border-left-color: #dc3545;
             color: #721c24;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         /* Info Notice */
         .info-notice {
             background-color: #e8f4fd;
             border: 1px solid #bee5eb;
-            padding: 1.5rem;
+            padding: 1.2rem;
             border-radius: 8px;
-            margin-bottom: 2rem;
-            border-left: 4px solid #2c3e50;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid #007bff;
         }
 
         .info-notice h4 {
             color: #2c3e50;
             margin-bottom: 0.5rem;
+            font-size: 1.1rem;
         }
 
         .info-notice p {
@@ -247,20 +111,20 @@
         /* Form Styles */
         .form-container {
             background: white;
-            padding: 2.5rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.07);
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
 
         .form-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-            margin-bottom: 1.5rem;
+            gap: 1.5rem;
+            margin-bottom: 1.2rem;
         }
 
         .form-group {
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.2rem;
         }
 
         .form-group.full-width {
@@ -270,36 +134,38 @@
         .form-group label {
             display: block;
             margin-bottom: 0.5rem;
-            font-weight: 600;
+            font-weight: 500;
             color: #2c3e50;
+            font-size: 0.9rem;
         }
 
         .required {
-            color: #e74c3c;
+            color: #dc3545;
         }
 
         .form-control {
             width: 100%;
             padding: 0.8rem;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: border-color 0.3s ease;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
         }
 
         .form-control:focus {
             outline: none;
-            border-color: #2c3e50;
-            box-shadow: 0 0 0 2px rgba(44, 62, 80, 0.1);
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
         }
 
         .form-control.error {
-            border-color: #e74c3c;
+            border-color: #dc3545;
+            box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.25);
         }
 
         .form-text {
-            font-size: 0.85rem;
-            color: #7f8c8d;
+            font-size: 0.8rem;
+            color: #6c757d;
             margin-top: 0.25rem;
         }
 
@@ -314,8 +180,8 @@
             left: 0.8rem;
             top: 50%;
             transform: translateY(-50%);
-            color: #7f8c8d;
-            font-weight: 600;
+            color: #6c757d;
+            font-weight: 500;
         }
 
         .price-input-group .form-control {
@@ -356,26 +222,26 @@
         .language-selection {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 1rem;
+            gap: 0.8rem;
             margin-top: 0.5rem;
         }
 
         .language-option {
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 1rem;
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            padding: 0.8rem;
             cursor: pointer;
             transition: all 0.3s ease;
             text-align: center;
         }
 
         .language-option:hover {
-            border-color: #2c3e50;
+            border-color: #007bff;
             background-color: #f8f9fa;
         }
 
         .language-option.selected {
-            border-color: #2c3e50;
+            border-color: #007bff;
             background-color: #e8f4fd;
         }
 
@@ -384,48 +250,53 @@
         }
 
         .language-icon {
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
+            font-size: 1.3rem;
+            margin-bottom: 0.4rem;
         }
 
         .language-name {
             color: #2c3e50;
-            font-weight: 600;
-            font-size: 0.9rem;
+            font-weight: 500;
+            font-size: 0.85rem;
         }
 
         /* Buttons */
         .btn {
-            padding: 0.8rem 2rem;
+            padding: 0.7rem 1.4rem;
             border: none;
-            border-radius: 8px;
+            border-radius: 5px;
             cursor: pointer;
             text-decoration: none;
-            display: inline-block;
-            transition: all 0.3s ease;
-            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.9rem;
             font-weight: 500;
-            margin-right: 1rem;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
         }
 
         .btn-primary {
-            background-color: #2c3e50;
+            background: #007bff;
             color: white;
         }
 
         .btn-primary:hover {
-            background-color: #34495e;
-            transform: translateY(-2px);
+            background: #0056b3;
         }
 
         .btn-secondary {
-            background-color: #7f8c8d;
+            background: #6c757d;
             color: white;
         }
 
         .btn-secondary:hover {
-            background-color: #95a5a6;
-            transform: translateY(-2px);
+            background: #545b62;
         }
 
         .btn:disabled {
@@ -435,62 +306,68 @@
         }
 
         .form-actions {
-            margin-top: 2rem;
-            padding-top: 2rem;
-            border-top: 1px solid #eee;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #dee2e6;
             text-align: center;
+            display: flex;
+            justify-content: center;
+            gap: 0.8rem;
+        }
+
+        /* Form validation states */
+        .form-group.has-error .form-control {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.25);
+        }
+
+        .form-group.has-error .form-text {
+            color: #dc3545;
+        }
+
+        .form-group.has-error .form-text::before {
+            content: "⚠️";
+        }
+
+        .form-group.has-success .form-control {
+            border-color: #28a745;
+            box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.25);
+        }
+
+        .form-group.has-success .form-text {
+            color: #28a745;
+        }
+
+        .form-group.has-success .form-text::before {
+            content: "✅";
         }
 
         /* Responsive Design */
-        @media (min-width: 1024px) {
-            .sidebar {
-                left: 0;
-            }
-            
-            .main-content {
-                margin-left: 280px;
-            }
-            
-            .menu-toggle {
-                display: none;
-            }
-        }
-
         @media (max-width: 768px) {
-            .topbar {
-                padding: 1rem;
-            }
-            
             .content-area {
                 padding: 1rem;
             }
-            
+
             .page-header {
-                padding: 1.5rem;
+                padding: 1rem;
             }
-            
+
             .form-container {
-                padding: 1.5rem;
+                padding: 1.2rem;
             }
-            
+
             .form-row {
                 grid-template-columns: 1fr;
-                gap: 1rem;
+                gap: 0.8rem;
             }
-            
+
             .language-selection {
                 grid-template-columns: repeat(2, 1fr);
             }
-            
+
             .btn {
-                display: block;
+                width: 100%;
                 margin-bottom: 0.5rem;
-                margin-right: 0;
-                text-align: center;
-            }
-            
-            .user-info span {
-                display: none;
             }
         }
 
@@ -498,63 +375,40 @@
             .language-selection {
                 grid-template-columns: 1fr;
             }
+
+            .form-container {
+                padding: 1rem;
+            }
+
+            .btn {
+                font-size: 0.85rem;
+                padding: 0.6rem 1rem;
+            }
+        }
+
+        /* Subtle animations */
+        .form-container {
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <h2>Redupahana</h2>
-            <p>Admin Panel</p>
-        </div>
-        <nav class="sidebar-menu">
-            <a href="dashboard" class="menu-item">
-                <i class="icon-dashboard"></i>
-                Dashboard
-            </a>
-            <% if (Constants.ROLE_ADMIN.equals(loggedUser.getRole())) { %>
-            <a href="user?action=list" class="menu-item">
-                <i class="icon-users"></i>
-                User Management
-            </a>
-            <% } %>
-            <a href="book?action=list" class="menu-item active">
-                <i class="icon-books"></i>
-                Book Management
-            </a>
-            <a href="customer?action=list" class="menu-item">
-                <i class="icon-customers"></i>
-                Customer Management
-            </a>
-            <a href="bill?action=list" class="menu-item">
-                <i class="icon-bills"></i>
-                Bill Management
-            </a>
-            <a href="auth?action=logout" class="menu-item" style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
-                <i class="icon-logout"></i>
-                Logout
-            </a>
-        </nav>
-    </div>
-
-    <!-- Overlay for mobile -->
-    <div class="overlay" id="overlay"></div>
+    <!-- Include complete sidebar component -->
+    <%@ include file="../../includes/sidebar.jsp" %>
 
     <!-- Main Content -->
-    <div class="main-content" id="mainContent">
-        <!-- Top Navigation -->
-        <header class="topbar">
-            <div style="display: flex; align-items: center; gap: 1rem;">
-                <button class="menu-toggle" id="menuToggle">☰</button>
-                <h1 class="page-title">Add New Book</h1>
-            </div>
-            <div class="user-info">
-                <div class="user-avatar"><%= loggedUser.getFullName().substring(0,1).toUpperCase() %></div>
-                <span><%= loggedUser.getFullName() %></span>
-            </div>
-        </header>
-
+    <div class="main-content">
         <!-- Content Area -->
         <main class="content-area">
             <!-- Page Header -->
@@ -587,31 +441,29 @@
                     
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="bookCode">Book Code</label>
-                            <input type="text" class="form-control" id="bookCode" name="bookCode" 
-                                   placeholder="Leave blank for auto-generation">
-                            <div class="form-text">Book code will be auto-generated if left blank</div>
-                        </div>
-
-                        <div class="form-group">
                             <label for="title">Book Title <span class="required">*</span></label>
                             <input type="text" class="form-control" id="title" name="title" required 
                                    placeholder="Enter book title">
                         </div>
-                    </div>
 
-                    <div class="form-row">
                         <div class="form-group">
                             <label for="author">Author <span class="required">*</span></label>
                             <input type="text" class="form-control" id="author" name="author" required 
                                    placeholder="Enter author name">
                         </div>
+                    </div>
 
+                    <div class="form-row">
                         <div class="form-group">
                             <label for="isbn">ISBN</label>
                             <input type="text" class="form-control" id="isbn" name="isbn" 
                                    placeholder="Enter ISBN (optional)">
-                            <div class="form-text">International Standard Book Number</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="publisher">Publisher</label>
+                            <input type="text" class="form-control" id="publisher" name="publisher" 
+                                   placeholder="Enter publisher name (optional)">
                         </div>
                     </div>
 
@@ -644,43 +496,35 @@
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="publisher">Publisher</label>
-                            <input type="text" class="form-control" id="publisher" name="publisher" 
-                                   placeholder="Enter publisher name (optional)">
-                        </div>
-
-                        <div class="form-group">
                             <label for="publicationYear">Publication Year</label>
                             <input type="number" class="form-control" id="publicationYear" name="publicationYear" 
-                                   min="1000" max="2024" placeholder="Enter year (optional)">
+                                   min="1000" max="2025" placeholder="Enter year (optional)">
                         </div>
-                    </div>
 
-                    <div class="form-row">
                         <div class="form-group">
                             <label for="pages">Number of Pages</label>
                             <input type="number" class="form-control" id="pages" name="pages" 
                                    min="1" placeholder="Enter page count (optional)">
                         </div>
+                    </div>
 
-                        <div class="form-group">
-                            <label>Language</label>
-                            <div class="language-selection">
-                                <div class="language-option selected" onclick="selectLanguage('Sinhala')">
-                                    <input type="radio" name="language" value="Sinhala" id="languageSinhala" checked>
-                                    <div class="language-icon">🇱🇰</div>
-                                    <div class="language-name">Sinhala</div>
-                                </div>
-                                <div class="language-option" onclick="selectLanguage('English')">
-                                    <input type="radio" name="language" value="English" id="languageEnglish">
-                                    <div class="language-icon">🇬🇧</div>
-                                    <div class="language-name">English</div>
-                                </div>
-                                <div class="language-option" onclick="selectLanguage('Tamil')">
-                                    <input type="radio" name="language" value="Tamil" id="languageTamil">
-                                    <div class="language-icon">🇮🇳</div>
-                                    <div class="language-name">Tamil</div>
-                                </div>
+                    <div class="form-group">
+                        <label>Language</label>
+                        <div class="language-selection">
+                            <div class="language-option selected" onclick="selectLanguage('Sinhala')">
+                                <input type="radio" name="language" value="Sinhala" id="languageSinhala" checked>
+                                <div class="language-icon">🇱🇰</div>
+                                <div class="language-name">Sinhala</div>
+                            </div>
+                            <div class="language-option" onclick="selectLanguage('English')">
+                                <input type="radio" name="language" value="English" id="languageEnglish">
+                                <div class="language-icon">🇬🇧</div>
+                                <div class="language-name">English</div>
+                            </div>
+                            <div class="language-option" onclick="selectLanguage('Tamil')">
+                                <input type="radio" name="language" value="Tamil" id="languageTamil">
+                                <div class="language-icon">🇮🇳</div>
+                                <div class="language-name">Tamil</div>
                             </div>
                         </div>
                     </div>
@@ -697,44 +541,66 @@
     </div>
 
     <script>
-        // Sidebar Toggle
-        const menuToggle = document.getElementById('menuToggle');
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('overlay');
-
-        function toggleSidebar() {
-            sidebar.classList.toggle('active');
-            overlay.classList.toggle('active');
-        }
-
-        menuToggle.addEventListener('click', toggleSidebar);
-        overlay.addEventListener('click', toggleSidebar);
-
-        // Handle window resize
-        window.addEventListener('resize', function() {
-            if (window.innerWidth >= 1024) {
-                sidebar.classList.remove('active');
-                overlay.classList.remove('active');
-            }
-        });
-
         // Language Selection
         function selectLanguage(language) {
-            // Remove selected class from all options
             document.querySelectorAll('.language-option').forEach(function(option) {
                 option.classList.remove('selected');
             });
-            
-            // Add selected class to clicked option
             event.currentTarget.classList.add('selected');
-            
-            // Check the radio button
             document.getElementById('language' + language).checked = true;
         }
 
         // Stock Level Indicator
         const stockQuantityInput = document.getElementById('stockQuantity');
         const stockLevelSpan = document.getElementById('stockLevel');
+
+        function validateField(field, validationFn) {
+            const formGroup = field.closest('.form-group');
+            const isValid = validationFn(field.value);
+            
+            formGroup.classList.remove('has-error', 'has-success');
+            
+            if (field.value.trim() === '') {
+                return true;
+            }
+            
+            if (isValid) {
+                formGroup.classList.add('has-success');
+                return true;
+            } else {
+                formGroup.classList.add('has-error');
+                return false;
+            }
+        }
+
+        // Validation functions
+        function validateTitle(title) {
+            return title.trim().length >= 2;
+        }
+
+        function validateAuthor(author) {
+            return author.trim().length >= 2;
+        }
+
+        function validatePrice(price) {
+            return !isNaN(price) && parseFloat(price) > 0;
+        }
+
+        function validateStock(stock) {
+            return !isNaN(stock) && parseInt(stock) >= 0;
+        }
+
+        function validateYear(year) {
+            if (!year.trim()) return true;
+            const y = parseInt(year);
+            const currentYear = new Date().getFullYear();
+            return y >= 1000 && y <= currentYear;
+        }
+
+        function validatePages(pages) {
+            if (!pages.trim()) return true;
+            return parseInt(pages) > 0;
+        }
 
         stockQuantityInput.addEventListener('input', function() {
             const quantity = parseInt(this.value) || 0;
@@ -756,74 +622,77 @@
             }
         });
 
+        // Real-time validation
+        document.getElementById('title').addEventListener('blur', function() {
+            validateField(this, validateTitle);
+        });
+
+        document.getElementById('author').addEventListener('blur', function() {
+            validateField(this, validateAuthor);
+        });
+
+        document.getElementById('price').addEventListener('blur', function() {
+            validateField(this, validatePrice);
+        });
+
+        document.getElementById('stockQuantity').addEventListener('blur', function() {
+            validateField(this, validateStock);
+        });
+
+        document.getElementById('publicationYear').addEventListener('blur', function() {
+            validateField(this, validateYear);
+        });
+
+        document.getElementById('pages').addEventListener('blur', function() {
+            validateField(this, validatePages);
+        });
+
         // Form Validation
         document.getElementById('addBookForm').addEventListener('submit', function(e) {
-            const title = document.getElementById('title').value.trim();
-            const author = document.getElementById('author').value.trim();
-            const price = parseFloat(document.getElementById('price').value);
-            const stockQuantity = parseInt(document.getElementById('stockQuantity').value);
+            const title = document.getElementById('title');
+            const author = document.getElementById('author');
+            const price = document.getElementById('price');
+            const stockQuantity = document.getElementById('stockQuantity');
+            const publicationYear = document.getElementById('publicationYear');
+            const pages = document.getElementById('pages');
 
             let isValid = true;
-            let errorMessage = '';
 
-            if (!title) {
-                errorMessage += 'Book title is required. ';
-                isValid = false;
-            }
-
-            if (!author) {
-                errorMessage += 'Author name is required. ';
-                isValid = false;
-            }
-
-            if (!price || price <= 0) {
-                errorMessage += 'Valid price is required. ';
-                isValid = false;
-            }
-
-            if (isNaN(stockQuantity) || stockQuantity < 0) {
-                errorMessage += 'Valid stock quantity is required. ';
-                isValid = false;
-            }
+            isValid = validateField(title, validateTitle) && isValid;
+            isValid = validateField(author, validateAuthor) && isValid;
+            isValid = validateField(price, validatePrice) && isValid;
+            isValid = validateField(stockQuantity, validateStock) && isValid;
+            isValid = validateField(publicationYear, validateYear) && isValid;
+            isValid = validateField(pages, validatePages) && isValid;
 
             if (!isValid) {
                 e.preventDefault();
-                alert('Please fix the following errors:\n' + errorMessage);
+                showNotification('⚠️ Please fill in all required fields correctly.', 'error');
                 return false;
             }
 
-            // Add loading state
-            const submitBtn = this.querySelector('button[type="submit"]');
+            const submitBtn = document.getElementById('submitBtn');
             submitBtn.style.opacity = '0.7';
             submitBtn.innerHTML = '⏳ Adding Book...';
             submitBtn.disabled = true;
         });
 
-        // Auto-format ISBN
-        document.getElementById('isbn').addEventListener('input', function() {
-            this.value = this.value.replace(/[^0-9X-]/g, '').toUpperCase();
-        });
-
-        // Publication year validation
-        document.getElementById('publicationYear').addEventListener('input', function() {
-            const year = parseInt(this.value);
-            const currentYear = new Date().getFullYear();
-            
-            if (year && (year < 1000 || year > currentYear)) {
-                this.style.borderColor = '#e74c3c';
-            } else {
-                this.style.borderColor = '#ddd';
-            }
-        });
+        // Notification function
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type}`;
+            notification.textContent = message;
+            document.querySelector('.form-container').prepend(notification);
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Add Book page loaded');
-            
-            // Focus on book title field
             document.getElementById('title').focus();
-            
-            // Initialize stock level indicator
             stockQuantityInput.dispatchEvent(new Event('input'));
         });
     </script>

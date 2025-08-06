@@ -11,6 +11,10 @@
     
     Book book = (Book) request.getAttribute("book");
     String errorMessage = (String) request.getAttribute("errorMessage");
+    
+    // Set page attributes for sidebar
+    request.setAttribute("currentPage", "book");
+    request.setAttribute("pageTitle", "Edit Book");
 %>
 <!DOCTYPE html>
 <html lang="en">
@@ -18,6 +22,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Book - Redupahana</title>
+    
+    <!-- Page-specific styles -->
     <style>
         * {
             margin: 0;
@@ -28,105 +34,16 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f5f6fa;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #2c3e50;
             overflow-x: hidden;
         }
 
-        /* Sidebar Styles */
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: -280px;
-            width: 280px;
-            height: 100vh;
-            background: #2c3e50;
-            transition: left 0.3s ease;
-            z-index: 1000;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        /* Content Area */
+        .content-area {
+            padding: 2rem;
         }
-
-        .sidebar.active { left: 0; }
-
-        .sidebar-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            text-align: center;
-        }
-
-        .sidebar-header h2 {
-            color: #fff;
-            font-size: 1.3rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .sidebar-header p {
-            color: #bdc3c7;
-            font-size: 0.9rem;
-        }
-
-        .sidebar-menu { padding: 1rem 0; }
-
-        .menu-item {
-            display: block;
-            padding: 1rem 1.5rem;
-            color: #ecf0f1;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            border-left: 3px solid transparent;
-        }
-
-        .menu-item:hover,
-        .menu-item.active {
-            background-color: rgba(255,255,255,0.1);
-            border-left-color: #95a5a6;
-            color: #fff;
-        }
-
-        .menu-item i {
-            margin-right: 0.8rem;
-            font-size: 1.1rem;
-            width: 20px;
-            text-align: center;
-        }
-
-        .icon-dashboard::before { content: "📊"; }
-        .icon-users::before { content: "👥"; }
-        .icon-books::before { content: "📚"; }
-        .icon-customers::before { content: "🏢"; }
-        .icon-bills::before { content: "🧾"; }
-        .icon-logout::before { content: "🚪"; }
-
-        /* Main Content */
-        .main-content {
-            margin-left: 0;
-            min-height: 100vh;
-            transition: margin-left 0.3s ease;
-        }
-
-        /* Top Navigation */
-        .topbar {
-            background: #fff;
-            padding: 1rem 2rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 999;
-        }
-
-        .menu-toggle {
-            background: #2c3e50;
-            color: white;
-            border: none;
-            padding: 0.8rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 1.1rem;
-            transition: background-color 0.3s ease;
-        }
-
-        .menu-toggle:hover { background: #34495e; }
 
         .page-header {
             background: white;
@@ -140,6 +57,7 @@
             color: #2c3e50;
             font-size: 2rem;
             margin-bottom: 0.5rem;
+            font-weight: 600;
         }
 
         .breadcrumb {
@@ -152,7 +70,30 @@
             text-decoration: none;
         }
 
-        .breadcrumb a:hover { text-decoration: underline; }
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        /* Alert Messages */
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid;
+            font-size: 0.9rem;
+            animation: slideIn 0.3s ease;
+        }
+
+        .alert-error {
+            background-color: #f8d7da;
+            border-left-color: #e74c3c;
+            color: #721c24;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
         /* Book Info Card */
         .book-info-card {
@@ -166,6 +107,7 @@
         .book-info-card h4 {
             color: #2c3e50;
             margin-bottom: 1rem;
+            font-size: 1.1rem;
         }
 
         .info-grid {
@@ -191,20 +133,6 @@
             font-size: 1rem;
         }
 
-        /* Alert Messages */
-        .alert {
-            padding: 1rem 1.5rem;
-            border-radius: 8px;
-            margin-bottom: 1.5rem;
-            border-left: 4px solid;
-        }
-
-        .alert-error {
-            background-color: #f8d7da;
-            border-left-color: #e74c3c;
-            color: #721c24;
-        }
-
         /* Form Styles */
         .form-container {
             background: white;
@@ -220,18 +148,25 @@
             margin-bottom: 1.5rem;
         }
 
-        .form-group { margin-bottom: 1.5rem; }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
 
-        .form-group.full-width { grid-column: 1 / -1; }
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
 
         .form-group label {
             display: block;
             margin-bottom: 0.5rem;
             font-weight: 600;
             color: #2c3e50;
+            font-size: 0.95rem;
         }
 
-        .required { color: #e74c3c; }
+        .required {
+            color: #e74c3c;
+        }
 
         .form-control {
             width: 100%;
@@ -286,7 +221,9 @@
             background-color: #e8f4fd;
         }
 
-        .language-option input[type="radio"] { display: none; }
+        .language-option input[type="radio"] {
+            display: none;
+        }
 
         .language-icon {
             font-size: 1.5rem;
@@ -306,11 +243,18 @@
             border-radius: 8px;
             cursor: pointer;
             text-decoration: none;
-            display: inline-block;
-            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
             font-size: 1rem;
             font-weight: 500;
-            margin-right: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
         }
 
         .btn-primary {
@@ -320,7 +264,6 @@
 
         .btn-primary:hover {
             background-color: #34495e;
-            transform: translateY(-2px);
         }
 
         .btn-secondary {
@@ -330,7 +273,6 @@
 
         .btn-secondary:hover {
             background-color: #95a5a6;
-            transform: translateY(-2px);
         }
 
         .form-actions {
@@ -338,86 +280,85 @@
             padding-top: 2rem;
             border-top: 1px solid #eee;
             text-align: center;
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
         }
 
         /* Responsive Design */
-        @media (min-width: 1024px) {
-            .sidebar { left: 0; }
-            .main-content { margin-left: 280px; }
-            .menu-toggle { display: none; }
-        }
-
         @media (max-width: 768px) {
-            .topbar { padding: 1rem; }
-            .content-area { padding: 1rem; }
-            .page-header { padding: 1.5rem; }
-            .form-container { padding: 1.5rem; }
-            .form-row { grid-template-columns: 1fr; gap: 1rem; }
-            .language-selection { grid-template-columns: repeat(2, 1fr); }
-            .btn { display: block; margin-bottom: 0.5rem; margin-right: 0; text-align: center; }
-            .info-grid { grid-template-columns: 1fr; }
-            .user-info span { display: none; }
+            .content-area {
+                padding: 1rem;
+            }
+
+            .page-header {
+                padding: 1.5rem;
+            }
+
+            .form-container {
+                padding: 1.5rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .language-selection {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .btn {
+                width: 100%;
+                margin-bottom: 0.5rem;
+                margin-right: 0;
+                text-align: center;
+            }
         }
 
         @media (max-width: 480px) {
-            .language-selection { grid-template-columns: 1fr; }
+            .language-selection {
+                grid-template-columns: 1fr;
+            }
+
+            .form-container {
+                padding: 1rem;
+            }
+
+            .btn {
+                font-size: 0.9rem;
+                padding: 0.7rem 1.5rem;
+            }
+        }
+
+        /* Subtle animations */
+        .form-container,
+        .book-info-card {
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <h2>Redupahana</h2>
-            <p>Admin Panel</p>
-        </div>
-        <nav class="sidebar-menu">
-            <a href="dashboard" class="menu-item">
-                <i class="icon-dashboard"></i>
-                Dashboard
-            </a>
-            <% if (Constants.ROLE_ADMIN.equals(loggedUser.getRole())) { %>
-            <a href="user?action=list" class="menu-item">
-                <i class="icon-users"></i>
-                User Management
-            </a>
-            <% } %>
-            <a href="book?action=list" class="menu-item active">
-                <i class="icon-books"></i>
-                Book Management
-            </a>
-            <a href="customer?action=list" class="menu-item">
-                <i class="icon-customers"></i>
-                Customer Management
-            </a>
-            <a href="bill?action=list" class="menu-item">
-                <i class="icon-bills"></i>
-                Bill Management
-            </a>
-            <a href="auth?action=logout" class="menu-item" style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
-                <i class="icon-logout"></i>
-                Logout
-            </a>
-        </nav>
-    </div>
-
-    <!-- Overlay for mobile -->
-    <div class="overlay" id="overlay"></div>
+    <!-- Include complete sidebar component -->
+    <%@ include file="../../includes/sidebar.jsp" %>
 
     <!-- Main Content -->
-    <div class="main-content" id="mainContent">
-        <!-- Top Navigation -->
-        <header class="topbar">
-            <div style="display: flex; align-items: center; gap: 1rem;">
-                <button class="menu-toggle" id="menuToggle">☰</button>
-                <h1 class="page-title">Edit Book</h1>
-            </div>
-            <div class="user-info">
-                <div class="user-avatar"><%= loggedUser.getFullName().substring(0,1).toUpperCase() %></div>
-                <span><%= loggedUser.getFullName() %></span>
-            </div>
-        </header>
-
+    <div class="main-content">
         <!-- Content Area -->
         <main class="content-area">
             <!-- Page Header -->
@@ -532,7 +473,7 @@
                             <label for="publicationYear">Publication Year</label>
                             <input type="number" class="form-control" id="publicationYear" name="publicationYear" 
                                    value="<%= book.getPublicationYear() > 0 ? book.getPublicationYear() : "" %>"
-                                   min="1000" max="2024" placeholder="Enter year (optional)">
+                                   min="1000" max="2025" placeholder="Enter year (optional)">
                         </div>
 
                         <div class="form-group">
@@ -588,27 +529,6 @@
     </div>
 
     <script>
-        // Sidebar Toggle
-        const menuToggle = document.getElementById('menuToggle');
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('overlay');
-
-        function toggleSidebar() {
-            sidebar.classList.toggle('active');
-            overlay.classList.toggle('active');
-        }
-
-        menuToggle.addEventListener('click', toggleSidebar);
-        overlay.addEventListener('click', toggleSidebar);
-
-        // Handle window resize
-        window.addEventListener('resize', function() {
-            if (window.innerWidth >= 1024) {
-                sidebar.classList.remove('active');
-                overlay.classList.remove('active');
-            }
-        });
-
         // Language Selection
         function selectLanguage(language) {
             // Remove selected class from all options

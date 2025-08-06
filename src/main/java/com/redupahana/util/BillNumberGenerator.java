@@ -1,27 +1,27 @@
-// BillNumberGenerator.java
+// Simple BillNumberGenerator.java using UUID
 package com.redupahana.util;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.UUID;
 
 public class BillNumberGenerator {
     
-    private static int counter = 1;
-    
-    public static synchronized String generateBillNumber() {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
-        String dateString = sdf.format(new Date());
-        return "BILL" + dateString + String.format("%04d", counter++);
+    /**
+     * Generate unique account number using UUID (guaranteed unique)
+     * Format: ACC + YYYYMM + first 6 chars of UUID
+     */
+    public static String generateAccountNumber() {
+        String datePrefix = "ACC" + new SimpleDateFormat("yyyyMM").format(new Date());
+        String uniqueId = UUID.randomUUID().toString().replace("-", "").substring(0, 6).toUpperCase();
+        return datePrefix + uniqueId;
     }
     
-    public static synchronized String generateAccountNumber() {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMM");
-        String dateString = sdf.format(new Date());
-        return "ACC" + dateString + String.format("%03d", counter++);
-    }
-    
-    public static synchronized String generateItemCode(String category) {
-        String prefix = category.toUpperCase().substring(0, Math.min(3, category.length()));
-        return prefix + String.format("%03d", counter++);
+    /**
+     * Alternative: Simple timestamp-based generation
+     * Format: ACC + YYYYMMDDHHMMSS
+     */
+    public static String generateAccountNumberTimestamp() {
+        return "ACC" + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
     }
 }

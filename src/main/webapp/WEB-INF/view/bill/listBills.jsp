@@ -1,4 +1,3 @@
-<!-- listBills.jsp -->
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.util.List"%>
 <%@ page import="com.redupahana.model.Bill"%>
@@ -16,7 +15,13 @@
     String successMessage = (String) request.getAttribute("successMessage");
     String searchTerm = (String) request.getAttribute("searchTerm");
     String viewType = (String) request.getAttribute("viewType");
+    
+    // Set currentPage for sidebar
+    request.setAttribute("currentPage", "bill");
+    // Set pageTitle for sidebar
+    request.setAttribute("pageTitle", "Bill Management");
 %>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -24,173 +29,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bill Management - Redupahana</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f6fa;
-            overflow-x: hidden;
-        }
-
-        /* Sidebar Styles - Same as Admin Dashboard */
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: -280px;
-            width: 280px;
-            height: 100vh;
-            background: #2c3e50;
-            transition: left 0.3s ease;
-            z-index: 1000;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-        }
-
-        .sidebar.active {
-            left: 0;
-        }
-
-        .sidebar-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            text-align: center;
-        }
-
-        .sidebar-header h2 {
-            color: #fff;
-            font-size: 1.3rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .sidebar-header p {
-            color: #bdc3c7;
-            font-size: 0.9rem;
-        }
-
-        .sidebar-menu {
-            padding: 1rem 0;
-        }
-
-        .menu-item {
-            display: block;
-            padding: 1rem 1.5rem;
-            color: #ecf0f1;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            border-left: 3px solid transparent;
-            position: relative;
-        }
-
-        .menu-item:hover,
-        .menu-item.active {
-            background-color: rgba(255,255,255,0.1);
-            border-left-color: #95a5a6;
-            color: #fff;
-        }
-
-        .menu-item i {
-            margin-right: 0.8rem;
-            font-size: 1.1rem;
-            width: 20px;
-            text-align: center;
-        }
-
-        /* Icon classes using Unicode */
-        .icon-dashboard::before { content: "📊"; }
-        .icon-users::before { content: "👥"; }
-        .icon-books::before { content: "📚"; }
-        .icon-customers::before { content: "🏢"; }
-        .icon-bills::before { content: "🧾"; }
-        .icon-logout::before { content: "🚪"; }
-
-        /* Main Content Styles */
-        .main-content {
-            margin-left: 0;
-            min-height: 100vh;
-            transition: margin-left 0.3s ease;
-        }
-
-        .main-content.shifted {
-            margin-left: 280px;
-        }
-
-        /* Top Navigation */
-        .topbar {
-            background: #fff;
-            padding: 1rem 2rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 999;
-        }
-
-        .menu-toggle {
-            background: #2c3e50;
-            color: white;
-            border: none;
-            padding: 0.8rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 1.1rem;
-            transition: background-color 0.3s ease;
-        }
-
-        .menu-toggle:hover {
-            background: #34495e;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            color: #2c3e50;
-        }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            background: #2c3e50;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-        }
-
-        /* Content Area */
-        .content-area {
-            padding: 2rem;
-        }
-
+        /* Page-specific styles */
         .page-header {
             background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.07);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
         .page-header h1 {
             color: #2c3e50;
-            font-size: 1.8rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .breadcrumb {
-            color: #7f8c8d;
-            font-size: 0.9rem;
-        }
-
-        .breadcrumb a {
-            color: #3498db;
-            text-decoration: none;
+            font-size: 1.4rem;
+            margin-bottom: 0.3rem;
+            font-weight: 600;
         }
 
         .header-actions {
@@ -204,196 +56,63 @@
 
         .search-form {
             display: flex;
-            gap: 0.5rem;
+            gap: 0.8rem;
             align-items: center;
         }
 
         .search-input {
-            padding: 0.6rem;
-            border: 1px solid #ddd;
+            flex: 1;
+            padding: 0.8rem;
+            border: 1px solid #dee2e6;
             border-radius: 6px;
             font-size: 0.9rem;
+            transition: all 0.3s ease;
             width: 300px;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
         }
 
         /* Stats Cards */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
+            gap: 1.2rem;
+            margin-bottom: 1.5rem;
         }
 
         .stat-card {
             background: white;
-            padding: 1.5rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.07);
+            padding: 1.2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
             text-align: center;
         }
 
         .stat-card h3 {
             color: #2c3e50;
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
+            font-size: 1.8rem;
+            margin-bottom: 0.3rem;
+            font-weight: 600;
         }
 
         .stat-card p {
-            color: #7f8c8d;
-            font-size: 0.9rem;
-        }
-
-        .stat-card.revenue { border-left: 4px solid #27ae60; }
-        .stat-card.today { border-left: 4px solid #3498db; }
-        .stat-card.pending { border-left: 4px solid #f39c12; }
-
-        /* Table Styles */
-        .table-container {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.07);
-            overflow: hidden;
-        }
-
-        .table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .table th,
-        .table td {
-            padding: 1rem;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-        }
-
-        .table th {
-            background-color: #f8f9fa;
-            font-weight: 600;
-            color: #2c3e50;
-        }
-
-        .table tbody tr:hover {
-            background-color: #f8f9fa;
-        }
-
-        /* Button Styles */
-        .btn {
-            padding: 0.7rem 1.5rem;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
+            color: #6c757d;
+            font-size: 0.85rem;
             font-weight: 500;
         }
 
-        .btn-primary {
-            background-color: #3498db;
-            color: white;
-        }
+        .stat-card.revenue { border-left: 4px solid #28a745; }
+        .stat-card.today { border-left: 4px solid #3498db; }
+        .stat-card.pending { border-left: 4px solid #ffc107; }
 
-        .btn-primary:hover {
-            background-color: #2980b9;
-            transform: translateY(-2px);
-        }
-
-        .btn-success {
-            background-color: #27ae60;
-            color: white;
-        }
-
-        .btn-success:hover {
-            background-color: #229954;
-            transform: translateY(-2px);
-        }
-
-        .btn-info {
-            background-color: #17a2b8;
-            color: white;
-        }
-
-        .btn-info:hover {
-            background-color: #138496;
-        }
-
-        .btn-warning {
-            background-color: #f39c12;
-            color: white;
-        }
-
-        .btn-warning:hover {
-            background-color: #e67e22;
-        }
-
-        .btn-danger {
-            background-color: #e74c3c;
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background-color: #c0392b;
-        }
-
-        .btn-sm {
-            padding: 0.4rem 0.8rem;
-            font-size: 0.8rem;
-        }
-
-        /* Alert Styles */
-        .alert {
-            padding: 1rem 1.5rem;
-            border-radius: 8px;
-            margin-bottom: 1.5rem;
-            border: 1px solid transparent;
-        }
-
-        .alert-success {
-            background-color: #d4edda;
-            border-color: #c3e6cb;
-            color: #155724;
-        }
-
-        .alert-error {
-            background-color: #f8d7da;
-            border-color: #f5c6cb;
-            color: #721c24;
-        }
-
-        /* Status Badges */
-        .payment-status {
-            display: inline-block;
-            padding: 0.25rem 0.8rem;
-            border-radius: 12px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
-        .status-paid {
-            background-color: #d4edda;
-            color: #155724;
-        }
-
-        .status-pending {
-            background-color: #fff3cd;
-            color: #856404;
-        }
-
-        .status-cancelled {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 0.5rem;
-        }
-
+        /* Bill-specific styles */
         .amount {
             font-weight: 600;
-            color: #27ae60;
+            color: #28a745;
         }
 
         .bill-number {
@@ -404,63 +123,10 @@
         }
 
         .bill-number:hover {
-            color: #3498db;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 3rem;
-            color: #7f8c8d;
-        }
-
-        .empty-state h3 {
-            margin-bottom: 1rem;
-            color: #2c3e50;
-        }
-
-        /* Overlay for mobile */
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 999;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        /* Responsive Design */
-        @media (min-width: 1024px) {
-            .sidebar {
-                left: 0;
-            }
-            
-            .main-content {
-                margin-left: 280px;
-            }
-            
-            .menu-toggle {
-                display: none;
-            }
+            color: #007bff;
         }
 
         @media (max-width: 768px) {
-            .content-area {
-                padding: 1rem;
-            }
-            
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-            
             .header-actions {
                 flex-direction: column;
                 align-items: stretch;
@@ -470,67 +136,19 @@
                 width: 100%;
             }
             
-            .table-container {
-                overflow-x: auto;
-            }
-            
             .action-buttons {
                 flex-direction: column;
+                gap: 0.2rem;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <h2>Redupahana</h2>
-            <p>Management System</p>
-        </div>
-        <nav class="sidebar-menu">
-            <a href="dashboard" class="menu-item">
-                <i class="icon-dashboard"></i>
-                Dashboard
-            </a>
-            <% if (Constants.ROLE_ADMIN.equals(loggedUser.getRole())) { %>
-            <a href="user?action=list" class="menu-item">
-                <i class="icon-users"></i>
-                User Management
-            </a>
-            <% } %>
-            <a href="book?action=list" class="menu-item">
-                <i class="icon-books"></i>
-                Book Management
-            </a>
-            <a href="customer?action=list" class="menu-item">
-                <i class="icon-customers"></i>
-                Customer Management
-            </a>
-            <a href="bill?action=list" class="menu-item active">
-                <i class="icon-bills"></i>
-                Bill Management
-            </a>
-            <a href="auth?action=logout" class="menu-item" style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
-                <i class="icon-logout"></i>
-                Logout
-            </a>
-        </nav>
-    </div>
-
-    <!-- Overlay for mobile -->
-    <div class="overlay" id="overlay"></div>
+    <!-- Include Sidebar -->
+    <%@ include file="../../includes/sidebar.jsp" %>
 
     <!-- Main Content -->
     <div class="main-content" id="mainContent">
-        <!-- Top Navigation -->
-        <header class="topbar">
-            <button class="menu-toggle" id="menuToggle">☰</button>
-            <div class="user-info">
-                <div class="user-avatar"><%= loggedUser.getFullName().substring(0,1).toUpperCase() %></div>
-                <span>Welcome, <%= loggedUser.getFullName() %></span>
-            </div>
-        </header>
-
         <!-- Content Area -->
         <div class="content-area">
             <!-- Page Header -->
@@ -653,7 +271,7 @@
                             <td>Rs. <%= String.format("%.2f", bill.getTax()) %></td>
                             <td class="amount"><strong>Rs. <%= String.format("%.2f", bill.getTotalAmount()) %></strong></td>
                             <td>
-                                <span class="payment-status <%= 
+                                <span class="status-badge <%= 
                                     bill.isPaid() ? "status-paid" :
                                     bill.isPending() ? "status-pending" : "status-cancelled"
                                 %>">
@@ -697,52 +315,19 @@
     </div>
 
     <script>
-        // Sidebar Toggle Functionality
-        const menuToggle = document.getElementById('menuToggle');
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('overlay');
-        const mainContent = document.getElementById('mainContent');
-
-        function toggleSidebar() {
-            sidebar.classList.toggle('active');
-            overlay.classList.toggle('active');
-        }
-
-        menuToggle.addEventListener('click', toggleSidebar);
-        overlay.addEventListener('click', toggleSidebar);
-
-        // Handle window resize
-        window.addEventListener('resize', function() {
-            if (window.innerWidth >= 1024) {
-                sidebar.classList.remove('active');
-                overlay.classList.remove('active');
-            }
-        });
-
-        // Bill functions
+        // Bill-specific functions
         function viewBill(billId) {
             window.location.href = 'bill?action=view&id=' + billId;
         }
 
         function deleteBill(billId, billNumber) {
-            if (confirm(`Are you sure you want to delete bill ${billNumber}? This action cannot be undone and will restore stock for all items.`)) {
+            if (confirmDelete(`bill ${billNumber}`, billId)) {
                 window.location.href = 'bill?action=delete&id=' + billId;
             }
         }
 
-        // Add loading states
+        // Page-specific JavaScript
         document.addEventListener('DOMContentLoaded', function() {
-            const buttons = document.querySelectorAll('.btn');
-            buttons.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    if (!this.href || this.href.includes('print') || this.onclick) {
-                        return;
-                    }
-                    this.style.opacity = '0.7';
-                    this.style.pointerEvents = 'none';
-                });
-            });
-
             // Highlight recent bills
             const today = new Date().toISOString().split('T')[0];
             const rows = document.querySelectorAll('tbody tr');
@@ -761,10 +346,6 @@
             if (e.ctrlKey && e.key === 'n') {
                 e.preventDefault();
                 window.location.href = 'bill?action=create';
-            }
-            
-            if (e.key === 'Escape' && sidebar.classList.contains('active')) {
-                toggleSidebar();
             }
         });
     </script>

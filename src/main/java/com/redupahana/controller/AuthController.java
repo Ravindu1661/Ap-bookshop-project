@@ -11,7 +11,7 @@ import javax.servlet.http.HttpSession;
 import com.redupahana.model.User;
 import com.redupahana.service.UserService;
 import com.redupahana.util.Constants;
-
+import com.redupahana.util.SecurityUtil;
 
 //@WebServlet("/auth")
 public class AuthController extends HttpServlet {
@@ -57,20 +57,27 @@ public class AuthController extends HttpServlet {
         String password = request.getParameter("password");
         
         try {
-            User user = userService.authenticateUser(username, password);
+            // Get user by username first
+            User user = userService.getUserByUsername(username);
             
             if (user != null) {
-                HttpSession session = request.getSession();
-                session.setAttribute("loggedUser", user);
-                session.setAttribute("userRole", user.getRole());
-                
-                // Redirect based on role
-                if (Constants.ROLE_ADMIN.equals(user.getRole())) {
-                    response.sendRedirect("dashboard?action=admin");
-                } else if (Constants.ROLE_CASHIER.equals(user.getRole())) {
-                    response.sendRedirect("dashboard?action=cashier");
+                // Use SecurityUtil.verifyPassword to check password
+                if (SecurityUtil.verifyPassword(password, user.getPassword())) {
+                    HttpSession session = request.getSession();
+                    session.setAttribute("loggedUser", user);
+                    session.setAttribute("userRole", user.getRole());
+                    
+                    // Redirect based on role
+                    if (Constants.ROLE_ADMIN.equals(user.getRole())) {
+                        response.sendRedirect("dashboard?action=admin");
+                    } else if (Constants.ROLE_CASHIER.equals(user.getRole())) {
+                        response.sendRedirect("dashboard?action=cashier");
+                    } else {
+                        response.sendRedirect("dashboard");
+                    }
                 } else {
-                    response.sendRedirect("dashboard");
+                    request.setAttribute("errorMessage", "Invalid username or password");
+                    request.getRequestDispatcher("/WEB-INF/view/login.jsp").forward(request, response);
                 }
             } else {
                 request.setAttribute("errorMessage", "Invalid username or password");

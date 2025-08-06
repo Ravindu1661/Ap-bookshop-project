@@ -9,6 +9,10 @@
     }
     
     String errorMessage = (String) request.getAttribute("errorMessage");
+    
+    // Set page attributes for sidebar
+    request.setAttribute("currentPage", "user");
+    request.setAttribute("pageTitle", "Add New User");
 %>
 <!DOCTYPE html>
 <html lang="en">
@@ -16,272 +20,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add User - Redupahana</title>
+    
+    <!-- Page-specific styles -->
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f6fa;
-            overflow-x: hidden;
-        }
-
-        /* Sidebar Styles */
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: -280px;
-            width: 280px;
-            height: 100vh;
-            background: #2c3e50;
-            transition: left 0.3s ease;
-            z-index: 1000;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-        }
-
-        .sidebar.active {
-            left: 0;
-        }
-
-        .sidebar-header {
+        /* Info Notice */
+        .info-notice {
+            background-color: #e8f4fd;
+            border: 1px solid #bee5eb;
             padding: 1.5rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            text-align: center;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            border-left: 4px solid #007bff;
         }
 
-        .sidebar-header h2 {
-            color: #fff;
-            font-size: 1.3rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .sidebar-header p {
-            color: #bdc3c7;
-            font-size: 0.9rem;
-        }
-
-        .sidebar-menu {
-            padding: 1rem 0;
-        }
-
-        .menu-item {
-            display: block;
-            padding: 1rem 1.5rem;
-            color: #ecf0f1;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            border-left: 3px solid transparent;
-        }
-
-        .menu-item:hover,
-        .menu-item.active {
-            background-color: rgba(255,255,255,0.1);
-            border-left-color: #95a5a6;
-            color: #fff;
-        }
-
-        .menu-item i {
-            margin-right: 0.8rem;
-            font-size: 1.1rem;
-            width: 20px;
-            text-align: center;
-        }
-
-        /* Icon classes using Unicode */
-        .icon-dashboard::before { content: "📊"; }
-        .icon-users::before { content: "👥"; }
-        .icon-books::before { content: "📚"; }
-        .icon-customers::before { content: "🏢"; }
-        .icon-bills::before { content: "🧾"; }
-        .icon-logout::before { content: "🚪"; }
-
-        /* Main Content */
-        .main-content {
-            margin-left: 0;
-            min-height: 100vh;
-            transition: margin-left 0.3s ease;
-        }
-
-        /* Top Navigation */
-        .topbar {
-            background: #fff;
-            padding: 1rem 2rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 999;
-        }
-
-        .menu-toggle {
-            background: #2c3e50;
-            color: white;
-            border: none;
-            padding: 0.8rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 1.1rem;
-            transition: background-color 0.3s ease;
-        }
-
-        .menu-toggle:hover {
-            background: #34495e;
-        }
-
-        .page-title {
-            font-size: 1.5rem;
+        .info-notice h4 {
             color: #2c3e50;
+            margin-bottom: 0.5rem;
             font-weight: 600;
         }
 
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
+        .info-notice p {
             color: #2c3e50;
-        }
-
-        .user-avatar {
-            width: 35px;
-            height: 35px;
-            background: #2c3e50;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
             font-size: 0.9rem;
-        }
-
-        /* Overlay for mobile */
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 999;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        /* Content Area */
-        .content-area {
-            padding: 2rem;
-        }
-
-        .page-header {
-            background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.07);
-        }
-
-        .page-header h1 {
-            color: #2c3e50;
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .breadcrumb {
-            color: #7f8c8d;
-            font-size: 0.9rem;
-        }
-
-        .breadcrumb a {
-            color: #2c3e50;
-            text-decoration: none;
-        }
-
-        .breadcrumb a:hover {
-            text-decoration: underline;
-        }
-
-        /* Alert Messages */
-        .alert {
-            padding: 1rem 1.5rem;
-            border-radius: 8px;
-            margin-bottom: 1.5rem;
-            border-left: 4px solid;
-        }
-
-        .alert-error {
-            background-color: #f8d7da;
-            border-left-color: #e74c3c;
-            color: #721c24;
-        }
-
-        /* Form Styles */
-        .form-container {
-            background: white;
-            padding: 2.5rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.07);
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group.full-width {
-            grid-column: 1 / -1;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-            color: #2c3e50;
-        }
-
-        .required {
-            color: #e74c3c;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 0.8rem;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: border-color 0.3s ease;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: #2c3e50;
-            box-shadow: 0 0 0 2px rgba(44, 62, 80, 0.1);
-        }
-
-        .form-control.error {
-            border-color: #e74c3c;
-        }
-
-        .form-text {
-            font-size: 0.85rem;
-            color: #7f8c8d;
-            margin-top: 0.25rem;
+            margin: 0;
         }
 
         /* Role Selection */
@@ -299,16 +60,20 @@
             cursor: pointer;
             transition: all 0.3s ease;
             text-align: center;
+            background: white;
         }
 
         .role-option:hover {
-            border-color: #2c3e50;
+            border-color: #007bff;
             background-color: #f8f9fa;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
         }
 
         .role-option.selected {
-            border-color: #2c3e50;
+            border-color: #007bff;
             background-color: #e8f4fd;
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2);
         }
 
         .role-option input[type="radio"] {
@@ -318,16 +83,19 @@
         .role-option h4 {
             color: #2c3e50;
             margin-bottom: 0.5rem;
+            font-weight: 600;
         }
 
         .role-option p {
-            color: #7f8c8d;
+            color: #6c757d;
             font-size: 0.9rem;
+            margin: 0;
         }
 
         .role-icon {
             font-size: 2rem;
             margin-bottom: 1rem;
+            display: block;
         }
 
         /* Password Strength */
@@ -340,6 +108,7 @@
             background-color: #e0e0e0;
             border-radius: 2px;
             overflow: hidden;
+            margin-bottom: 0.5rem;
         }
 
         .strength-fill {
@@ -348,190 +117,56 @@
             transition: all 0.3s ease;
         }
 
-        .strength-weak { background-color: #e74c3c; }
-        .strength-medium { background-color: #f39c12; }
-        .strength-strong { background-color: #27ae60; }
+        .strength-weak { background-color: #dc3545; }
+        .strength-medium { background-color: #ffc107; }
+        .strength-strong { background-color: #28a745; }
 
         .strength-text {
             font-size: 0.8rem;
             margin-top: 0.25rem;
-            color: #7f8c8d;
-        }
-
-        /* Buttons */
-        .btn {
-            padding: 0.8rem 2rem;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            transition: all 0.3s ease;
-            font-size: 1rem;
+            color: #6c757d;
             font-weight: 500;
-            margin-right: 1rem;
         }
 
-        .btn-primary {
-            background-color: #2c3e50;
-            color: white;
+        /* Enhanced form validation styles */
+        .form-control.error {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.25);
         }
 
-        .btn-primary:hover {
-            background-color: #34495e;
-            transform: translateY(-2px);
+        .form-control.success {
+            border-color: #28a745;
+            box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.25);
         }
 
-        .btn-secondary {
-            background-color: #7f8c8d;
-            color: white;
+        /* Loading button state */
+        .btn.loading {
+            opacity: 0.7;
+            pointer-events: none;
         }
 
-        .btn-secondary:hover {
-            background-color: #95a5a6;
-            transform: translateY(-2px);
-        }
-
-        .form-actions {
-            margin-top: 2rem;
-            padding-top: 2rem;
-            border-top: 1px solid #eee;
-            text-align: center;
-        }
-
-        /* Info Notice */
-        .info-notice {
-            background-color: #e8f4fd;
-            border: 1px solid #bee5eb;
-            padding: 1.5rem;
-            border-radius: 8px;
-            margin-bottom: 2rem;
-            border-left: 4px solid #2c3e50;
-        }
-
-        .info-notice h4 {
-            color: #2c3e50;
-            margin-bottom: 0.5rem;
-        }
-
-        .info-notice p {
-            color: #2c3e50;
-            font-size: 0.9rem;
-        }
-
-        /* Responsive Design */
-        @media (min-width: 1024px) {
-            .sidebar {
-                left: 0;
-            }
-            
-            .main-content {
-                margin-left: 280px;
-            }
-            
-            .menu-toggle {
-                display: none;
-            }
-        }
-
+        /* Responsive adjustments */
         @media (max-width: 768px) {
-            .topbar {
-                padding: 1rem;
-            }
-            
-            .content-area {
-                padding: 1rem;
-            }
-            
-            .page-header {
-                padding: 1.5rem;
-            }
-            
-            .form-container {
-                padding: 1.5rem;
-            }
-            
-            .form-row {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-            }
-            
             .role-selection {
                 grid-template-columns: 1fr;
             }
             
-            .btn {
-                display: block;
-                margin-bottom: 0.5rem;
-                margin-right: 0;
-                text-align: center;
-            }
-            
-            .user-info span {
-                display: none;
+            .info-notice {
+                padding: 1rem;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
-  <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <h2>Redupahana</h2>
-            <p>Admin Panel</p>
-        </div>
-        <nav class="sidebar-menu">
-            <a href="dashboard" class="menu-item">
-                <i class="icon-dashboard"></i>
-                Dashboard
-            </a>
-            <% if (Constants.ROLE_ADMIN.equals(loggedUser.getRole())) { %>
-            <a href="user?action=list" class="menu-item">
-                <i class="icon-users"></i>
-                User Management
-            </a>
-            <% } %>
-            <a href="book?action=list" class="menu-item active">
-                <i class="icon-books"></i>
-                Book Management
-            </a>
-            <a href="customer?action=list" class="menu-item">
-                <i class="icon-customers"></i>
-                Customer Management
-            </a>
-            <a href="bill?action=list" class="menu-item">
-                <i class="icon-bills"></i>
-                Bill Management
-            </a>
-            <a href="auth?action=logout" class="menu-item" style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
-                <i class="icon-logout"></i>
-                Logout
-            </a>
-        </nav>
-    </div>
-
-    <!-- Overlay for mobile -->
-    <div class="overlay" id="overlay"></div>
+    <!-- Include complete sidebar component -->
+    <%@ include file="../../includes/sidebar.jsp" %>
 
     <!-- Main Content -->
-    <div class="main-content" id="mainContent">
-        <!-- Top Navigation -->
-        <header class="topbar">
-            <div style="display: flex; align-items: center; gap: 1rem;">
-                <button class="menu-toggle" id="menuToggle">☰</button>
-                <h1 class="page-title">Add New User</h1>
-            </div>
-            <div class="user-info">
-                <div class="user-avatar"><%= loggedUser.getFullName().substring(0,1).toUpperCase() %></div>
-                <span><%= loggedUser.getFullName() %></span>
-            </div>
-        </header>
-
-        <!-- Content Area -->
+    <div class="main-content">
         <main class="content-area">
             <!-- Page Header -->
             <div class="page-header">
-                <h1>Add New User</h1>
+                <h1>➕ Add New User</h1>
                 <div class="breadcrumb">
                     <a href="dashboard">Dashboard</a> &gt; 
                     <a href="user?action=list">User Management</a> &gt; 
@@ -545,7 +180,7 @@
                 <p>You are creating a new user account. Please ensure all information is accurate and assign appropriate permissions.</p>
             </div>
 
-            <!-- Error Message -->
+            <!-- Alert Messages -->
             <% if (errorMessage != null) { %>
             <div class="alert alert-error">
                 ❌ <%= errorMessage %>
@@ -557,69 +192,67 @@
                 <form action="user" method="post" id="addUserForm">
                     <input type="hidden" name="action" value="add">
                     
-                    <div class="form-row">
+                    <div class="form-grid">
                         <div class="form-group">
-                            <label for="username">Username <span class="required">*</span></label>
+                            <label for="username">👤 Username <span class="required">*</span></label>
                             <input type="text" class="form-control" id="username" name="username" required 
                                    placeholder="Enter unique username" autocomplete="username">
                             <div class="form-text">Username must be unique and cannot be changed later</div>
                         </div>
 
                         <div class="form-group">
-                            <label for="fullName">Full Name <span class="required">*</span></label>
+                            <label for="fullName">📝 Full Name <span class="required">*</span></label>
                             <input type="text" class="form-control" id="fullName" name="fullName" required 
                                    placeholder="Enter full name" autocomplete="name">
                         </div>
-                    </div>
 
-                    <div class="form-row">
                         <div class="form-group">
-                            <label for="email">Email Address</label>
+                            <label for="email">📧 Email Address</label>
                             <input type="email" class="form-control" id="email" name="email" 
                                    placeholder="Enter email address (optional)" autocomplete="email">
                         </div>
 
                         <div class="form-group">
-                            <label for="phone">Phone Number</label>
+                            <label for="phone">📞 Phone Number</label>
                             <input type="tel" class="form-control" id="phone" name="phone" 
                                    placeholder="Enter 10-digit phone number" pattern="[0-9]{10}" autocomplete="tel">
                             <div class="form-text">Enter a valid 10-digit phone number</div>
                         </div>
-                    </div>
 
-                    <div class="form-group">
-                        <label for="password">Password <span class="required">*</span></label>
-                        <input type="password" class="form-control" id="password" name="password" required 
-                               placeholder="Enter secure password" autocomplete="new-password">
-                        <div class="password-strength">
-                            <div class="strength-bar">
-                                <div class="strength-fill" id="strengthFill"></div>
+                        <div class="form-group full-width">
+                            <label for="password">🔐 Password <span class="required">*</span></label>
+                            <input type="password" class="form-control" id="password" name="password" required 
+                                   placeholder="Enter secure password" autocomplete="new-password">
+                            <div class="password-strength">
+                                <div class="strength-bar">
+                                    <div class="strength-fill" id="strengthFill"></div>
+                                </div>
+                                <div class="strength-text" id="strengthText">Password strength will be shown here</div>
                             </div>
-                            <div class="strength-text" id="strengthText">Password strength will be shown here</div>
+                            <div class="form-text">Password should be at least 8 characters with letters and numbers</div>
                         </div>
-                        <div class="form-text">Password should be at least 8 characters with letters and numbers</div>
-                    </div>
 
-                    <div class="form-group">
-                        <label>User Role <span class="required">*</span></label>
-                        <div class="role-selection">
-                            <div class="role-option" onclick="selectRole('ADMIN')">
-                                <input type="radio" name="role" value="ADMIN" id="roleAdmin" required>
-                                <div class="role-icon">👑</div>
-                                <h4>Administrator</h4>
-                                <p>Full system access including user management, reports, and all features</p>
-                            </div>
-                            <div class="role-option" onclick="selectRole('CASHIER')">
-                                <input type="radio" name="role" value="CASHIER" id="roleCashier" required>
-                                <div class="role-icon">💼</div>
-                                <h4>Cashier</h4>
-                                <p>Access to billing, customer management, and inventory operations</p>
+                        <div class="form-group full-width">
+                            <label>🔑 User Role <span class="required">*</span></label>
+                            <div class="role-selection">
+                                <div class="role-option" onclick="selectRole('ADMIN')">
+                                    <input type="radio" name="role" value="ADMIN" id="roleAdmin" required>
+                                    <div class="role-icon">👑</div>
+                                    <h4>Administrator</h4>
+                                    <p>Full system access including user management, reports, and all features</p>
+                                </div>
+                                <div class="role-option" onclick="selectRole('CASHIER')">
+                                    <input type="radio" name="role" value="CASHIER" id="roleCashier" required>
+                                    <div class="role-icon">💼</div>
+                                    <h4>Cashier</h4>
+                                    <p>Access to billing, customer management, and inventory operations</p>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="form-actions">
-                        <button type="submit" class="btn btn-primary">✅ Create User</button>
+                        <button type="submit" class="btn btn-success">✅ Create User</button>
                         <a href="user?action=list" class="btn btn-secondary">❌ Cancel</a>
                     </div>
                 </form>
@@ -627,26 +260,30 @@
         </main>
     </div>
 
+    <!-- Page-specific JavaScript -->
     <script>
-        // Sidebar Toggle
-        const menuToggle = document.getElementById('menuToggle');
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('overlay');
-
-        function toggleSidebar() {
-            sidebar.classList.toggle('active');
-            overlay.classList.toggle('active');
-        }
-
-        menuToggle.addEventListener('click', toggleSidebar);
-        overlay.addEventListener('click', toggleSidebar);
-
-        // Handle window resize
-        window.addEventListener('resize', function() {
-            if (window.innerWidth >= 1024) {
-                sidebar.classList.remove('active');
-                overlay.classList.remove('active');
-            }
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('➕ Add User page loaded');
+            
+            // Focus on username field
+            document.getElementById('username').focus();
+            
+            // Simple keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                // Escape key to cancel
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    window.location.href = 'user?action=list';
+                }
+                
+                // Ctrl+S to save
+                if (e.ctrlKey && e.key === 's') {
+                    e.preventDefault();
+                    document.getElementById('addUserForm').submit();
+                }
+            });
+            
+            console.log('💡 Shortcuts: Escape=Cancel, Ctrl+S=Save');
         });
 
         // Role Selection
@@ -705,21 +342,21 @@
                     level: 'weak',
                     percentage: 25,
                     text: 'Weak - Add ' + feedback.slice(0, 2).join(', '),
-                    color: '#e74c3c'
+                    color: '#dc3545'
                 };
             } else if (score < 5) {
                 return {
                     level: 'medium',
                     percentage: 60,
                     text: 'Medium - ' + (feedback.length > 0 ? 'Add ' + feedback[0] : 'Good progress'),
-                    color: '#f39c12'
+                    color: '#ffc107'
                 };
             } else {
                 return {
                     level: 'strong',
                     percentage: 100,
                     text: 'Strong - Good password!',
-                    color: '#27ae60'
+                    color: '#28a745'
                 };
             }
         }
@@ -732,37 +369,31 @@
             const role = document.querySelector('input[name="role"]:checked');
 
             let isValid = true;
-            let errorMessage = '';
 
             if (!username) {
-                errorMessage += 'Username is required. ';
                 isValid = false;
             }
 
             if (!fullName) {
-                errorMessage += 'Full name is required. ';
                 isValid = false;
             }
 
             if (!password || password.length < 6) {
-                errorMessage += 'Password must be at least 6 characters. ';
                 isValid = false;
             }
 
             if (!role) {
-                errorMessage += 'Please select a user role. ';
                 isValid = false;
             }
 
             if (!isValid) {
                 e.preventDefault();
-                alert('Please fix the following errors:\n' + errorMessage);
                 return false;
             }
 
             // Add loading state
             const submitBtn = this.querySelector('button[type="submit"]');
-            submitBtn.style.opacity = '0.7';
+            submitBtn.classList.add('loading');
             submitBtn.innerHTML = '⏳ Creating User...';
             submitBtn.disabled = true;
         });
@@ -770,14 +401,6 @@
         // Phone number formatting
         document.getElementById('phone').addEventListener('input', function() {
             this.value = this.value.replace(/\D/g, '').substring(0, 10);
-        });
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Add User page loaded');
-            
-            // Focus on username field
-            document.getElementById('username').focus();
         });
     </script>
 </body>
