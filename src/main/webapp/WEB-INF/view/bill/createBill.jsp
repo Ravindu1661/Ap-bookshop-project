@@ -15,6 +15,9 @@
     List<Book> books = (List<Book>) request.getAttribute("books");
     String errorMessage = (String) request.getAttribute("errorMessage");
     String successMessage = (String) request.getAttribute("successMessage");
+    
+    // Check if coming from view customer page
+    String preSelectedCustomerId = request.getParameter("customerId");
 %>
 <!DOCTYPE html>
 <html lang="en">
@@ -31,223 +34,152 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f8f9fa;
-            color: #333;
-            line-height: 1.6;
+            background: #f5f7fa;
+            color: #2c3e50;
         }
 
         /* Header */
         .header {
-            background: #fff;
-            border-bottom: 2px solid #e9ecef;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
             padding: 1rem 2rem;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 100;
         }
 
         .header-content {
-            max-width: 1400px;
-            margin: 0 auto;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
         }
 
         .header-left {
             display: flex;
             align-items: center;
-            gap: 1.5rem;
+            gap: 1rem;
         }
 
         .back-btn {
-            background: #6c757d;
-            border: none;
             color: white;
-            padding: 0.8rem 1.5rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.95rem;
-            transition: all 0.3s ease;
             text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-weight: 500;
+            padding: 0.5rem 1rem;
+            background: rgba(255,255,255,0.2);
+            border-radius: 6px;
+            transition: background 0.3s;
         }
 
         .back-btn:hover {
-            background: #5a6268;
-            transform: translateY(-1px);
+            background: rgba(255,255,255,0.3);
         }
 
         .store-title {
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             font-weight: 700;
-            color: #2c3e50;
         }
 
         .subtitle {
             font-size: 0.9rem;
-            color: #6c757d;
-            margin-top: 0.2rem;
+            opacity: 0.9;
         }
 
         .user-info {
             display: flex;
             align-items: center;
             gap: 1rem;
-            background: #f8f9fa;
-            padding: 0.8rem 1.2rem;
-            border-radius: 8px;
-            border: 1px solid #dee2e6;
         }
 
         .user-avatar {
-            width: 35px;
-            height: 35px;
-            background: #2c3e50;
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.2);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
             font-weight: bold;
-            font-size: 1rem;
-        }
-
-        /* Alert Messages */
-        .alert {
-            max-width: 1400px;
-            margin: 1rem auto;
-            padding: 1rem 2rem;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-weight: 500;
-            animation: slideIn 0.5s ease;
-        }
-
-        .alert-success {
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
-        }
-
-        .alert-error {
-            background: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
-        }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
         }
 
         /* Main Container */
         .main-container {
-            max-width: 1400px;
-            margin: 2rem auto;
-            padding: 0 2rem;
             display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 2rem;
+            grid-template-columns: 1fr 400px;
+            gap: 1.5rem;
+            max-width: 1400px;
+            margin: 1.5rem auto;
+            padding: 0 1rem;
+            min-height: calc(100vh - 100px);
         }
 
-        /* Left Panel - Products & Customer */
+        /* Left Panel - Products */
         .left-panel {
             background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            border: 1px solid #dee2e6;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.07);
+            overflow: hidden;
         }
 
         .panel-header {
-            background: #2c3e50;
-            color: white;
-            padding: 1.5rem 2rem;
-            border-radius: 8px 8px 0 0;
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-bottom: 1px solid #dee2e6;
         }
 
         .panel-header h2 {
-            font-size: 1.3rem;
-            margin-bottom: 0.3rem;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
         }
 
         .panel-header p {
+            color: #6c757d;
             font-size: 0.9rem;
-            opacity: 0.9;
         }
 
         /* Customer Section */
         .customer-section {
-            padding: 1.5rem 2rem;
+            padding: 1.5rem;
+            background: #fff;
             border-bottom: 1px solid #dee2e6;
-            background: #f8f9fa;
         }
 
         .customer-controls {
-            display: grid;
-            grid-template-columns: 1fr auto;
+            display: flex;
             gap: 1rem;
-            align-items: end;
+            align-items: flex-end;
         }
 
         .form-group {
-            margin-bottom: 1rem;
+            flex: 1;
         }
 
         .form-group label {
             display: block;
             margin-bottom: 0.5rem;
             font-weight: 600;
-            color: #495057;
-            font-size: 0.95rem;
+            color: #374151;
         }
 
         .required {
-            color: #dc3545;
+            color: #ef4444;
+        }
+
+        .customer-search {
+            position: relative;
         }
 
         .form-control {
             width: 100%;
-            padding: 0.8rem;
-            border: 1px solid #ced4da;
-            border-radius: 6px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            background: white;
+            padding: 0.75rem;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: border-color 0.3s, box-shadow 0.3s;
         }
 
         .form-control:focus {
             outline: none;
-            border-color: #2c3e50;
-            box-shadow: 0 0 0 2px rgba(44, 62, 80, 0.1);
-        }
-
-        .add-customer-btn {
-            background: #28a745;
-            color: white;
-            border: none;
-            padding: 0.8rem 1.2rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-            font-size: 0.9rem;
-        }
-
-        .add-customer-btn:hover {
-            background: #218838;
-        }
-
-        /* Customer Search Results */
-        .customer-search {
-            position: relative;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
 
         .search-results {
@@ -256,20 +188,20 @@
             left: 0;
             right: 0;
             background: white;
-            border: 1px solid #ced4da;
+            border: 1px solid #d1d5db;
             border-top: none;
-            border-radius: 0 0 6px 6px;
+            border-radius: 0 0 8px 8px;
             max-height: 200px;
             overflow-y: auto;
-            z-index: 50;
+            z-index: 1000;
             display: none;
         }
 
         .search-result-item {
-            padding: 0.8rem;
+            padding: 0.75rem;
+            border-bottom: 1px solid #f3f4f6;
             cursor: pointer;
-            border-bottom: 1px solid #f8f9fa;
-            transition: background-color 0.3s ease;
+            transition: background-color 0.2s;
         }
 
         .search-result-item:hover {
@@ -280,60 +212,74 @@
             border-bottom: none;
         }
 
+        .add-customer-btn, .show-customers-btn {
+            padding: 0.75rem 1.5rem;
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+            white-space: nowrap;
+        }
+
+        .add-customer-btn:hover, .show-customers-btn:hover {
+            background: #059669;
+        }
+
+        .show-customers-btn {
+            background: #3b82f6;
+            margin-left: 0.5rem;
+        }
+
+        .show-customers-btn:hover {
+            background: #2563eb;
+        }
+
         /* Product Search */
         .product-search {
-            padding: 1.5rem 2rem;
-            background: white;
-            border-bottom: 1px solid #dee2e6;
+            padding: 1rem 1.5rem;
         }
 
         .search-input {
             width: 100%;
-            padding: 0.8rem;
-            border: 1px solid #ced4da;
-            border-radius: 6px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: #2c3e50;
-            box-shadow: 0 0 0 2px rgba(44, 62, 80, 0.1);
+            padding: 0.75rem;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 0.95rem;
         }
 
         /* Products Table */
         .products-table-container {
-            padding: 1.5rem 2rem;
-            max-height: 400px;
+            max-height: 500px;
             overflow-y: auto;
         }
 
         .products-table {
             width: 100%;
             border-collapse: collapse;
-            background: white;
-        }
-
-        .products-table th,
-        .products-table td {
-            padding: 0.8rem;
-            text-align: left;
-            border-bottom: 1px solid #dee2e6;
         }
 
         .products-table th {
             background: #f8f9fa;
+            padding: 1rem;
+            text-align: left;
             font-weight: 600;
-            color: #495057;
+            color: #374151;
+            border-bottom: 2px solid #dee2e6;
             position: sticky;
             top: 0;
-            z-index: 10;
+        }
+
+        .products-table td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #f3f4f6;
         }
 
         .products-table tbody tr {
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: background-color 0.2s;
         }
 
         .products-table tbody tr:hover {
@@ -341,169 +287,73 @@
         }
 
         .products-table tbody tr.selected {
-            background: #d4edda;
-        }
-
-        .stock-badge {
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            font-weight: 500;
-        }
-
-        .stock-badge.high {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .stock-badge.medium {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .stock-badge.low {
-            background: #f8d7da;
-            color: #721c24;
+            background: #dbeafe;
         }
 
         .price-cell {
             font-weight: 600;
-            color: #28a745;
+            color: #059669;
+        }
+
+        .stock-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .stock-badge.high {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .stock-badge.medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .stock-badge.low {
+            background: #fee2e2;
+            color: #991b1b;
         }
 
         /* Right Panel - Bill */
         .right-panel {
             background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            border: 1px solid #dee2e6;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.07);
+            overflow: hidden;
             display: flex;
             flex-direction: column;
-            max-height: calc(100vh - 200px);
         }
 
         .bill-header {
-            background: #28a745;
-            color: white;
+            background: #f8f9fa;
             padding: 1.5rem;
-            text-align: center;
-            border-radius: 8px 8px 0 0;
+            border-bottom: 1px solid #dee2e6;
         }
 
         .bill-header h2 {
-            font-size: 1.3rem;
-            margin-bottom: 0.3rem;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
         }
 
         .bill-number {
-            font-size: 0.9rem;
-            opacity: 0.9;
+            color: #6c757d;
+            font-weight: 600;
         }
 
-        /* Bill Items */
         .bill-items {
             flex: 1;
-            padding: 1.5rem;
-            overflow-y: auto;
-            min-height: 250px;
-        }
-
-        .bill-item {
-            background: #f8f9fa;
-            border-radius: 6px;
             padding: 1rem;
-            margin-bottom: 0.8rem;
-            border: 1px solid #dee2e6;
-            transition: all 0.3s ease;
+            min-height: 300px;
+            overflow-y: auto;
         }
 
-        .bill-item:hover {
-            background: #e9ecef;
-        }
-
-        .bill-item-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 0.8rem;
-        }
-
-        .bill-item-info h4 {
-            color: #495057;
-            font-size: 0.95rem;
-            margin-bottom: 0.3rem;
-            font-weight: 600;
-        }
-
-        .bill-item-details {
-            font-size: 0.85rem;
-            color: #6c757d;
-        }
-
-        .quantity-controls {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: white;
-            padding: 0.4rem;
-            border-radius: 6px;
-            border: 1px solid #dee2e6;
-        }
-
-        .qty-btn {
-            width: 28px;
-            height: 28px;
-            border: none;
-            border-radius: 4px;
-            background: #2c3e50;
-            color: white;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .qty-btn:hover {
-            background: #495057;
-        }
-
-        .qty-input {
-            width: 50px;
-            text-align: center;
-            border: 1px solid #ced4da;
-            border-radius: 4px;
-            padding: 0.3rem;
-            font-weight: 500;
-        }
-
-        .remove-btn {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 0.3rem 0.6rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            transition: all 0.3s ease;
-        }
-
-        .remove-btn:hover {
-            background: #c82333;
-        }
-
-        .item-total {
-            font-weight: 600;
-            color: #28a745;
-            font-size: 1rem;
-        }
-
-        /* Empty State */
         .empty-state {
             text-align: center;
-            padding: 2rem 1rem;
+            padding: 3rem 1rem;
             color: #6c757d;
         }
 
@@ -513,16 +363,86 @@
             opacity: 0.5;
         }
 
-        .empty-state h3 {
-            color: #495057;
-            margin-bottom: 0.5rem;
+        .bill-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .bill-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+
+        .bill-item-info h4 {
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+            font-size: 0.95rem;
+        }
+
+        .bill-item-details {
+            color: #6b7280;
+            font-size: 0.8rem;
+        }
+
+        .item-total {
+            font-weight: 700;
+            color: #059669;
+            font-size: 1rem;
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .qty-btn {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #d1d5db;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .qty-btn:hover {
+            background: #f3f4f6;
+        }
+
+        .qty-input {
+            width: 50px;
+            text-align: center;
+            padding: 0.25rem;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+        }
+
+        .remove-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .remove-btn:hover {
+            background: #dc2626;
         }
 
         /* Bill Totals */
         .bill-totals {
-            padding: 1.5rem;
-            background: #f8f9fa;
+            padding: 1rem;
             border-top: 1px solid #dee2e6;
+            background: #f8f9fa;
         }
 
         .discount-section {
@@ -532,103 +452,95 @@
         .discount-input {
             display: flex;
             gap: 0.5rem;
-            align-items: end;
         }
 
-        .discount-input input {
+        .discount-input .form-control {
             flex: 1;
         }
 
         .apply-discount-btn {
-            background: #17a2b8;
+            padding: 0.5rem 1rem;
+            background: #6366f1;
             color: white;
             border: none;
-            padding: 0.8rem 1rem;
             border-radius: 6px;
             cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s ease;
             font-size: 0.9rem;
         }
 
         .apply-discount-btn:hover {
-            background: #138496;
+            background: #5b21b6;
         }
 
         .total-row {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            padding: 0.4rem 0;
-            font-size: 0.95rem;
-            color: #495057;
+            margin-bottom: 0.5rem;
+            padding: 0.25rem 0;
         }
 
         .total-row.final {
-            font-size: 1.2rem;
+            border-top: 2px solid #dee2e6;
+            padding-top: 0.75rem;
+            margin-top: 0.75rem;
+            font-size: 1.1rem;
             font-weight: 700;
-            color: #28a745;
-            border-top: 2px solid #28a745;
-            padding-top: 0.8rem;
-            margin-top: 0.8rem;
+            color: #059669;
         }
 
         /* Action Buttons */
         .action-buttons {
-            padding: 1.5rem;
+            padding: 1rem;
+            border-top: 1px solid #dee2e6;
             display: flex;
-            gap: 1rem;
+            gap: 0.75rem;
         }
 
         .btn {
-            flex: 1;
-            padding: 1rem;
+            padding: 0.75rem 1.5rem;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 1rem;
             font-weight: 600;
-            transition: all 0.3s ease;
             text-decoration: none;
-            text-align: center;
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            justify-content: center;
             gap: 0.5rem;
+            transition: all 0.3s;
         }
 
         .btn-success {
-            background: #28a745;
+            background: #059669;
             color: white;
+            flex: 1;
         }
 
         .btn-success:hover {
-            background: #218838;
+            background: #047857;
             transform: translateY(-1px);
         }
 
         .btn-clear {
-            background: #6c757d;
+            background: #6b7280;
             color: white;
         }
 
         .btn-clear:hover {
-            background: #5a6268;
-            transform: translateY(-1px);
+            background: #4b5563;
         }
 
-        /* Add Customer Modal */
+        /* Modal Styles */
         .modal {
+            display: none;
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            display: none;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
             align-items: center;
             justify-content: center;
-            z-index: 1000;
         }
 
         .modal.active {
@@ -637,64 +549,135 @@
 
         .modal-content {
             background: white;
-            border-radius: 8px;
-            padding: 2rem;
-            max-width: 500px;
+            border-radius: 12px;
             width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-            animation: modalSlideIn 0.3s ease;
-            border: 1px solid #dee2e6;
-        }
-
-        @keyframes modalSlideIn {
-            from { opacity: 0; transform: translateY(-50px); }
-            to { opacity: 1; transform: translateY(0); }
+            max-width: 800px;
+            max-height: 90vh;
+            overflow: hidden;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
         }
 
         .modal-header {
-            text-align: center;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
+            background: #f8f9fa;
+            padding: 1.5rem;
             border-bottom: 1px solid #dee2e6;
         }
 
         .modal-header h3 {
-            color: #495057;
-            font-size: 1.3rem;
+            color: #1f2937;
             margin-bottom: 0.5rem;
         }
 
+        .modal-header p {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
         .modal-actions {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid #dee2e6;
             display: flex;
             gap: 1rem;
-            margin-top: 1.5rem;
+            justify-content: flex-end;
         }
 
-        /* Loading State */
-        .loading {
+        /* Customer Table Modal */
+        .customers-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1rem;
+        }
+
+        .customers-table th {
+            background: #f8f9fa;
+            padding: 0.75rem;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .customers-table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .customers-table tbody tr {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .customers-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .customer-modal-search {
+            margin-bottom: 1rem;
+        }
+
+        /* Form Grid for Add Customer */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .input-group {
             position: relative;
-            pointer-events: none;
-            opacity: 0.7;
         }
 
-        .loading::after {
-            content: '';
+        .input-icon {
             position: absolute;
+            left: 0.75rem;
             top: 50%;
-            left: 50%;
-            width: 16px;
-            height: 16px;
-            margin: -8px 0 0 -8px;
-            border: 2px solid #f3f3f3;
-            border-top: 2px solid #2c3e50;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
+            transform: translateY(-50%);
+            color: #6b7280;
+            font-size: 1rem;
+            z-index: 10;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .input-group .form-control {
+            padding-left: 3rem;
+        }
+
+        .input-group textarea.form-control {
+            padding-left: 3rem;
+            resize: vertical;
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+
+        /* Loading States */
+        .loading {
+            opacity: 0.7;
+            cursor: not-allowed;
         }
 
         /* Responsive Design */
@@ -703,10 +686,10 @@
                 grid-template-columns: 1fr;
                 gap: 1rem;
             }
-            
+
             .right-panel {
                 order: -1;
-                max-height: 400px;
+                min-height: auto;
             }
         }
 
@@ -714,29 +697,15 @@
             .header-content {
                 flex-direction: column;
                 gap: 1rem;
-                text-align: center;
             }
-            
-            .main-container {
-                padding: 0 1rem;
-                margin: 1rem auto;
-            }
-            
+
             .customer-controls {
-                grid-template-columns: 1fr;
-            }
-            
-            .action-buttons {
                 flex-direction: column;
+                align-items: stretch;
             }
-            
-            .products-table {
-                font-size: 0.9rem;
-            }
-            
-            .products-table th,
-            .products-table td {
-                padding: 0.6rem 0.4rem;
+
+            .form-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -758,7 +727,7 @@
                 <div class="user-avatar"><%= loggedUser.getFullName().substring(0,1).toUpperCase() %></div>
                 <div>
                     <div style="font-weight: 600;"><%= loggedUser.getFullName() %></div>
-                    <div style="font-size: 0.8rem; color: #6c757d;"><%= loggedUser.getRole() %></div>
+                    <div style="font-size: 0.8rem; color: rgba(255,255,255,0.8);"><%= loggedUser.getRole() %></div>
                 </div>
             </div>
         </div>
@@ -800,10 +769,13 @@
                             <div class="search-results" id="customerSearchResults"></div>
                         </div>
                         <input type="hidden" id="selectedCustomerId" name="customerId">
-                        <div id="selectedCustomerInfo" style="margin-top: 0.5rem; font-size: 0.9rem; color: #28a745; font-weight: 500;"></div>
+                        <div id="selectedCustomerInfo" style="margin-top: 0.5rem; font-size: 0.9rem; color: #059669; font-weight: 500;"></div>
                     </div>
+                    <button type="button" class="show-customers-btn" onclick="openCustomerTableModal()">
+                        📋 Show All
+                    </button>
                     <button type="button" class="add-customer-btn" onclick="openAddCustomerModal()">
-                        ➕ Add New Customer
+                        ➕ Add New
                     </button>
                 </div>
             </div>
@@ -839,7 +811,7 @@
                                 </span>
                             </td>
                             <td>
-                                <button type="button" class="btn btn-sm" style="background: #28a745; color: white; padding: 0.3rem 0.8rem; border: none; border-radius: 4px; font-size: 0.8rem;"
+                                <button type="button" class="btn btn-sm" style="background: #059669; color: white; padding: 0.3rem 0.8rem; border: none; border-radius: 4px; font-size: 0.8rem;"
                                         onclick="event.stopPropagation(); addProductToBill(<%= book.getBookId() %>, '<%= book.getTitle().replace("'", "\\'") %>', '<%= book.getAuthor() != null ? book.getAuthor().replace("'", "\\'") : "" %>', <%= book.getPrice() %>, <%= book.getStockQuantity() %>)">
                                     Add
                                 </button>
@@ -918,6 +890,41 @@
         </div>
     </div>
 
+    <!-- Customer Table Modal -->
+    <div class="modal" id="customerTableModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📋 Select Customer</h3>
+                <p>Choose a customer from the list below</p>
+            </div>
+            <div class="modal-body">
+                <div class="customer-modal-search">
+                    <input type="text" class="form-control" id="customerTableSearch" 
+                           placeholder="🔍 Search customers..." 
+                           onkeyup="searchCustomerTable(this.value)">
+                </div>
+                <div style="max-height: 400px; overflow-y: auto;">
+                    <table class="customers-table" id="customersTable">
+                        <thead>
+                            <tr>
+                                <th>Account Number</th>
+                                <th>Name</th>
+                                <th>Phone</th>
+                                <th>Email</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customersTableBody">
+                            <!-- Customer data will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-clear" onclick="closeCustomerTableModal()">❌ Close</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Add Customer Modal -->
     <div class="modal" id="addCustomerModal">
         <div class="modal-content">
@@ -926,29 +933,46 @@
                 <p>Fill in customer details to add them to the system</p>
             </div>
             
-            <form id="addCustomerForm" onsubmit="handleAddCustomerSubmit(event)">
-                <div class="form-group">
-                    <label for="newCustomerName">Customer Name <span class="required">*</span></label>
-                    <input type="text" class="form-control" id="newCustomerName" name="name" required 
-                           placeholder="Enter customer full name">
-                </div>
+            <form id="addCustomerForm" action="customer" method="post" target="customerFrame">
+                <input type="hidden" name="action" value="add">
+                <div class="modal-body">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="newCustomerName">Customer Name <span class="required">*</span></label>
+                            <div class="input-group">
+                                <span class="input-icon">👤</span>
+                                <input type="text" class="form-control" id="newCustomerName" name="name" required 
+                                       placeholder="Enter customer full name">
+                            </div>
+                        </div>
 
-                <div class="form-group">
-                    <label for="newCustomerPhone">Phone Number <span class="required">*</span></label>
-                    <input type="tel" class="form-control" id="newCustomerPhone" name="phone" required 
-                           placeholder="Enter 10-digit phone number" pattern="[0-9]{10}">
-                </div>
+                        <div class="form-group">
+                            <label for="newCustomerPhone">Phone Number <span class="required">*</span></label>
+                            <div class="input-group">
+                                <span class="input-icon">📞</span>
+                                <input type="tel" class="form-control" id="newCustomerPhone" name="phone" required 
+                                       placeholder="Enter 10-digit phone number" pattern="[0-9]{10}">
+                            </div>
+                        </div>
 
-                <div class="form-group">
-                    <label for="newCustomerEmail">Email Address</label>
-                    <input type="email" class="form-control" id="newCustomerEmail" name="email"
-                           placeholder="Enter email address (optional)">
-                </div>
+                        <div class="form-group">
+                            <label for="newCustomerEmail">Email Address</label>
+                            <div class="input-group">
+                                <span class="input-icon">📧</span>
+                                <input type="email" class="form-control" id="newCustomerEmail" name="email"
+                                       placeholder="Enter email address (optional)">
+                            </div>
+                        </div>
 
-                <div class="form-group">
-                    <label for="newCustomerAddress">Address</label>
-                    <textarea class="form-control" id="newCustomerAddress" name="address" rows="3" 
-                              placeholder="Enter customer address (optional)"></textarea>
+                        <div class="form-group full-width">
+                            <label for="newCustomerAddress">Address</label>
+                            <div class="input-group">
+                                <span class="input-icon">🏠</span>
+                                <textarea class="form-control" id="newCustomerAddress" name="address" rows="3" 
+                                          placeholder="Enter customer address (optional)"></textarea>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="modal-actions">
@@ -958,6 +982,9 @@
             </form>
         </div>
     </div>
+
+    <!-- Hidden iframe for form submission -->
+    <iframe name="customerFrame" style="display: none;" onload="handleCustomerFormResponse()"></iframe>
 
     <!-- Hidden Form for Bill Submission -->
     <form action="bill" method="post" id="createBillForm" style="display: none;">
@@ -973,6 +1000,7 @@
         let allProducts = [];
         let allCustomers = [];
         let customerSearchTimeout;
+        let isAddingCustomer = false;
 
         // Store data for search functionality
         <% if (books != null) { %>
@@ -1005,6 +1033,21 @@
             <% } %>
         ];
         <% } %>
+
+        // Validation functions (same as addCustomer.jsp)
+        function validateName(name) {
+            return name && name.trim().length >= 2 && /^[a-zA-Z\s.]+$/.test(name.trim());
+        }
+
+        function validatePhone(phone) {
+            return phone && /^[0-9]{10}$/.test(phone);
+        }
+
+        function validateEmail(email) {
+            if (!email || email.trim() === '') return true; // Optional field
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
 
         // Customer search functions
         function searchCustomers(query) {
@@ -1052,6 +1095,7 @@
             document.getElementById('customerSearch').value = name;
             document.getElementById('selectedCustomerInfo').innerHTML = `✅ Selected: ${name} (${accountNumber})`;
             document.getElementById('customerSearchResults').style.display = 'none';
+            closeCustomerTableModal();
         }
 
         function showCustomerSearch() {
@@ -1065,6 +1109,59 @@
             setTimeout(() => {
                 document.getElementById('customerSearchResults').style.display = 'none';
             }, 200);
+        }
+
+        // Customer Table Modal Functions
+        function openCustomerTableModal() {
+            document.getElementById('customerTableModal').classList.add('active');
+            populateCustomerTable(allCustomers);
+            document.getElementById('customerTableSearch').focus();
+        }
+
+        function closeCustomerTableModal() {
+            document.getElementById('customerTableModal').classList.remove('active');
+            document.getElementById('customerTableSearch').value = '';
+        }
+
+        function populateCustomerTable(customers) {
+            const tableBody = document.getElementById('customersTableBody');
+            
+            if (customers.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 2rem; color: #6b7280;">
+                            <div>👥 No customers found</div>
+                            <small>Try adjusting your search terms</small>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tableBody.innerHTML = customers.map(customer => `
+                <tr onclick="selectCustomer(${customer.id}, '${customer.name.replace(/'/g, "\\'")}', '${customer.phone}', '${customer.accountNumber}')">
+                    <td><strong>${customer.accountNumber}</strong></td>
+                    <td>${customer.name}</td>
+                    <td>${customer.phone}</td>
+                    <td>${customer.email || 'Not provided'}</td>
+                </tr>
+            `).join('');
+        }
+
+        function searchCustomerTable(query) {
+            if (!query || query.length < 2) {
+                populateCustomerTable(allCustomers);
+                return;
+            }
+
+            const filteredCustomers = allCustomers.filter(customer => 
+                customer.name.toLowerCase().includes(query.toLowerCase()) ||
+                customer.phone.includes(query) ||
+                customer.accountNumber.toLowerCase().includes(query.toLowerCase()) ||
+                customer.email.toLowerCase().includes(query.toLowerCase())
+            );
+
+            populateCustomerTable(filteredCustomers);
         }
 
         // Product search functions
@@ -1111,7 +1208,7 @@
                         </span>
                     </td>
                     <td>
-                        <button type="button" class="btn btn-sm" style="background: #28a745; color: white; padding: 0.3rem 0.8rem; border: none; border-radius: 4px; font-size: 0.8rem;"
+                        <button type="button" class="btn btn-sm" style="background: #059669; color: white; padding: 0.3rem 0.8rem; border: none; border-radius: 4px; font-size: 0.8rem;"
                                 onclick="event.stopPropagation(); addProductToBill(${product.id}, '${product.title.replace(/'/g, "\\'")}', '${product.author.replace(/'/g, "\\'")}', ${product.price}, ${product.stock})">
                             Add
                         </button>
@@ -1348,120 +1445,68 @@
             document.getElementById('addCustomerForm').reset();
         }
 
-        // Handle Add Customer Form Submission with AJAX
-        function handleAddCustomerSubmit(event) {
-            event.preventDefault();
+        // Handle customer form response from iframe
+        function handleCustomerFormResponse() {
+            if (!isAddingCustomer) return;
             
+            const iframe = document.getElementsByName('customerFrame')[0];
             const addCustomerBtn = document.getElementById('addCustomerBtn');
-            const form = document.getElementById('addCustomerForm');
-            const formData = new FormData(form);
-            formData.append('action', 'add');
             
-            const name = document.getElementById('newCustomerName').value.trim();
-            const phone = document.getElementById('newCustomerPhone').value.trim();
-            
-            // Validate required fields
-            if (!name || !phone) {
-                showAlert('❌ Please fill in all required fields.', 'error');
-                return;
-            }
-            
-            // Validate phone number
-            if (!/^[0-9]{10}$/.test(phone)) {
-                showAlert('❌ Please enter a valid 10-digit phone number.', 'error');
-                return;
-            }
-            
-            // Show loading
-            addCustomerBtn.classList.add('loading');
-            addCustomerBtn.innerHTML = '⏳ Adding Customer...';
-            addCustomerBtn.disabled = true;
-            
-            // Send AJAX request
-            fetch('customer', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.text())
-            .then(data => {
-                // Check if the response contains error (simple check)
-                if (data.includes('Error adding customer') || data.includes('Duplicate entry')) {
-                    throw new Error('Customer with this phone number or account already exists');
+            try {
+                const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
+                const responseBody = iframeDocument.body.innerHTML;
+                
+                console.log('🔍 Customer form response received:', responseBody);
+                
+                // Check if the response contains error messages
+                const hasError = responseBody.toLowerCase().includes('error') || 
+                               responseBody.includes('alert-error') ||
+                               responseBody.toLowerCase().includes('duplicate') ||
+                               responseBody.toLowerCase().includes('exception');
+                
+                if (hasError) {
+                    // Extract specific error message
+                    let errorMessage = 'Failed to add customer';
+                    if (responseBody.includes('Duplicate entry')) {
+                        errorMessage = 'Customer with this phone number already exists';
+                    } else if (responseBody.includes('Validation Error')) {
+                        errorMessage = 'Please check the entered information';
+                    }
+                    
+                    showAlert('❌ ' + errorMessage, 'error');
+                    console.error('❌ Customer add failed:', errorMessage);
+                } else {
+                    // Success case
+                    const customerName = document.getElementById('newCustomerName').value.trim();
+                    const customerPhone = document.getElementById('newCustomerPhone').value.trim();
+                    
+                    console.log('✅ Customer added successfully:', customerName);
+                    showAlert('✅ Customer "' + customerName + '" added successfully!', 'success');
+                    
+                    closeAddCustomerModal();
+                    
+                    // Refresh the page to get updated customer list
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
                 }
                 
-                // If successful, refresh customer data and close modal
-                refreshCustomerData()
-                    .then(() => {
-                        closeAddCustomerModal();
-                        showAlert('✅ Customer added successfully!', 'success');
-                        
-                        // Auto-select the newly added customer
-                        const newCustomerName = name;
-                        setTimeout(() => {
-                            document.getElementById('customerSearch').value = newCustomerName;
-                            searchCustomers(newCustomerName);
-                            setTimeout(() => {
-                                const searchResults = document.getElementById('customerSearchResults');
-                                const firstResult = searchResults.querySelector('.search-result-item');
-                                if (firstResult) {
-                                    firstResult.click();
-                                }
-                            }, 300);
-                        }, 500);
-                    });
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showAlert('❌ Error adding customer: ' + error.message, 'error');
-            })
-            .finally(() => {
+            } catch (error) {
+                console.error('❌ Error processing customer form response:', error);
+                showAlert('❌ Error processing response. Customer may have been added.', 'error');
+                
+                // Still close modal and refresh as fallback
+                setTimeout(() => {
+                    closeAddCustomerModal();
+                    window.location.reload();
+                }, 2000);
+            } finally {
                 // Reset button state
+                isAddingCustomer = false;
                 addCustomerBtn.classList.remove('loading');
                 addCustomerBtn.innerHTML = '✅ Add Customer';
                 addCustomerBtn.disabled = false;
-            });
-        }
-
-        // Refresh customer data from server
-        function refreshCustomerData() {
-            return fetch('customer?action=list')
-                .then(response => response.text())
-                .then(data => {
-                    // Extract customer data from response (this is a simple approach)
-                    // In a real application, you might want to return JSON instead
-                    
-                    // For now, we'll make another request to get fresh data
-                    return fetch('bill?action=create')
-                        .then(response => response.text())
-                        .then(html => {
-                            // Parse the HTML to extract customer data
-                            const parser = new DOMParser();
-                            const doc = parser.parseFromString(html, 'text/html');
-                            const scripts = doc.querySelectorAll('script');
-                            
-                            // Find the script that contains allCustomers array
-                            for (let script of scripts) {
-                                const content = script.textContent;
-                                if (content.includes('allCustomers = [')) {
-                                    const start = content.indexOf('allCustomers = [');
-                                    const end = content.indexOf('];', start) + 2;
-                                    const customerArrayCode = content.substring(start, end);
-                                    
-                                    // Execute the code to update allCustomers
-                                    try {
-                                        eval(customerArrayCode);
-                                        console.log('Customer data refreshed successfully');
-                                    } catch (e) {
-                                        console.error('Error parsing customer data:', e);
-                                    }
-                                    break;
-                                }
-                            }
-                        });
-                })
-                .catch(error => {
-                    console.error('Error refreshing customer data:', error);
-                });
+            }
         }
 
         // Show alert function
@@ -1489,6 +1534,85 @@
 
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 CreateBill page loaded');
+            
+            // Add form submission handler with validation
+            const addCustomerForm = document.getElementById('addCustomerForm');
+            addCustomerForm.addEventListener('submit', function(e) {
+                const nameField = document.getElementById('newCustomerName');
+                const phoneField = document.getElementById('newCustomerPhone');
+                const emailField = document.getElementById('newCustomerEmail');
+                const addCustomerBtn = document.getElementById('addCustomerBtn');
+                
+                const name = nameField.value.trim();
+                const phone = phoneField.value.trim();
+                const email = emailField.value.trim();
+                
+                let isValid = true;
+                
+                // Validate required fields
+                if (!name) {
+                    showAlert('❌ Customer name is required', 'error');
+                    nameField.focus();
+                    isValid = false;
+                }
+                
+                if (!phone) {
+                    showAlert('❌ Phone number is required', 'error');
+                    if (isValid) phoneField.focus();
+                    isValid = false;
+                }
+                
+                // Validate formats
+                if (name && !validateName(name)) {
+                    showAlert('❌ Please enter a valid customer name', 'error');
+                    if (isValid) nameField.focus();
+                    isValid = false;
+                }
+                
+                if (phone && !validatePhone(phone)) {
+                    showAlert('❌ Please enter a valid 10-digit phone number', 'error');
+                    if (isValid) phoneField.focus();
+                    isValid = false;
+                }
+                
+                if (email && !validateEmail(email)) {
+                    showAlert('❌ Please enter a valid email address', 'error');
+                    if (isValid) emailField.focus();
+                    isValid = false;
+                }
+                
+                if (!isValid) {
+                    e.preventDefault();
+                    return false;
+                }
+                
+                // Show loading state
+                isAddingCustomer = true;
+                addCustomerBtn.classList.add('loading');
+                addCustomerBtn.innerHTML = '⏳ Adding Customer...';
+                addCustomerBtn.disabled = true;
+                
+                console.log('📤 Submitting customer form:', {
+                    name: name,
+                    phone: phone,
+                    email: email
+                });
+                
+                // Form will submit to iframe, response handled by handleCustomerFormResponse()
+                showAlert('⏳ Adding customer...', 'success');
+            });
+            
+            // Phone number input formatting
+            const phoneField = document.getElementById('newCustomerPhone');
+            phoneField.addEventListener('input', function() {
+                // Remove non-digits and limit to 10 digits
+                this.value = this.value.replace(/[^0-9]/g, '');
+                if (this.value.length > 10) {
+                    this.value = this.value.substr(0, 10);
+                }
+            });
+            
             // Initialize discount change listener
             document.getElementById('discount').addEventListener('input', calculateTotals);
             
@@ -1498,10 +1622,16 @@
             // Display all products initially
             displayAllProducts();
             
-            // Close modal when clicking outside
+            // Close modals when clicking outside
             document.getElementById('addCustomerModal').addEventListener('click', function(e) {
                 if (e.target === this) {
                     closeAddCustomerModal();
+                }
+            });
+
+            document.getElementById('customerTableModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeCustomerTableModal();
                 }
             });
             
@@ -1509,13 +1639,30 @@
             setTimeout(() => {
                 document.getElementById('customerSearch').focus();
             }, 500);
+
+            // Handle pre-selected customer (from view customer page)
+            <% if (preSelectedCustomerId != null && !preSelectedCustomerId.trim().isEmpty()) { %>
+            try {
+                const customerId = <%= preSelectedCustomerId %>;
+                const customer = allCustomers.find(c => c.id === customerId);
+                if (customer) {
+                    selectCustomer(customer.id, customer.name, customer.phone, customer.accountNumber);
+                    showAlert('✅ Customer pre-selected from customer profile', 'success');
+                }
+            } catch (e) {
+                console.error('Error pre-selecting customer:', e);
+            }
+            <% } %>
+            
+            console.log('💡 Shortcuts: Ctrl+Enter=Create Bill, Ctrl+N=Add Customer, Ctrl+L=Show Customers, Escape=Close Modals');
         });
 
         // Keyboard shortcuts
         document.addEventListener('keydown', function(e) {
-            // ESC key closes modal
+            // ESC key closes modals
             if (e.key === 'Escape') {
                 closeAddCustomerModal();
+                closeCustomerTableModal();
             }
             
             // Ctrl+Enter to create bill
@@ -1528,6 +1675,12 @@
             if (e.ctrlKey && e.key === 'n') {
                 e.preventDefault();
                 openAddCustomerModal();
+            }
+
+            // Ctrl+L to show customer list
+            if (e.ctrlKey && e.key === 'l') {
+                e.preventDefault();
+                openCustomerTableModal();
             }
         });
     </script>
