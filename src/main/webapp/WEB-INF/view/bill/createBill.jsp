@@ -933,60 +933,55 @@
                 <p>Fill in customer details to add them to the system</p>
             </div>
             
-            <form id="addCustomerForm" action="customer" method="post" target="customerFrame">
-                <input type="hidden" name="action" value="add">
-                <div class="modal-body">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="newCustomerName">Customer Name <span class="required">*</span></label>
-                            <div class="input-group">
-                                <span class="input-icon">👤</span>
-                                <input type="text" class="form-control" id="newCustomerName" name="name" required 
-                                       placeholder="Enter customer full name">
-                            </div>
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="newCustomerName">Customer Name <span class="required">*</span></label>
+                        <div class="input-group">
+                            <span class="input-icon">👤</span>
+                            <input type="text" class="form-control" id="newCustomerName" name="name" required 
+                                   placeholder="Enter customer full name">
                         </div>
+                    </div>
 
-                        <div class="form-group">
-                            <label for="newCustomerPhone">Phone Number <span class="required">*</span></label>
-                            <div class="input-group">
-                                <span class="input-icon">📞</span>
-                                <input type="tel" class="form-control" id="newCustomerPhone" name="phone" required 
-                                       placeholder="Enter 10-digit phone number" pattern="[0-9]{10}">
-                            </div>
+                    <div class="form-group">
+                        <label for="newCustomerPhone">Phone Number <span class="required">*</span></label>
+                        <div class="input-group">
+                            <span class="input-icon">📞</span>
+                            <input type="tel" class="form-control" id="newCustomerPhone" name="phone" required 
+                                   placeholder="Enter 10-digit phone number" pattern="[0-9]{10}">
                         </div>
+                    </div>
 
-                        <div class="form-group">
-                            <label for="newCustomerEmail">Email Address</label>
-                            <div class="input-group">
-                                <span class="input-icon">📧</span>
-                                <input type="email" class="form-control" id="newCustomerEmail" name="email"
-                                       placeholder="Enter email address (optional)">
-                            </div>
+                    <div class="form-group">
+                        <label for="newCustomerEmail">Email Address</label>
+                        <div class="input-group">
+                            <span class="input-icon">📧</span>
+                            <input type="email" class="form-control" id="newCustomerEmail" name="email"
+                                   placeholder="Enter email address (optional)">
                         </div>
+                    </div>
 
-                        <div class="form-group full-width">
-                            <label for="newCustomerAddress">Address</label>
-                            <div class="input-group">
-                                <span class="input-icon">🏠</span>
-                                <textarea class="form-control" id="newCustomerAddress" name="address" rows="3" 
-                                          placeholder="Enter customer address (optional)"></textarea>
-                            </div>
+                    <div class="form-group full-width">
+                        <label for="newCustomerAddress">Address</label>
+                        <div class="input-group">
+                            <span class="input-icon">🏠</span>
+                            <textarea class="form-control" id="newCustomerAddress" name="address" rows="3" 
+                                      placeholder="Enter customer address (optional)"></textarea>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="modal-actions">
-                    <button type="submit" class="btn btn-success" id="addCustomerBtn">✅ Add Customer</button>
-                    <button type="button" class="btn btn-clear" onclick="closeAddCustomerModal()">❌ Cancel</button>
-                </div>
-            </form>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-success" id="addCustomerBtn" onclick="addNewCustomer()">✅ Add Customer</button>
+                <button type="button" class="btn btn-clear" onclick="closeAddCustomerModal()">❌ Cancel</button>
+            </div>
         </div>
     </div>
 
     <!-- Hidden iframe for form submission -->
     <iframe name="customerFrame" style="display: none;" onload="handleCustomerFormResponse()"></iframe>
-
-    <!-- Hidden Form for Bill Submission -->
     <form action="bill" method="post" id="createBillForm" style="display: none;">
         <input type="hidden" name="action" value="create">
         <input type="hidden" name="customerId" id="hiddenCustomerId">
@@ -1000,7 +995,6 @@
         let allProducts = [];
         let allCustomers = [];
         let customerSearchTimeout;
-        let isAddingCustomer = false;
 
         // Store data for search functionality
         <% if (books != null) { %>
@@ -1034,7 +1028,7 @@
         ];
         <% } %>
 
-        // Validation functions (same as addCustomer.jsp)
+        // Validation functions
         function validateName(name) {
             return name && name.trim().length >= 2 && /^[a-zA-Z\s.]+$/.test(name.trim());
         }
@@ -1162,6 +1156,214 @@
             );
 
             populateCustomerTable(filteredCustomers);
+        }
+
+        // Add Customer Function (Fixed with Iframe approach)
+        function addNewCustomer() {
+            const nameField = document.getElementById('newCustomerName');
+            const phoneField = document.getElementById('newCustomerPhone');
+            const emailField = document.getElementById('newCustomerEmail');
+            const addressField = document.getElementById('newCustomerAddress');
+            const addCustomerBtn = document.getElementById('addCustomerBtn');
+            
+            const name = nameField.value.trim();
+            const phone = phoneField.value.trim();
+            const email = emailField.value.trim();
+            const address = addressField.value.trim();
+            
+            // Validate required fields
+            if (!name) {
+                showAlert('❌ Customer name is required', 'error');
+                nameField.focus();
+                return;
+            }
+            
+            if (!phone) {
+                showAlert('❌ Phone number is required', 'error');
+                phoneField.focus();
+                return;
+            }
+            
+            // Validate formats
+            if (!validateName(name)) {
+                showAlert('❌ Please enter a valid customer name', 'error');
+                nameField.focus();
+                return;
+            }
+            
+            if (!validatePhone(phone)) {
+                showAlert('❌ Please enter a valid 10-digit phone number', 'error');
+                phoneField.focus();
+                return;
+            }
+            
+            if (email && !validateEmail(email)) {
+                showAlert('❌ Please enter a valid email address', 'error');
+                emailField.focus();
+                return;
+            }
+
+            // Check if customer already exists
+            const existingCustomer = allCustomers.find(customer => customer.phone === phone);
+            if (existingCustomer) {
+                showAlert('❌ Customer with this phone number already exists', 'error');
+                phoneField.focus();
+                return;
+            }
+            
+            // Show loading state
+            addCustomerBtn.classList.add('loading');
+            addCustomerBtn.innerHTML = '⏳ Adding Customer...';
+            addCustomerBtn.disabled = true;
+            
+            // Store customer data for later use
+            window.newCustomerData = { name, phone, email, address };
+            
+            // Create and submit hidden form
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = 'customer';
+            form.target = 'customerFrame';
+            form.style.display = 'none';
+            
+            // Add form fields
+            const actionField = document.createElement('input');
+            actionField.type = 'hidden';
+            actionField.name = 'action';
+            actionField.value = 'add';
+            form.appendChild(actionField);
+            
+            const nameField2 = document.createElement('input');
+            nameField2.type = 'hidden';
+            nameField2.name = 'name';
+            nameField2.value = name;
+            form.appendChild(nameField2);
+            
+            const phoneField2 = document.createElement('input');
+            phoneField2.type = 'hidden';
+            phoneField2.name = 'phone';
+            phoneField2.value = phone;
+            form.appendChild(phoneField2);
+            
+            if (email) {
+                const emailField2 = document.createElement('input');
+                emailField2.type = 'hidden';
+                emailField2.name = 'email';
+                emailField2.value = email;
+                form.appendChild(emailField2);
+            }
+            
+            if (address) {
+                const addressField2 = document.createElement('input');
+                addressField2.type = 'hidden';
+                addressField2.name = 'address';
+                addressField2.value = address;
+                form.appendChild(addressField2);
+            }
+            
+            // Add to page and submit
+            document.body.appendChild(form);
+            console.log('📤 Submitting customer form:', { name, phone, email, address });
+            form.submit();
+            
+            // Remove form after submission
+            setTimeout(() => {
+                document.body.removeChild(form);
+            }, 1000);
+        }
+
+        // Handle customer form response from iframe
+        function handleCustomerFormResponse() {
+            const iframe = document.getElementsByName('customerFrame')[0];
+            const addCustomerBtn = document.getElementById('addCustomerBtn');
+            
+            if (!window.newCustomerData) return; // No customer being added
+            
+            try {
+                const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
+                const responseBody = iframeDocument.body.innerHTML.toLowerCase();
+                
+                console.log('🔍 Customer form response received');
+                
+                // Check for success indicators
+                const hasSuccess = responseBody.includes('success') || 
+                                 responseBody.includes('added') ||
+                                 responseBody.includes('customer') && responseBody.includes('successfully');
+                
+                // Check for error indicators
+                const hasError = responseBody.includes('error') || 
+                               responseBody.includes('duplicate') ||
+                               responseBody.includes('exception') ||
+                               responseBody.includes('validation') ||
+                               responseBody.includes('failed');
+                
+                if (hasError && !hasSuccess) {
+                    // Extract specific error message
+                    let errorMessage = 'Failed to add customer';
+                    if (responseBody.includes('duplicate')) {
+                        errorMessage = 'Customer with this phone number already exists';
+                    } else if (responseBody.includes('validation')) {
+                        errorMessage = 'Please check the entered information';
+                    }
+                    
+                    showAlert('❌ ' + errorMessage, 'error');
+                    console.error('❌ Customer add failed:', errorMessage);
+                } else {
+                    // Success case
+                    const customerData = window.newCustomerData;
+                    console.log('✅ Customer added successfully:', customerData.name);
+                    
+                    // Clear form
+                    document.getElementById('newCustomerName').value = '';
+                    document.getElementById('newCustomerPhone').value = '';
+                    document.getElementById('newCustomerEmail').value = '';
+                    document.getElementById('newCustomerAddress').value = '';
+                    
+                    // Close modal
+                    closeAddCustomerModal();
+                    
+                    // Show success message
+                    showAlert('✅ Customer "' + customerData.name + '" added successfully!', 'success');
+                    
+                    // Refresh the page to get updated customer list and auto-select
+                    setTimeout(() => {
+                        const currentUrl = new URL(window.location);
+                        currentUrl.searchParams.set('newCustomerPhone', customerData.phone);
+                        window.location.href = currentUrl.toString();
+                    }, 1000);
+                }
+                
+            } catch (error) {
+                console.log('⚠️ Could not read iframe response, assuming success');
+                const customerData = window.newCustomerData;
+                
+                // Clear form
+                document.getElementById('newCustomerName').value = '';
+                document.getElementById('newCustomerPhone').value = '';
+                document.getElementById('newCustomerEmail').value = '';
+                document.getElementById('newCustomerAddress').value = '';
+                
+                // Close modal
+                closeAddCustomerModal();
+                
+                // Show success message
+                showAlert('✅ Customer "' + customerData.name + '" added successfully!', 'success');
+                
+                // Refresh with new customer phone
+                setTimeout(() => {
+                    const currentUrl = new URL(window.location);
+                    currentUrl.searchParams.set('newCustomerPhone', customerData.phone);
+                    window.location.href = currentUrl.toString();
+                }, 1000);
+            } finally {
+                // Reset button state
+                addCustomerBtn.classList.remove('loading');
+                addCustomerBtn.innerHTML = '✅ Add Customer';
+                addCustomerBtn.disabled = false;
+                
+                // Clear stored data
+                delete window.newCustomerData;
+            }
         }
 
         // Product search functions
@@ -1442,71 +1644,11 @@
 
         function closeAddCustomerModal() {
             document.getElementById('addCustomerModal').classList.remove('active');
-            document.getElementById('addCustomerForm').reset();
-        }
-
-        // Handle customer form response from iframe
-        function handleCustomerFormResponse() {
-            if (!isAddingCustomer) return;
-            
-            const iframe = document.getElementsByName('customerFrame')[0];
-            const addCustomerBtn = document.getElementById('addCustomerBtn');
-            
-            try {
-                const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
-                const responseBody = iframeDocument.body.innerHTML;
-                
-                console.log('🔍 Customer form response received:', responseBody);
-                
-                // Check if the response contains error messages
-                const hasError = responseBody.toLowerCase().includes('error') || 
-                               responseBody.includes('alert-error') ||
-                               responseBody.toLowerCase().includes('duplicate') ||
-                               responseBody.toLowerCase().includes('exception');
-                
-                if (hasError) {
-                    // Extract specific error message
-                    let errorMessage = 'Failed to add customer';
-                    if (responseBody.includes('Duplicate entry')) {
-                        errorMessage = 'Customer with this phone number already exists';
-                    } else if (responseBody.includes('Validation Error')) {
-                        errorMessage = 'Please check the entered information';
-                    }
-                    
-                    showAlert('❌ ' + errorMessage, 'error');
-                    console.error('❌ Customer add failed:', errorMessage);
-                } else {
-                    // Success case
-                    const customerName = document.getElementById('newCustomerName').value.trim();
-                    const customerPhone = document.getElementById('newCustomerPhone').value.trim();
-                    
-                    console.log('✅ Customer added successfully:', customerName);
-                    showAlert('✅ Customer "' + customerName + '" added successfully!', 'success');
-                    
-                    closeAddCustomerModal();
-                    
-                    // Refresh the page to get updated customer list
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1000);
-                }
-                
-            } catch (error) {
-                console.error('❌ Error processing customer form response:', error);
-                showAlert('❌ Error processing response. Customer may have been added.', 'error');
-                
-                // Still close modal and refresh as fallback
-                setTimeout(() => {
-                    closeAddCustomerModal();
-                    window.location.reload();
-                }, 2000);
-            } finally {
-                // Reset button state
-                isAddingCustomer = false;
-                addCustomerBtn.classList.remove('loading');
-                addCustomerBtn.innerHTML = '✅ Add Customer';
-                addCustomerBtn.disabled = false;
-            }
+            // Clear form
+            document.getElementById('newCustomerName').value = '';
+            document.getElementById('newCustomerPhone').value = '';
+            document.getElementById('newCustomerEmail').value = '';
+            document.getElementById('newCustomerAddress').value = '';
         }
 
         // Show alert function
@@ -1535,73 +1677,6 @@
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🚀 CreateBill page loaded');
-            
-            // Add form submission handler with validation
-            const addCustomerForm = document.getElementById('addCustomerForm');
-            addCustomerForm.addEventListener('submit', function(e) {
-                const nameField = document.getElementById('newCustomerName');
-                const phoneField = document.getElementById('newCustomerPhone');
-                const emailField = document.getElementById('newCustomerEmail');
-                const addCustomerBtn = document.getElementById('addCustomerBtn');
-                
-                const name = nameField.value.trim();
-                const phone = phoneField.value.trim();
-                const email = emailField.value.trim();
-                
-                let isValid = true;
-                
-                // Validate required fields
-                if (!name) {
-                    showAlert('❌ Customer name is required', 'error');
-                    nameField.focus();
-                    isValid = false;
-                }
-                
-                if (!phone) {
-                    showAlert('❌ Phone number is required', 'error');
-                    if (isValid) phoneField.focus();
-                    isValid = false;
-                }
-                
-                // Validate formats
-                if (name && !validateName(name)) {
-                    showAlert('❌ Please enter a valid customer name', 'error');
-                    if (isValid) nameField.focus();
-                    isValid = false;
-                }
-                
-                if (phone && !validatePhone(phone)) {
-                    showAlert('❌ Please enter a valid 10-digit phone number', 'error');
-                    if (isValid) phoneField.focus();
-                    isValid = false;
-                }
-                
-                if (email && !validateEmail(email)) {
-                    showAlert('❌ Please enter a valid email address', 'error');
-                    if (isValid) emailField.focus();
-                    isValid = false;
-                }
-                
-                if (!isValid) {
-                    e.preventDefault();
-                    return false;
-                }
-                
-                // Show loading state
-                isAddingCustomer = true;
-                addCustomerBtn.classList.add('loading');
-                addCustomerBtn.innerHTML = '⏳ Adding Customer...';
-                addCustomerBtn.disabled = true;
-                
-                console.log('📤 Submitting customer form:', {
-                    name: name,
-                    phone: phone,
-                    email: email
-                });
-                
-                // Form will submit to iframe, response handled by handleCustomerFormResponse()
-                showAlert('⏳ Adding customer...', 'success');
-            });
             
             // Phone number input formatting
             const phoneField = document.getElementById('newCustomerPhone');
@@ -1653,6 +1728,21 @@
                 console.error('Error pre-selecting customer:', e);
             }
             <% } %>
+
+            // Handle newly added customer auto-selection
+            const urlParams = new URLSearchParams(window.location.search);
+            const newCustomerPhone = urlParams.get('newCustomerPhone');
+            if (newCustomerPhone) {
+                const newCustomer = allCustomers.find(c => c.phone === newCustomerPhone);
+                if (newCustomer) {
+                    selectCustomer(newCustomer.id, newCustomer.name, newCustomer.phone, newCustomer.accountNumber);
+                    showAlert('✅ New customer "' + newCustomer.name + '" selected for billing', 'success');
+                    
+                    // Clean URL
+                    const cleanUrl = window.location.pathname + window.location.search.replace(/[&?]newCustomerPhone=[^&]*/g, '');
+                    window.history.replaceState({}, document.title, cleanUrl);
+                }
+            }
             
             console.log('💡 Shortcuts: Ctrl+Enter=Create Bill, Ctrl+N=Add Customer, Ctrl+L=Show Customers, Escape=Close Modals');
         });

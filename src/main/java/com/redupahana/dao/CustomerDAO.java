@@ -1,4 +1,4 @@
-// CustomerDAO.java
+// CustomerDAO.java - Updated to show newest customers first
 package com.redupahana.dao;
 
 import java.sql.*;
@@ -23,9 +23,11 @@ public class CustomerDAO {
         }
     }
     
+    // Updated method to show newest customers first
     public List<Customer> getAllCustomers() throws SQLException {
         List<Customer> customers = new ArrayList<>();
-        String query = "SELECT * FROM customers WHERE is_active = true ORDER BY name";
+        // Changed ORDER BY to show newest customers first, then by name
+        String query = "SELECT * FROM customers WHERE is_active = true ORDER BY created_date DESC, customer_id DESC";
         
         try (Connection connection = DBConnectionFactory.getConnection();
              Statement statement = connection.createStatement();
@@ -92,10 +94,12 @@ public class CustomerDAO {
         }
     }
     
+    // Updated search method to also show newest first within search results
     public List<Customer> searchCustomers(String searchTerm) throws SQLException {
         List<Customer> customers = new ArrayList<>();
         String query = "SELECT * FROM customers WHERE is_active = true AND " +
-                      "(name LIKE ? OR account_number LIKE ? OR phone LIKE ?) ORDER BY name";
+                      "(name LIKE ? OR account_number LIKE ? OR phone LIKE ?) " +
+                      "ORDER BY created_date DESC, customer_id DESC";
         
         try (Connection connection = DBConnectionFactory.getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
@@ -105,6 +109,41 @@ public class CustomerDAO {
             statement.setString(2, searchPattern);
             statement.setString(3, searchPattern);
             
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    customers.add(mapResultSetToCustomer(resultSet));
+                }
+            }
+        }
+        return customers;
+    }
+    
+    // Alternative method if you want alphabetical order for some specific cases
+    public List<Customer> getAllCustomersAlphabetical() throws SQLException {
+        List<Customer> customers = new ArrayList<>();
+        String query = "SELECT * FROM customers WHERE is_active = true ORDER BY name";
+        
+        try (Connection connection = DBConnectionFactory.getConnection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(query)) {
+            
+            while (resultSet.next()) {
+                customers.add(mapResultSetToCustomer(resultSet));
+            }
+        }
+        return customers;
+    }
+    
+    // Method to get recently added customers (last 10)
+    public List<Customer> getRecentCustomers(int limit) throws SQLException {
+        List<Customer> customers = new ArrayList<>();
+        String query = "SELECT * FROM customers WHERE is_active = true " +
+                      "ORDER BY created_date DESC, customer_id DESC LIMIT ?";
+        
+        try (Connection connection = DBConnectionFactory.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+            
+            statement.setInt(1, limit);
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
                     customers.add(mapResultSetToCustomer(resultSet));

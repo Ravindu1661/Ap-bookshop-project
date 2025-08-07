@@ -1,4 +1,4 @@
-<!-- printBill.jsp -->
+<!-- printBill.jsp - Updated with Account Number -->
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="com.redupahana.model.Bill"%>
 <%@ page import="com.redupahana.model.BillItem"%>
@@ -108,6 +108,19 @@
             border-bottom: 1px solid #ccc;
             padding-bottom: 2px;
         }
+        
+        .customer-info div {
+            margin-bottom: 2px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .customer-info .label {
+            font-weight: bold;
+            min-width: 65px;
+        }
+        
+
         
         .cashier-info {
             font-size: 9px;
@@ -321,10 +334,17 @@
         <% if (customer != null) { %>
         <div class="customer-info">
             <div class="section-title">CUSTOMER INFO</div>
+            
             <div>
                 <span class="label">ID:</span>
                 <span>#<%= customer.getCustomerId() %></span>
             </div>
+            <% if (customer.getAccountNumber() != null && !customer.getAccountNumber().isEmpty()) { %>
+            <div>
+                <span class="label">Account:</span>
+                <span><%= customer.getAccountNumber() %></span>
+            </div>
+            <% } %>
             <div>
                 <span class="label">Name:</span>
                 <span><%= customer.getName() %></span>
@@ -339,6 +359,12 @@
             <div>
                 <span class="label">Email:</span>
                 <span><%= customer.getEmail() %></span>
+            </div>
+            <% } %>
+            <% if (customer.getAddress() != null && !customer.getAddress().isEmpty()) { %>
+            <div>
+                <span class="label">Address:</span>
+                <span><%= customer.getAddress() %></span>
             </div>
             <% } %>
         </div>
@@ -387,14 +413,23 @@
                 <tr>
                     <td>
                         <div class="item-name">
-                            <% if (item.getItemName() != null && !item.getItemName().isEmpty()) { %>
+                            <% if (item.getBookTitle() != null && !item.getBookTitle().isEmpty()) { %>
+                                <%= item.getBookTitle() %>
+                            <% } else if (item.getItemName() != null && !item.getItemName().isEmpty()) { %>
                                 <%= item.getItemName() %>
                             <% } else { %>
-                                Item #<%= item.getItemId() %>
+                                Item #<%= item.getBookId() != 0 ? item.getBookId() : item.getItemId() %>
                             <% } %>
                         </div>
                         <div class="item-details">
-                            ID: #<%= item.getItemId() %> | Unit: Rs. <%= String.format("%.2f", item.getUnitPrice()) %>
+                            <% if (item.getAuthor() != null && !item.getAuthor().isEmpty()) { %>
+                                by <%= item.getAuthor() %> | 
+                            <% } %>
+                            ID: #<%= item.getBookId() != 0 ? item.getBookId() : item.getItemId() %> | 
+                            Unit: Rs. <%= String.format("%.2f", item.getUnitPrice()) %>
+                            <% if (item.getIsbn() != null && !item.getIsbn().isEmpty()) { %>
+                                <br>ISBN: <%= item.getIsbn() %>
+                            <% } %>
                         </div>
                     </td>
                     <td class="text-center"><%= item.getQuantity() %></td>
