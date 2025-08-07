@@ -186,6 +186,7 @@ body {
 .icon-books::before { content: "📚"; }
 .icon-customers::before { content: "🏢"; }
 .icon-bills::before { content: "🧾"; }
+.icon-help::before { content: "❓"; }
 .icon-logout::before { content: "🚪"; }
 
 /* Main Content */
@@ -1027,6 +1028,12 @@ body {
             <i class="icon-bills"></i>
             Bill Management
         </a>
+        <% if (sidebarUser != null && !Constants.ROLE_ADMIN.equals(sidebarUser.getRole())) { %>
+	    <a href="/WEB-INF/view/cashier/helpsection.jsp" class="menu-item <%= "help".equals(currentPage) ? "active" : "" %>">
+	        <i class="icon-help"></i>
+	        Help & Support
+	    </a>
+		<% } %>
         <a href="#" onclick="handleLogout(event)" class="menu-item logout-item" id="logoutMenuItem">
             <i class="icon-logout"></i>
             Logout

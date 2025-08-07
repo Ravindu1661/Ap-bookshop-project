@@ -159,14 +159,14 @@
                             </td>
                             <td>
                                 <% if (customer.getPhone() != null && !customer.getPhone().isEmpty()) { %>
-                                    <span class="contact-info">📞 <%= customer.getPhone() %></span>
+                                    <span class="contact-info"><%= customer.getPhone() %></span>
                                 <% } else { %>
                                     <span style="color: #bdc3c7;">-</span>
                                 <% } %>
                             </td>
                             <td>
                                 <% if (customer.getEmail() != null && !customer.getEmail().isEmpty()) { %>
-                                    <span class="contact-info">📧 <%= customer.getEmail() %></span>
+                                    <span class="contact-info"><%= customer.getEmail() %></span>
                                 <% } else { %>
                                     <span style="color: #bdc3c7;">-</span>
                                 <% } %>
@@ -179,7 +179,7 @@
                                             address = address.substring(0, 30) + "...";
                                         }
                                     %>
-                                    <span class="contact-info" title="<%= customer.getAddress() %>">🏠 <%= address %></span>
+                                    <span class="contact-info" title="<%= customer.getAddress() %>"><%= address %></span>
                                 <% } else { %>
                                     <span style="color: #bdc3c7;">-</span>
                                 <% } %>

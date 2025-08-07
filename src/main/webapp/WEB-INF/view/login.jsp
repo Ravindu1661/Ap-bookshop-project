@@ -736,13 +736,13 @@
                 <div class="demo-accounts">
                     <div class="demo-title">🎯 Demo Customer Account</div>
                     
-                    <div class="demo-account" onclick="fillCustomerLogin('ACC001')">
+                    <div class="demo-account" onclick="fillCustomerLogin('ACC202508A75F86')">
                         <div class="demo-icon customer-icon">
                             <i class="fas fa-user"></i>
                         </div>
                         <div class="demo-info">
                             <div class="demo-role">Sample Customer</div>
-                            <div class="demo-credentials">Account: ACC001</div>
+                            <div class="demo-credentials">Account: ACC202508A75F86</div>
                         </div>
                     </div>
                 </div>

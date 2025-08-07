@@ -172,12 +172,13 @@ public class AuthController extends HttpServlet {
         HttpSession session = request.getSession(false);
         String userName = null;
         String userType = "User";
+        String loginType = null;
         
         if (session != null) {
             // Get user info before invalidating session
             User loggedUser = (User) session.getAttribute("loggedUser");
             Customer loggedCustomer = (Customer) session.getAttribute("loggedCustomer");
-            String loginType = (String) session.getAttribute("loginType");
+            loginType = (String) session.getAttribute("loginType");
             
             if (loggedUser != null) {
                 userName = loggedUser.getFullName();
@@ -203,8 +204,13 @@ public class AuthController extends HttpServlet {
         newSession.setAttribute("logoutUserType", userType);
         newSession.setAttribute("showLogout", "true");
         
-        // Redirect to auth (login page will show logout message)
-        response.sendRedirect("auth");
+        // Redirect based on login type
+        if ("customer".equals(loginType)) {
+            // For customers - redirect to customerPortal with logout message
+            response.sendRedirect("customerPortal?showLogout=true");
+        } else {
+            // For staff (admin/cashier) - redirect to auth (login page)
+            response.sendRedirect("auth");
+        }
     }
-    
 }
