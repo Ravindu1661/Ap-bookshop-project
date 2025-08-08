@@ -631,7 +631,7 @@
             });
         });
 
-        // Add some dynamic behavior
+        // Add some dynamic 
         setInterval(() => {
             const shapes = document.querySelectorAll('.shape');
             shapes.forEach(shape => {
