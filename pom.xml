@@ -60,17 +60,10 @@
       <scope>test</scope>
     </dependency>
     
-    <!-- E-book dependency removed - uncomment if needed and available
-    <dependency>
-      <groupId>com.example.E-book</groupId>
-      <artifactId>E-book</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
-    </dependency>
-    -->
   </dependencies>
 
   <build>
-    <finalName>online-app-version3</finalName>
+    <finalName>Pahanaedu</finalName>
     
     <plugins>
       <!-- Maven Compiler Plugin -->
