@@ -1028,12 +1028,13 @@ body {
             <i class="icon-bills"></i>
             Bill Management
         </a>
+        <!-- Help & Support - Only for Cashiers -->
         <% if (sidebarUser != null && !Constants.ROLE_ADMIN.equals(sidebarUser.getRole())) { %>
-	    <a href="/WEB-INF/view/cashier/helpsection.jsp" class="menu-item <%= "help".equals(currentPage) ? "active" : "" %>">
-	        <i class="icon-help"></i>
-	        Help & Support
-	    </a>
-		<% } %>
+        <a href="help?action=list" class="menu-item <%= "help".equals(currentPage) ? "active" : "" %>">
+            <i class="icon-help"></i>
+            Help & Support
+        </a>
+        <% } %>
         <a href="#" onclick="handleLogout(event)" class="menu-item logout-item" id="logoutMenuItem">
             <i class="icon-logout"></i>
             Logout

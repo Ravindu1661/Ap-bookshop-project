@@ -58,6 +58,12 @@
   	<description></description>
   	<servlet-class>com.redupahana.controller.CustomerPortalController</servlet-class>
   </servlet>
+  <servlet>
+  	<servlet-name>HelpController</servlet-name>
+  	<display-name>HelpController</display-name>
+  	<description></description>
+  	<servlet-class>com.redupahana.controller.HelpController</servlet-class>
+  </servlet>
 
 
   
@@ -94,6 +100,10 @@
   <servlet-mapping>
   	<servlet-name>CustomerPortalController</servlet-name>
   	<url-pattern>/CustomerPortalController</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+  	<servlet-name>HelpController</servlet-name>
+  	<url-pattern>/Help</url-pattern>
   </servlet-mapping>
 
 
