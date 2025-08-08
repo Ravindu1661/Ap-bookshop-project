@@ -1,444 +1,49 @@
 # .github/workflows/maven.yml
-name: Redupahana POS Maven CI/CD
+name: Simple Maven Build
 
 on:
   push:
-    branches: [ main, master, develop ]
+    branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    name: Maven Build and Test
     
     steps:
-    - name: Checkout repository
+    - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up JDK 8
+    - name: Setup Java 8
       uses: actions/setup-java@v4
       with:
         java-version: '8'
         distribution: 'temurin'
 
-    - name: Cache Maven dependencies
+    - name: Cache Maven
       uses: actions/cache@v3
       with:
         path: ~/.m2
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-        restore-keys: ${{ runner.os }}-m2
 
-    - name: Display project information
+    - name: Build project
       run: |
-        echo "📋 Project Information"
-        echo "====================="
-        echo "Group ID: com.example.redupahana"
-        echo "Artifact ID: mavan"
-        echo "Version: 0.0.1-SNAPSHOT"
-        echo "Packaging: WAR"
-        echo "Final Name: online-app-version3"
-        echo "Java Version: 1.8"
-        echo ""
-
-    - name: Validate project structure
+        echo "🔨 Building project..."
+        mvn clean compile package -DskipTests
+        
+    - name: Check results
       run: |
-        echo "🔍 Validating Maven project structure..."
-        
-        # Check essential files
-        if [ ! -f "pom.xml" ]; then
-          echo "❌ pom.xml not found!"
-          exit 1
-        fi
-        echo "✅ pom.xml found"
-        
-        # Check source directories
-        if [ -d "src/main/java" ]; then
-          echo "✅ src/main/java directory found"
-          echo "☕ Java files: $(find src/main/java -name '*.java' | wc -l)"
-        else
-          echo "⚠️ src/main/java not found, checking alternative locations..."
-          if [ -d "src" ]; then
-            echo "📁 Using src/ as source directory"
-          fi
-        fi
-        
-        # Check web content
-        if [ -d "src/main/webapp" ]; then
-          echo "✅ src/main/webapp directory found"
-          echo "🌐 JSP files: $(find src/main/webapp -name '*.jsp' | wc -l)"
-          echo "🎨 CSS files: $(find src/main/webapp -name '*.css' | wc -l)"
-          echo "📜 JS files: $(find src/main/webapp -name '*.js' | wc -l)"
-        elif [ -d "WebContent" ]; then
-          echo "✅ WebContent directory found (alternative web root)"
-          echo "🌐 JSP files: $(find WebContent -name '*.jsp' | wc -l)"
-        fi
-        
-        # Check web.xml
-        if [ -f "src/main/webapp/WEB-INF/web.xml" ]; then
-          echo "✅ web.xml found in src/main/webapp/WEB-INF/"
-        elif [ -f "WebContent/WEB-INF/web.xml" ]; then
-          echo "✅ web.xml found in WebContent/WEB-INF/"
-        else
-          echo "⚠️ web.xml not found (failOnMissingWebXml=false is set)"
-        fi
-
-    - name: List project controllers
-      run: |
-        echo "🎮 Detected Controllers from web.xml:"
-        echo "├── AuthController (/auth)"
-        echo "├── BillController (/Bill)"
-        echo "├── CustomerController (/Customer)"
-        echo "├── DashboardController (/Dashboard)"
-        echo "├── ItemController (/Item)"
-        echo "├── UserController (/User)"
-        echo "├── CustomerPortalController (/CustomerPortalController)"
-        echo "└── HelpController (/Help)"
-        echo ""
-        echo "🔍 Checking if controller classes exist:"
-        
-        CONTROLLERS=(
-          "com.redupahana.controller.AuthController"
-          "com.redupahana.controller.BillController"
-          "com.redupahana.controller.CustomerController"
-          "com.redupahana.controller.DashboardController"
-          "com.redupahana.controller.ItemController"
-          "com.redupahana.controller.UserController"
-          "com.redupahana.controller.CustomerPortalController"
-          "com.redupahana.controller.HelpController"
-        )
-        
-        for controller in "${CONTROLLERS[@]}"; do
-          CLASS_PATH=$(echo $controller | tr '.' '/')
-          if find . -path "*/${CLASS_PATH}.java" | grep -q .; then
-            echo "✅ $controller"
-          else
-            echo "⚠️ $controller (file not found)"
-          fi
-        done
-
-    - name: Validate Maven dependencies
-      run: |
-        echo "📦 Validating Maven dependencies..."
-        mvn dependency:resolve
-        
-        echo ""
-        echo "📋 Key Dependencies:"
-        echo "├── javax.servlet-api:4.0.1 (provided)"
-        echo "├── javax.servlet.jsp-api:2.3.3 (provided)"
-        echo "├── jstl:1.2"
-        echo "├── mysql-connector-j:8.0.33"
-        echo "└── junit:4.13.2 (test)"
-
-    - name: Compile the project
-      run: |
-        echo "🔨 Compiling Java sources..."
-        mvn clean compile
-        
-        echo "📊 Compilation Results:"
-        if [ -d "target/classes" ]; then
-          echo "✅ Compilation successful"
-          echo "📁 Compiled classes: $(find target/classes -name '*.class' | wc -l)"
-        else
-          echo "❌ Compilation failed"
-          exit 1
-        fi
-
-    - name: Run tests
-      run: |
-        echo "🧪 Running unit tests..."
-        mvn test || echo "⚠️ Tests completed with issues (continuing build...)"
-        
-        if [ -d "target/test-classes" ]; then
-          echo "📊 Test classes compiled: $(find target/test-classes -name '*.class' 2>/dev/null | wc -l)"
-        fi
-        
-        if [ -d "target/surefire-reports" ]; then
-          echo "📋 Test reports generated"
-          ls -la target/surefire-reports/
-        fi
-
-    - name: Package WAR file
-      run: |
-        echo "📦 Creating WAR package..."
-        mvn package -DskipTests
-        
-        echo "📁 Build Results:"
+        echo "📁 Build results:"
         ls -la target/
         
-        # Check if WAR file was created
-        if [ -f "target/online-app-version3.war" ]; then
-          echo "✅ WAR file created successfully: online-app-version3.war"
-          echo "📏 WAR file size: $(ls -lh target/online-app-version3.war | awk '{print $5}')"
-          
-          # Examine WAR contents
-          echo ""
-          echo "🔍 WAR file structure:"
-          jar -tf target/online-app-version3.war | head -20
-          echo "... (showing first 20 entries)"
-          
-        else
-          echo "❌ WAR file not created"
-          exit 1
-        fi
-
-    - name: Validate WAR contents
-      run: |
-        echo "🔍 Validating WAR file contents..."
+        # Find any WAR files
+        find target -name "*.war" || echo "No WAR files found"
         
-        # Extract WAR to examine structure
-        mkdir -p war-analysis
-        cd war-analysis
-        jar -xf ../target/online-app-version3.war
-        
-        echo "📂 WAR Directory Structure:"
-        tree . 2>/dev/null || find . -type d | sort
-        
-        echo ""
-        echo "📊 Content Analysis:"
-        echo "├── Java classes: $(find . -name '*.class' | wc -l)"
-        echo "├── JSP files: $(find . -name '*.jsp' | wc -l)"
-        echo "├── CSS files: $(find . -name '*.css' | wc -l)"
-        echo "├── JS files: $(find . -name '*.js' | wc -l)"
-        echo "└── JAR dependencies: $(find WEB-INF/lib -name '*.jar' 2>/dev/null | wc -l)"
-        
-        # Check for required files
-        if [ -f "WEB-INF/web.xml" ]; then
-          echo "✅ web.xml included in WAR"
-        else
-          echo "⚠️ web.xml not found in WAR (annotation-based configuration)"
-        fi
-        
-        if [ -d "WEB-INF/classes/com/redupahana" ]; then
-          echo "✅ Redupahana classes included"
-          echo "📁 Controller classes:"
-          find WEB-INF/classes/com/redupahana -name "*Controller.class" | sed 's|WEB-INF/classes/||' | sed 's|/|.|g' | sed 's|\.class||'
-        fi
-
-    - name: Upload build artifacts
+    - name: Upload WAR file
       uses: actions/upload-artifact@v4
+      if: always()
       with:
-        name: redupahana-pos-maven-build
-        path: |
-          target/online-app-version3.war
-          target/classes/
-          target/test-classes/
-          target/surefire-reports/
-        retention-days: 7
-
-  code-quality:
-    runs-on: ubuntu-latest
-    name: Code Quality Analysis
-    needs: build
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Set up JDK 8
-      uses: actions/setup-java@v4
-      with:
-        java-version: '8'
-        distribution: 'temurin'
-
-    - name: Cache Maven dependencies
-      uses: actions/cache@v3
-      with:
-        path: ~/.m2
-        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-        restore-keys: ${{ runner.os }}-m2
-
-    - name: Analyze code quality
-      run: |
-        echo "🔍 Code Quality Analysis"
-        echo "========================"
-        
-        # Compile first for analysis
-        mvn clean compile -q
-        
-        echo "📊 Project Statistics:"
-        
-        # Count different file types
-        JAVA_FILES=$(find . -name "*.java" | wc -l)
-        JSP_FILES=$(find . -name "*.jsp" | wc -l)
-        CSS_FILES=$(find . -name "*.css" | wc -l)
-        JS_FILES=$(find . -name "*.js" | wc -l)
-        
-        echo "├── Java files: $JAVA_FILES"
-        echo "├── JSP files: $JSP_FILES"
-        echo "├── CSS files: $CSS_FILES"
-        echo "└── JavaScript files: $JS_FILES"
-        
-        # Lines of code
-        if [ $JAVA_FILES -gt 0 ]; then
-          JAVA_LINES=$(find . -name "*.java" -exec cat {} \; | wc -l)
-          echo "📏 Lines of Java code: $JAVA_LINES"
-        fi
-        
-        if [ $JSP_FILES -gt 0 ]; then
-          JSP_LINES=$(find . -name "*.jsp" -exec cat {} \; | wc -l)
-          echo "📏 Lines of JSP code: $JSP_LINES"
-        fi
-        
-        echo ""
-        echo "🔍 Code Quality Checks:"
-        
-        # Check for debugging statements
-        DEBUG_COUNT=$(grep -r "System\.out\.println\|printStackTrace" . --include="*.java" | wc -l)
-        if [ $DEBUG_COUNT -gt 0 ]; then
-          echo "⚠️ Found $DEBUG_COUNT debugging statements"
-        else
-          echo "✅ No debugging statements found"
-        fi
-        
-        # Check for TODO comments
-        TODO_COUNT=$(grep -r "TODO\|FIXME\|XXX" . --include="*.java" --include="*.jsp" | wc -l)
-        if [ $TODO_COUNT -gt 0 ]; then
-          echo "📝 Found $TODO_COUNT TODO/FIXME comments"
-        else
-          echo "✅ No pending TODO items"
-        fi
-        
-        # Check controller annotations
-        ANNOTATION_COUNT=$(grep -r "@WebServlet\|@Controller" . --include="*.java" | wc -l)
-        echo "🏷️ Found $ANNOTATION_COUNT servlet/controller annotations"
-        
-        # Check SQL-related code
-        SQL_COUNT=$(grep -r "SELECT\|INSERT\|UPDATE\|DELETE" . --include="*.java" | wc -l)
-        echo "🗃️ Found $SQL_COUNT SQL-related statements"
-
-  security:
-    runs-on: ubuntu-latest
-    name: Security Analysis
-    needs: build
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Security scan
-      run: |
-        echo "🔒 Security Analysis"
-        echo "==================="
-        
-        # Check for hardcoded credentials
-        echo "🔐 Checking for hardcoded credentials..."
-        CRED_PATTERNS=$(grep -ri "password\s*=\|pwd\s*=\|pass\s*=" . --include="*.java" --include="*.properties" --include="*.xml" | grep -v "web.xml" | wc -l)
-        if [ $CRED_PATTERNS -gt 0 ]; then
-          echo "⚠️ Found $CRED_PATTERNS potential hardcoded credentials"
-        else
-          echo "✅ No obvious hardcoded credentials found"
-        fi
-        
-        # Check for SQL injection risks
-        echo "💉 Checking for SQL injection vulnerabilities..."
-        SQL_CONCAT=$(grep -r "\".*SELECT.*\"\s*+\|\".*INSERT.*\"\s*+" . --include="*.java" | wc -l)
-        if [ $SQL_CONCAT -gt 0 ]; then
-          echo "⚠️ Found $SQL_CONCAT potential SQL injection risks (string concatenation)"
-        else
-          echo "✅ No obvious SQL injection patterns found"
-        fi
-        
-        # Check for XSS in JSP files
-        echo "🌐 Checking for XSS vulnerabilities..."
-        XSS_PATTERNS=$(grep -r "<%=.*request\.getParameter\|out\.print.*request\." . --include="*.jsp" | wc -l)
-        if [ $XSS_PATTERNS -gt 0 ]; then
-          echo "⚠️ Found $XSS_PATTERNS potential XSS vulnerabilities in JSP files"
-        else
-          echo "✅ No obvious XSS patterns found"
-        fi
-        
-        # Check session management
-        echo "🍪 Checking session management..."
-        SESSION_COUNT=$(grep -r "getSession\|setMaxInactiveInterval" . --include="*.java" | wc -l)
-        echo "📊 Found $SESSION_COUNT session management statements"
-        
-        # Check for HTTPS/security headers
-        echo "🔐 Checking for security configurations..."
-        SECURITY_COUNT=$(grep -r "HTTPS\|security\|csrf" . --include="*.java" --include="*.xml" | wc -l)
-        echo "🛡️ Found $SECURITY_COUNT security-related configurations"
-
-  deploy-ready:
-    runs-on: ubuntu-latest
-    name: Deployment Readiness
-    needs: [build, code-quality, security]
-    if: github.ref == 'refs/heads/main'
-    
-    steps:
-    - name: Download build artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: redupahana-pos-maven-build
-
-    - name: Deployment readiness check
-      run: |
-        echo "🚀 Deployment Readiness Assessment"
-        echo "=================================="
-        
-        if [ -f "online-app-version3.war" ]; then
-          echo "✅ WAR file ready: online-app-version3.war"
-          echo "📏 Size: $(ls -lh online-app-version3.war | awk '{print $5}')"
-          
-          echo ""
-          echo "🎯 Deployment Targets:"
-          echo "├── Apache Tomcat 8.5+ (recommended)"
-          echo "├── Apache Tomcat 9.0+"
-          echo "├── Jetty 9.4+"
-          echo "└── Any Java EE 7+ server"
-          
-          echo ""
-          echo "⚙️ Runtime Requirements:"
-          echo "├── Java 8 or higher"
-          echo "├── MySQL 8.0+ database"
-          echo "├── Minimum 512MB heap space"
-          echo "└── Session storage support"
-          
-          echo ""
-          echo "📋 Deployment Checklist:"
-          echo "├── ✅ WAR file generated"
-          echo "├── ✅ Dependencies included"
-          echo "├── ✅ Controllers mapped"
-          echo "├── ✅ Web.xml configured"
-          echo "└── ✅ Error pages defined"
-          
-        else
-          echo "❌ WAR file not found"
-          exit 1
-        fi
-
-  notify:
-    runs-on: ubuntu-latest
-    name: Build Summary
-    needs: [build, code-quality, security]
-    if: always()
-    
-    steps:
-    - name: Build notification
-      run: |
-        echo "📊 Redupahana POS Build Summary"
-        echo "==============================="
-        echo ""
-        echo "🏗️ Build Status: ${{ needs.build.result }}"
-        echo "🔍 Code Quality: ${{ needs.code-quality.result }}"
-        echo "🔒 Security Scan: ${{ needs.security.result }}"
-        echo ""
-        echo "📋 Project Details:"
-        echo "├── Name: Redupahana POS System"
-        echo "├── Artifact: online-app-version3.war"
-        echo "├── Java Version: 1.8"
-        echo "├── Maven Project: ✅"
-        echo "└── Ready for Deployment: $([ '${{ needs.build.result }}' = 'success' ] && echo '✅' || echo '❌')"
-        echo ""
-        echo "🌟 Repository: ${{ github.repository }}"
-        echo "🌿 Branch: ${{ github.ref_name }}"
-        echo "👤 Author: ${{ github.actor }}"
-        echo "📅 Build Time: $(date)"
-        echo ""
-        
-        if [ "${{ needs.build.result }}" = "success" ]; then
-          echo "🎉 Build completed successfully!"
-          echo "📦 online-app-version3.war is ready for deployment"
-          echo "🚀 Deploy to your Tomcat server's webapps directory"
-        else
-          echo "⚠️ Build completed with issues - please check the logs"
-        fi
+        name: war-file
+        path: target/*.war
+        retention-days: 5
