@@ -1,4 +1,4 @@
-// BillItem.java - Enhanced with Image and Category Support
+// BillItem.java - Enhanced with Base64 Image Support
 package com.redupahana.model;
 
 public class BillItem {
@@ -9,7 +9,7 @@ public class BillItem {
     private double unitPrice;
     private double totalPrice;
 
-    // Enhanced Book specific fields - including new image and category
+    // Enhanced Book specific fields - including new Base64 image and category
     private String bookTitle;
     private String bookCode;
     private String author;
@@ -18,8 +18,8 @@ public class BillItem {
     private String language;
     private int pages;
     private int publicationYear;
-    private String imagePath;      // NEW: Book image path
-    private String bookCategory;   // NEW: Book category
+    private String imageBase64;    // CHANGED: Base64 image data instead of path
+    private String bookCategory;   // Book category
     private Book book;
 
     // Constructors
@@ -87,9 +87,9 @@ public class BillItem {
     public int getPublicationYear() { return publicationYear; }
     public void setPublicationYear(int publicationYear) { this.publicationYear = publicationYear; }
 
-    // NEW: Image and Category getters and setters
-    public String getImagePath() { return imagePath; }
-    public void setImagePath(String imagePath) { this.imagePath = imagePath; }
+    // CHANGED: Base64 image getters and setters
+    public String getImageBase64() { return imageBase64; }
+    public void setImageBase64(String imageBase64) { this.imageBase64 = imageBase64; }
 
     public String getBookCategory() { return bookCategory; }
     public void setBookCategory(String bookCategory) { this.bookCategory = bookCategory; }
@@ -124,19 +124,28 @@ public class BillItem {
     }
     public void setItemDescription(String itemDescription) { /* Not used for books */ }
 
-    // NEW: Helper methods for image display
+    // CHANGED: Helper methods for Base64 image display
     public boolean hasImage() {
-        return imagePath != null && !imagePath.trim().isEmpty();
+        return imageBase64 != null && !imageBase64.trim().isEmpty();
+    }
+
+    public String getImageDataUrl() {
+        return hasImage() ? imageBase64 : null;
     }
 
     public String getImageUrl() {
-        if (hasImage()) {
-            return imagePath.startsWith("/") ? imagePath : "/" + imagePath;
-        }
-        return null;
+        return getImageDataUrl(); // Return Base64 data URL directly
     }
 
-    // NEW: Helper methods for category display
+    // Backward compatibility for JSPs still using getImagePath()
+    public String getImagePath() { 
+        return hasImage() ? "base64_image" : null; 
+    }
+    public void setImagePath(String imagePath) { 
+        // For compatibility only - do nothing since we use Base64
+    }
+
+    // Helper methods for category display
     public boolean hasCategory() {
         return bookCategory != null && !bookCategory.trim().isEmpty();
     }

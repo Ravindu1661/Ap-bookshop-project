@@ -1,4 +1,4 @@
-// BillController.java - Enhanced with Image and Category Support
+// BillController.java - Enhanced with Base64 Image Support
 package com.redupahana.controller;
 
 import com.redupahana.service.UserService;
@@ -140,7 +140,7 @@ public class BillController extends HttpServlet {
             
             request.setAttribute("customers", customers);
             request.setAttribute("books", books);
-            request.setAttribute("bookCategories", bookCategories);  // NEW: Add categories
+            request.setAttribute("bookCategories", bookCategories);
             request.getRequestDispatcher("WEB-INF/view/bill/createBill.jsp").forward(request, response);
         } catch (SQLException e) {
             request.setAttribute("errorMessage", "Error loading data: " + e.getMessage());
@@ -326,7 +326,7 @@ public class BillController extends HttpServlet {
                     System.err.println("Error loading cashier details: " + e.getMessage());
                 }
                 
-                // Enhanced book details loading - already done in BillService but ensure completeness
+                // CHANGED: Enhanced book details loading - already done in BillService but ensure completeness
                 if (bill.getBillItems() != null && !bill.getBillItems().isEmpty()) {
                     for (BillItem billItem : bill.getBillItems()) {
                         try {
@@ -334,7 +334,7 @@ public class BillController extends HttpServlet {
                             if (billItem.getBookTitle() == null || billItem.getBookTitle().trim().isEmpty()) {
                                 Book book = bookService.getBookById(billItem.getBookId());
                                 if (book != null) {
-                                    // Set all book details including new fields
+                                    // CHANGED: Set all book details including Base64 image
                                     billItem.setBookTitle(book.getTitle());
                                     billItem.setAuthor(book.getAuthor());
                                     billItem.setBookCode(book.getBookCode());
@@ -343,8 +343,8 @@ public class BillController extends HttpServlet {
                                     billItem.setLanguage(book.getLanguage());
                                     billItem.setPages(book.getPages());
                                     billItem.setPublicationYear(book.getPublicationYear());
-                                    billItem.setImagePath(book.getImagePath());  // NEW
-                                    billItem.setBookCategory(book.getBookCategory());  // NEW
+                                    billItem.setImageBase64(book.getImageBase64());  // CHANGED: Base64
+                                    billItem.setBookCategory(book.getBookCategory());
                                 }
                             }
                         } catch (SQLException e) {
@@ -428,7 +428,7 @@ public class BillController extends HttpServlet {
                     System.err.println("Error loading cashier details: " + e.getMessage());
                 }
                 
-                // Enhanced book details loading for printing - already done in BillService
+                // CHANGED: Enhanced book details loading for printing - already done in BillService
                 if (bill.getBillItems() != null && !bill.getBillItems().isEmpty()) {
                     for (BillItem billItem : bill.getBillItems()) {
                         try {
@@ -436,7 +436,7 @@ public class BillController extends HttpServlet {
                             if (billItem.getBookTitle() == null || billItem.getBookTitle().trim().isEmpty()) {
                                 Book book = bookService.getBookById(billItem.getBookId());
                                 if (book != null) {
-                                    // Set comprehensive book details for print view
+                                    // CHANGED: Set comprehensive book details for print view
                                     billItem.setBookTitle(book.getTitle());
                                     billItem.setAuthor(book.getAuthor());
                                     billItem.setBookCode(book.getBookCode());
@@ -445,8 +445,8 @@ public class BillController extends HttpServlet {
                                     billItem.setLanguage(book.getLanguage());
                                     billItem.setPages(book.getPages());
                                     billItem.setPublicationYear(book.getPublicationYear());
-                                    billItem.setImagePath(book.getImagePath());  // NEW
-                                    billItem.setBookCategory(book.getBookCategory());  // NEW
+                                    billItem.setImageBase64(book.getImageBase64());  // CHANGED: Base64
+                                    billItem.setBookCategory(book.getBookCategory());
                                 }
                             }
                         } catch (SQLException e) {

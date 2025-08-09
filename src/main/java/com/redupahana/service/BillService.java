@@ -1,4 +1,4 @@
-// BillService.java - Updated with Image and Category Support
+// BillService.java - Updated with Base64 Image Support
 package com.redupahana.service;
 
 import java.sql.Connection;
@@ -82,14 +82,14 @@ public class BillService {
                 billItem.calculateTotalPrice();
                 subTotal += billItem.getTotalPrice();
                 
-                // Set comprehensive book details in bill item including new fields
+                // CHANGED: Set comprehensive book details in bill item including Base64 image
                 billItem.setBookTitle(book.getTitle());
                 billItem.setBookCode(book.getBookCode());
                 billItem.setAuthor(book.getAuthor());
                 billItem.setIsbn(book.getIsbn());
                 billItem.setPublisher(book.getPublisher());
-                billItem.setImagePath(book.getImagePath());  // NEW: Set image path
-                billItem.setBookCategory(book.getBookCategory());  // NEW: Set book category
+                billItem.setImageBase64(book.getImageBase64());  // CHANGED: Set Base64 image
+                billItem.setBookCategory(book.getBookCategory());
                 billItem.setLanguage(book.getLanguage());
                 billItem.setPages(book.getPages());
                 billItem.setPublicationYear(book.getPublicationYear());
@@ -146,7 +146,7 @@ public class BillService {
         }
     }
     
-    // Helper method to get book using specific connection with all fields including image and category
+    // Helper method to get book using specific connection with all fields including Base64 image
     private Book getBookByIdWithConnection(Connection connection, int bookId) throws SQLException {
         String query = "SELECT * FROM items WHERE item_id = ? AND category = 'Books' AND is_active = true";
         try (java.sql.PreparedStatement statement = connection.prepareStatement(query)) {
@@ -226,7 +226,7 @@ public class BillService {
         }
     }
     
-    // Helper method to map ResultSet to Book with image and category support
+    // CHANGED: Helper method to map ResultSet to Book with Base64 image support
     private Book mapResultSetToBook(java.sql.ResultSet resultSet) throws SQLException {
         Book book = new Book();
         book.setBookId(resultSet.getInt("item_id"));
@@ -253,8 +253,8 @@ public class BillService {
         book.setLanguage(resultSet.getString("language"));
         book.setActive(resultSet.getBoolean("is_active"));
         
-        // Handle new fields for image and category
-        book.setImagePath(resultSet.getString("image_path"));
+        // CHANGED: Handle new fields for Base64 image and category
+        book.setImageBase64(resultSet.getString("image_base64"));
         book.setBookCategory(resultSet.getString("book_category"));
         
         // Handle timestamps
@@ -271,7 +271,7 @@ public class BillService {
         return book;
     }
     
-    // Existing methods remain the same but with enhanced book loading for bill items
+    // Existing methods with enhanced book loading for bill items
     public List<Bill> getAllBills() throws SQLException {
         List<Bill> bills = billDAO.getAllBills();
         
@@ -284,14 +284,14 @@ public class BillService {
                 try {
                     Book book = bookDAO.getBookById(billItem.getBookId());
                     if (book != null) {
-                        // Set all book details including new fields
+                        // CHANGED: Set all book details including Base64 image
                         billItem.setBookTitle(book.getTitle());
                         billItem.setBookCode(book.getBookCode());
                         billItem.setAuthor(book.getAuthor());
                         billItem.setIsbn(book.getIsbn());
                         billItem.setPublisher(book.getPublisher());
-                        billItem.setImagePath(book.getImagePath());  // NEW
-                        billItem.setBookCategory(book.getBookCategory());  // NEW
+                        billItem.setImageBase64(book.getImageBase64());  // CHANGED: Base64
+                        billItem.setBookCategory(book.getBookCategory());
                         billItem.setLanguage(book.getLanguage());
                         billItem.setPages(book.getPages());
                         billItem.setPublicationYear(book.getPublicationYear());
@@ -322,14 +322,14 @@ public class BillService {
                 try {
                     Book book = bookDAO.getBookById(billItem.getBookId());
                     if (book != null) {
-                        // Set all book details including new fields
+                        // CHANGED: Set all book details including Base64 image
                         billItem.setBookTitle(book.getTitle());
                         billItem.setBookCode(book.getBookCode());
                         billItem.setAuthor(book.getAuthor());
                         billItem.setIsbn(book.getIsbn());
                         billItem.setPublisher(book.getPublisher());
-                        billItem.setImagePath(book.getImagePath());  // NEW
-                        billItem.setBookCategory(book.getBookCategory());  // NEW
+                        billItem.setImageBase64(book.getImageBase64());  // CHANGED: Base64
+                        billItem.setBookCategory(book.getBookCategory());
                         billItem.setLanguage(book.getLanguage());
                         billItem.setPages(book.getPages());
                         billItem.setPublicationYear(book.getPublicationYear());
@@ -360,14 +360,14 @@ public class BillService {
                 try {
                     Book book = bookDAO.getBookById(billItem.getBookId());
                     if (book != null) {
-                        // Set all book details including new fields
+                        // CHANGED: Set all book details including Base64 image
                         billItem.setBookTitle(book.getTitle());
                         billItem.setBookCode(book.getBookCode());
                         billItem.setAuthor(book.getAuthor());
                         billItem.setIsbn(book.getIsbn());
                         billItem.setPublisher(book.getPublisher());
-                        billItem.setImagePath(book.getImagePath());  // NEW
-                        billItem.setBookCategory(book.getBookCategory());  // NEW
+                        billItem.setImageBase64(book.getImageBase64());  // CHANGED: Base64
+                        billItem.setBookCategory(book.getBookCategory());
                         billItem.setLanguage(book.getLanguage());
                         billItem.setPages(book.getPages());
                         billItem.setPublicationYear(book.getPublicationYear());
@@ -399,14 +399,14 @@ public class BillService {
                 try {
                     Book book = bookDAO.getBookById(billItem.getBookId());
                     if (book != null) {
-                        // Set all book details including new fields
+                        // CHANGED: Set all book details including Base64 image
                         billItem.setBookTitle(book.getTitle());
                         billItem.setBookCode(book.getBookCode());
                         billItem.setAuthor(book.getAuthor());
                         billItem.setIsbn(book.getIsbn());
                         billItem.setPublisher(book.getPublisher());
-                        billItem.setImagePath(book.getImagePath());  // NEW
-                        billItem.setBookCategory(book.getBookCategory());  // NEW
+                        billItem.setImageBase64(book.getImageBase64());  // CHANGED: Base64
+                        billItem.setBookCategory(book.getBookCategory());
                         billItem.setLanguage(book.getLanguage());
                         billItem.setPages(book.getPages());
                         billItem.setPublicationYear(book.getPublicationYear());
@@ -438,14 +438,14 @@ public class BillService {
                 try {
                     Book book = bookDAO.getBookById(billItem.getBookId());
                     if (book != null) {
-                        // Set all book details including new fields
+                        // CHANGED: Set all book details including Base64 image
                         billItem.setBookTitle(book.getTitle());
                         billItem.setBookCode(book.getBookCode());
                         billItem.setAuthor(book.getAuthor());
                         billItem.setIsbn(book.getIsbn());
                         billItem.setPublisher(book.getPublisher());
-                        billItem.setImagePath(book.getImagePath());  // NEW
-                        billItem.setBookCategory(book.getBookCategory());  // NEW
+                        billItem.setImageBase64(book.getImageBase64());  // CHANGED: Base64
+                        billItem.setBookCategory(book.getBookCategory());
                         billItem.setLanguage(book.getLanguage());
                         billItem.setPages(book.getPages());
                         billItem.setPublicationYear(book.getPublicationYear());
@@ -477,14 +477,14 @@ public class BillService {
                 try {
                     Book book = bookDAO.getBookById(billItem.getBookId());
                     if (book != null) {
-                        // Set all book details including new fields
+                        // CHANGED: Set all book details including Base64 image
                         billItem.setBookTitle(book.getTitle());
                         billItem.setBookCode(book.getBookCode());
                         billItem.setAuthor(book.getAuthor());
                         billItem.setIsbn(book.getIsbn());
                         billItem.setPublisher(book.getPublisher());
-                        billItem.setImagePath(book.getImagePath());  // NEW
-                        billItem.setBookCategory(book.getBookCategory());  // NEW
+                        billItem.setImageBase64(book.getImageBase64());  // CHANGED: Base64
+                        billItem.setBookCategory(book.getBookCategory());
                         billItem.setLanguage(book.getLanguage());
                         billItem.setPages(book.getPages());
                         billItem.setPublicationYear(book.getPublicationYear());
@@ -515,14 +515,14 @@ public class BillService {
                 try {
                     Book book = bookDAO.getBookById(billItem.getBookId());
                     if (book != null) {
-                        // Set all book details including new fields
+                        // CHANGED: Set all book details including Base64 image
                         billItem.setBookTitle(book.getTitle());
                         billItem.setBookCode(book.getBookCode());
                         billItem.setAuthor(book.getAuthor());
                         billItem.setIsbn(book.getIsbn());
                         billItem.setPublisher(book.getPublisher());
-                        billItem.setImagePath(book.getImagePath());  // NEW
-                        billItem.setBookCategory(book.getBookCategory());  // NEW
+                        billItem.setImageBase64(book.getImageBase64());  // CHANGED: Base64
+                        billItem.setBookCategory(book.getBookCategory());
                         billItem.setLanguage(book.getLanguage());
                         billItem.setPages(book.getPages());
                         billItem.setPublicationYear(book.getPublicationYear());

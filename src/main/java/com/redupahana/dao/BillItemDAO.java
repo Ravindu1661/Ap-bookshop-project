@@ -1,4 +1,4 @@
-// BillItemDAO.java - Enhanced with Image and Category Support
+// BillItemDAO.java - Enhanced with Base64 Image Support
 package com.redupahana.dao;
 
 import java.sql.*;
@@ -35,10 +35,10 @@ public class BillItemDAO {
     
     public List<BillItem> getBillItemsByBillId(int billId) throws SQLException {
         List<BillItem> billItems = new ArrayList<>();
-        // Enhanced query to get all book details including image_path and book_category
+        // CHANGED: Updated query to get Base64 image data
         String query = "SELECT bi.*, i.name as book_title, i.item_code as book_code, " +
                       "i.author, i.isbn, i.publisher, i.language, i.pages, i.publication_year, " +
-                      "i.description, i.image_path, i.book_category " +
+                      "i.description, i.image_base64, i.book_category " +
                       "FROM bill_items bi " +
                       "LEFT JOIN items i ON bi.item_id = i.item_id " +
                       "WHERE bi.bill_id = ? AND i.category = 'Books' " +
@@ -58,10 +58,10 @@ public class BillItemDAO {
     }
     
     public BillItem getBillItemById(int billItemId) throws SQLException {
-        // Enhanced query to get all book details including image_path and book_category
+        // CHANGED: Updated query to get Base64 image data
         String query = "SELECT bi.*, i.name as book_title, i.item_code as book_code, " +
                       "i.author, i.isbn, i.publisher, i.language, i.pages, i.publication_year, " +
-                      "i.description, i.image_path, i.book_category " +
+                      "i.description, i.image_base64, i.book_category " +
                       "FROM bill_items bi " +
                       "LEFT JOIN items i ON bi.item_id = i.item_id " +
                       "WHERE bi.bill_item_id = ? AND i.category = 'Books'";
@@ -117,10 +117,10 @@ public class BillItemDAO {
     
     public List<BillItem> getBillItemsByBookId(int bookId) throws SQLException {
         List<BillItem> billItems = new ArrayList<>();
-        // Enhanced query to get all book details including image_path and book_category
+        // CHANGED: Updated query to get Base64 image data
         String query = "SELECT bi.*, i.name as book_title, i.item_code as book_code, " +
                       "i.author, i.isbn, i.publisher, i.language, i.pages, i.publication_year, " +
-                      "i.description, i.image_path, i.book_category, " +
+                      "i.description, i.image_base64, i.book_category, " +
                       "b.bill_number, b.bill_date " +
                       "FROM bill_items bi " +
                       "LEFT JOIN items i ON bi.item_id = i.item_id " +
@@ -146,10 +146,10 @@ public class BillItemDAO {
      */
     public List<BillItem> getBillItemsWithStats(int bookId) throws SQLException {
         List<BillItem> billItems = new ArrayList<>();
-        // Enhanced query with additional statistics
+        // CHANGED: Updated query to get Base64 image data
         String query = "SELECT bi.*, i.name as book_title, i.item_code as book_code, " +
                       "i.author, i.isbn, i.publisher, i.language, i.pages, i.publication_year, " +
-                      "i.description, i.image_path, i.book_category, " +
+                      "i.description, i.image_base64, i.book_category, " +
                       "b.bill_number, b.bill_date, b.payment_status, c.name as customer_name " +
                       "FROM bill_items bi " +
                       "LEFT JOIN items i ON bi.item_id = i.item_id " +
@@ -171,10 +171,8 @@ public class BillItemDAO {
         return billItems;
     }
     
-
-    
     /**
-     * Enhanced mapping method with image and category support
+     * CHANGED: Enhanced mapping method with Base64 image support
      */
     private BillItem mapResultSetToBillItem(ResultSet resultSet) throws SQLException {
         BillItem billItem = new BillItem();
@@ -205,8 +203,8 @@ public class BillItemDAO {
                 billItem.setPublicationYear(publicationYear);
             }
             
-            // NEW: Set image path and book category
-            billItem.setImagePath(resultSet.getString("image_path"));
+            // CHANGED: Set Base64 image and book category
+            billItem.setImageBase64(resultSet.getString("image_base64"));
             billItem.setBookCategory(resultSet.getString("book_category"));
             
         } catch (SQLException e) {
