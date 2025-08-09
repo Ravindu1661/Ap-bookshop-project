@@ -11,6 +11,7 @@
     }
     
     List<Book> books = (List<Book>) request.getAttribute("books");
+    List<String> categories = (List<String>) request.getAttribute("categories");
     String searchTerm = (String) request.getAttribute("searchTerm");
     String errorMessage = (String) request.getAttribute("errorMessage");
     String successMessage = (String) request.getAttribute("successMessage");
@@ -47,7 +48,7 @@
 
         .search-row {
             display: grid;
-            grid-template-columns: 2fr 1fr 1fr auto;
+            grid-template-columns: 2fr 1fr 1fr 1fr auto;
             gap: 0.8rem;
             align-items: end;
         }
@@ -123,8 +124,36 @@
             font-weight: 500;
         }
 
-        /* Language Badge */
-        .language-badge {
+        /* Book Image */
+        .book-image {
+            width: 50px;
+            height: 70px;
+            object-fit: cover;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .book-image:hover {
+            transform: scale(1.1);
+        }
+
+        .no-image {
+            width: 50px;
+            height: 70px;
+            background-color: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #6c757d;
+        }
+
+        /* Category Badge */
+        .category-badge {
             display: inline-block;
             padding: 0.2rem 0.6rem;
             background-color: #e8f4fd;
@@ -132,6 +161,19 @@
             border-radius: 10px;
             font-size: 0.75rem;
             font-weight: 500;
+            border: 1px solid #bee5eb;
+        }
+
+        /* Language Badge */
+        .language-badge {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            background-color: #fff3cd;
+            color: #856404;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            border: 1px solid #ffeaa7;
         }
 
         /* Stock Status */
@@ -143,14 +185,111 @@
             font-weight: 600;
         }
 
+        .stock-low {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .stock-medium {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .stock-good {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
         .price {
             font-weight: 600;
             color: #28a745;
         }
 
+        /* Table Updates */
+        .table td {
+            vertical-align: middle;
+        }
+
+        .book-info {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .book-details h4 {
+            margin: 0;
+            font-size: 0.95rem;
+            color: #2c3e50;
+        }
+
+        .book-details small {
+            color: #6c757d;
+            font-size: 0.8rem;
+        }
+
+        .book-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        /* Image Modal */
+        .image-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            cursor: pointer;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            max-width: 90%;
+            max-height: 90%;
+        }
+
+        .modal-image {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            background: rgba(0,0,0,0.5);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         @media (max-width: 768px) {
             .search-row {
                 grid-template-columns: 1fr;
+            }
+            
+            .book-info {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
             }
         }
     </style>
@@ -182,8 +321,8 @@
                         <div class="search-group">
                             <label for="searchTerm">Search Books</label>
                             <input type="text" name="searchTerm" id="searchTerm" 
-                                   placeholder="Search by title, author, ISBN, or publisher..." 
-                                   value="<%= searchTerm != null ? searchTerm : "" %>">
+                                   placeholder="Search by title, author, ISBN, publisher, or category..." 
+                                   value="<%= searchTerm != null ? searchTerm.replaceAll("(Author|Language|Category): ", "") : "" %>">
                         </div>
                         <div class="search-group">
                             <label for="searchAuthor">Filter by Author</label>
@@ -200,8 +339,20 @@
                             </select>
                         </div>
                         <div class="search-group">
+                            <label for="searchCategory">Filter by Category</label>
+                            <select name="category" id="searchCategory">
+                                <option value="">All Categories</option>
+                                <% if (categories != null && !categories.isEmpty()) { %>
+                                    <% for (String category : categories) { %>
+                                        <option value="<%= category %>"><%= category %></option>
+                                    <% } %>
+                                <% } %>
+                            </select>
+                        </div>
+                        <div class="search-group">
                             <button type="submit" class="btn btn-primary">🔍 Search</button>
-                            <% if (searchTerm != null || request.getParameter("author") != null || request.getParameter("language") != null) { %>
+                            <% if (searchTerm != null || request.getParameter("author") != null || 
+                                   request.getParameter("language") != null || request.getParameter("category") != null) { %>
                             <a href="book?action=list" class="btn btn-secondary" style="margin-top: 0.5rem;">❌ Clear</a>
                             <% } %>
                         </div>
@@ -239,6 +390,10 @@
                     <h3><%= outOfStockBooks %></h3>
                     <p>Out of Stock</p>
                 </div>
+                <div class="stat-card">
+                    <h3><%= categories != null ? categories.size() : 0 %></h3>
+                    <p>Categories</p>
+                </div>
             </div>
 
             <!-- Alert Messages -->
@@ -267,28 +422,54 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Book Code</th>
-                            <th>Title</th>
-                            <th>Author</th>
+                            <th>Book</th>
+                            <th>Details</th>
+                            <th>Category</th>
                             <th>Language</th>
                             <th>Price</th>
                             <th>Stock</th>
-                            <th>Publisher</th>
-                            <th>Year</th>
+                            <th>Publication</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         <% for (Book book : books) { %>
                         <tr>
-                            <td><strong><%= book.getBookCode() %></strong></td>
                             <td>
-                                <strong><%= book.getTitle() %></strong>
-                                <% if (book.getIsbn() != null && !book.getIsbn().trim().isEmpty()) { %>
-                                <br><small style="color: #6c757d;">ISBN: <%= book.getIsbn() %></small>
+                                <div class="book-info">
+                                    <% if (book.getImagePath() != null && !book.getImagePath().trim().isEmpty()) { %>
+                                        <img src="<%= book.getImagePath() %>" alt="<%= book.getTitle() %>" 
+                                             class="book-image" onclick="showImageModal('<%= book.getImagePath() %>', '<%= book.getTitle() %>')">
+                                    <% } else { %>
+                                        <div class="no-image">📚</div>
+                                    <% } %>
+                                    <div class="book-details">
+                                        <h4><%= book.getTitle() %></h4>
+                                        <small><strong>Code:</strong> <%= book.getBookCode() %></small>
+                                        <% if (book.getIsbn() != null && !book.getIsbn().trim().isEmpty()) { %>
+                                        <br><small><strong>ISBN:</strong> <%= book.getIsbn() %></small>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="book-meta">
+                                    <strong><%= book.getAuthor() %></strong>
+                                    <% if (book.getPublisher() != null && !book.getPublisher().trim().isEmpty()) { %>
+                                    <small style="color: #6c757d;"><%= book.getPublisher() %></small>
+                                    <% } %>
+                                    <% if (book.getPages() > 0) { %>
+                                    <small style="color: #6c757d;"><%= book.getPages() %> pages</small>
+                                    <% } %>
+                                </div>
+                            </td>
+                            <td>
+                                <% if (book.getBookCategory() != null && !book.getBookCategory().trim().isEmpty()) { %>
+                                    <span class="category-badge"><%= book.getBookCategory() %></span>
+                                <% } else { %>
+                                    <span style="color: #6c757d; font-style: italic;">No category</span>
                                 <% } %>
                             </td>
-                            <td><%= book.getAuthor() %></td>
                             <td>
                                 <span class="language-badge"><%= book.getLanguage() != null ? book.getLanguage() : "Sinhala" %></span>
                             </td>
@@ -302,8 +483,13 @@
                                     <%= book.getStockQuantity() %> copies
                                 </span>
                             </td>
-                            <td><%= book.getPublisher() != null ? book.getPublisher() : "-" %></td>
-                            <td><%= book.getPublicationYear() > 0 ? book.getPublicationYear() : "-" %></td>
+                            <td>
+                                <% if (book.getPublicationYear() > 0) { %>
+                                    <%= book.getPublicationYear() %>
+                                <% } else { %>
+                                    <span style="color: #6c757d;">-</span>
+                                <% } %>
+                            </td>
                             <td>
                                 <div class="action-buttons">
                                     <a href="book?action=view&id=<%= book.getBookId() %>" 
@@ -336,15 +522,42 @@
         </main>
     </div>
 
+    <!-- Image Modal -->
+    <div id="imageModal" class="image-modal" onclick="closeImageModal()">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeImageModal()">&times;</span>
+            <img id="modalImage" class="modal-image" src="" alt="">
+        </div>
+    </div>
+
     <script>
+        // Image Modal Functions
+        function showImageModal(imagePath, title) {
+            const modal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('modalImage');
+            modal.style.display = 'block';
+            modalImg.src = imagePath;
+            modalImg.alt = title;
+        }
+
+        function closeImageModal() {
+            document.getElementById('imageModal').style.display = 'none';
+        }
+
+        // Delete Confirmation
+        function confirmDelete(bookTitle, bookId) {
+            return confirm('Are you sure you want to delete "' + bookTitle + '"?\n\nThis action cannot be undone and will also remove any associated image file.');
+        }
+
         // Search Function
         function performSearch() {
             const form = document.getElementById('searchForm');
             const searchTerm = document.getElementById('searchTerm').value.trim();
             const author = document.getElementById('searchAuthor').value.trim();
             const language = document.getElementById('searchLanguage').value;
+            const category = document.getElementById('searchCategory').value;
 
-            if (!searchTerm && !author && !language) {
+            if (!searchTerm && !author && !language && !category) {
                 window.location.href = 'book?action=list';
                 return;
             }
@@ -356,6 +569,8 @@
                 form.action = 'book?action=searchByAuthor';
             } else if (language) {
                 form.action = 'book?action=searchByLanguage';
+            } else if (category) {
+                form.action = 'book?action=searchByCategory';
             }
 
             // Show loading state
@@ -375,6 +590,21 @@
             });
         });
 
+        // Change handlers for dropdowns
+        document.getElementById('searchLanguage').addEventListener('change', function() {
+            if (this.value) {
+                document.getElementById('searchForm').action = 'book?action=searchByLanguage';
+                document.getElementById('searchForm').submit();
+            }
+        });
+
+        document.getElementById('searchCategory').addEventListener('change', function() {
+            if (this.value) {
+                document.getElementById('searchForm').action = 'book?action=searchByCategory';
+                document.getElementById('searchForm').submit();
+            }
+        });
+
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Book Management page loaded');
@@ -386,6 +616,30 @@
             }
             if (urlParams.has('language')) {
                 document.getElementById('searchLanguage').value = urlParams.get('language');
+            }
+            if (urlParams.has('category')) {
+                document.getElementById('searchCategory').value = urlParams.get('category');
+            }
+
+            // Auto-hide alerts after 5 seconds
+            setTimeout(() => {
+                const successAlert = document.getElementById('successAlert');
+                const errorAlert = document.getElementById('errorAlert');
+                if (successAlert) {
+                    successAlert.style.opacity = '0';
+                    setTimeout(() => successAlert.remove(), 300);
+                }
+                if (errorAlert) {
+                    errorAlert.style.opacity = '0';
+                    setTimeout(() => errorAlert.remove(), 300);
+                }
+            }, 5000);
+        });
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeImageModal();
             }
         });
     </script>

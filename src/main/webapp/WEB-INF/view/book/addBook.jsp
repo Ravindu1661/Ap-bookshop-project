@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="com.redupahana.model.User"%>
 <%@ page import="com.redupahana.util.Constants"%>
+<%@ page import="java.util.List"%>
 <%
     User loggedUser = (User) session.getAttribute("loggedUser");
     if (loggedUser == null) {
@@ -9,6 +10,8 @@
     }
     
     String errorMessage = (String) request.getAttribute("errorMessage");
+    String suggestedBookCode = (String) request.getAttribute("suggestedBookCode");
+    List<String> categories = (List<String>) request.getAttribute("categories");
     
     // Set page attributes for sidebar
     request.setAttribute("currentPage", "book");
@@ -169,6 +172,21 @@
             margin-top: 0.25rem;
         }
 
+        /* Book Code Input */
+        .book-code-group {
+            position: relative;
+        }
+
+        .book-code-suggestion {
+            background-color: #e8f4fd;
+            border: 1px solid #bee5eb;
+            padding: 0.5rem 0.8rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+            color: #0c5460;
+        }
+
         /* Price Input */
         .price-input-group {
             position: relative;
@@ -216,6 +234,89 @@
         .stock-good {
             background-color: #d4edda;
             color: #155724;
+        }
+
+        /* Category Selection */
+        .category-group {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-end;
+        }
+
+        .category-select {
+            flex: 1;
+        }
+
+        .category-input {
+            flex: 1;
+            display: none;
+        }
+
+        .category-input.show {
+            display: block;
+        }
+
+        .btn-add-category {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 0.8rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            transition: background 0.3s ease;
+        }
+
+        .btn-add-category:hover {
+            background: #218838;
+        }
+
+        /* Image Upload */
+        .image-upload-container {
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            background-color: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+
+        .image-upload-container:hover {
+            border-color: #007bff;
+            background-color: #e8f4fd;
+        }
+
+        .image-upload-container.dragover {
+            border-color: #007bff;
+            background-color: #e8f4fd;
+        }
+
+        .image-preview {
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .image-preview img {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .image-remove {
+            margin-top: 0.5rem;
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .image-remove:hover {
+            background: #c82333;
         }
 
         /* Language Selection */
@@ -369,6 +470,11 @@
                 width: 100%;
                 margin-bottom: 0.5rem;
             }
+
+            .category-group {
+                flex-direction: column;
+                gap: 0.8rem;
+            }
         }
 
         @media (max-width: 480px) {
@@ -424,7 +530,7 @@
             <!-- Info Notice -->
             <div class="info-notice">
                 <h4>📖 Add New Book to Library</h4>
-                <p>Fill in the details below to add a new book to your library inventory. Required fields are marked with an asterisk (*).</p>
+                <p>Fill in the details below to add a new book to your library inventory. Required fields are marked with an asterisk (*). You can also upload a book cover image.</p>
             </div>
 
             <!-- Error Message -->
@@ -436,9 +542,24 @@
 
             <!-- Add Book Form -->
             <div class="form-container">
-                <form action="book" method="post" id="addBookForm">
+                <form action="book" method="post" id="addBookForm" enctype="multipart/form-data">
                     <input type="hidden" name="action" value="add">
                     
+                    <!-- Book Code -->
+                    <div class="form-group">
+                        <label for="bookCode">Book Code</label>
+                        <div class="book-code-group">
+                            <input type="text" class="form-control" id="bookCode" name="bookCode" 
+                                   placeholder="Leave blank for auto-generation">
+                            <% if (suggestedBookCode != null) { %>
+                            <div class="book-code-suggestion">
+                                💡 Suggested code: <%= suggestedBookCode %> (or leave blank for auto-generation)
+                            </div>
+                            <% } %>
+                        </div>
+                        <div class="form-text">Leave blank to auto-generate a unique book code</div>
+                    </div>
+
                     <div class="form-row">
                         <div class="form-group">
                             <label for="title">Book Title <span class="required">*</span></label>
@@ -465,6 +586,32 @@
                             <input type="text" class="form-control" id="publisher" name="publisher" 
                                    placeholder="Enter publisher name (optional)">
                         </div>
+                    </div>
+
+                    <!-- Category Selection -->
+                    <div class="form-group">
+                        <label for="bookCategory">Book Category</label>
+                        <div class="category-group">
+                            <div class="category-select">
+                                <select class="form-control" id="categorySelect" onchange="toggleCategoryInput()">
+                                    <option value="">Select existing category</option>
+                                    <% if (categories != null && !categories.isEmpty()) { %>
+                                        <% for (String category : categories) { %>
+                                            <option value="<%= category %>"><%= category %></option>
+                                        <% } %>
+                                    <% } %>
+                                    <option value="__new__">➕ Add New Category</option>
+                                </select>
+                            </div>
+                            <div class="category-input" id="categoryInput">
+                                <input type="text" class="form-control" id="bookCategory" name="bookCategory" 
+                                       placeholder="Enter new category name">
+                            </div>
+                            <button type="button" class="btn-add-category" onclick="addNewCategory()" style="display: none;" id="addCategoryBtn">
+                                ➕ Add
+                            </button>
+                        </div>
+                        <div class="form-text">Select an existing category or create a new one</div>
                     </div>
 
                     <div class="form-group full-width">
@@ -508,6 +655,24 @@
                         </div>
                     </div>
 
+                    <!-- Image Upload -->
+                    <div class="form-group">
+                        <label for="bookImage">Book Cover Image</label>
+                        <div class="image-upload-container" id="imageUploadContainer">
+                            <input type="file" id="bookImage" name="bookImage" accept="image/*" style="display: none;">
+                            <div class="upload-text">
+                                <h4>📷 Upload Book Cover</h4>
+                                <p>Click here or drag and drop an image file (JPG, PNG, GIF)</p>
+                                <p style="font-size: 0.8rem; color: #6c757d;">Maximum file size: 5MB</p>
+                            </div>
+                            <div class="image-preview" id="imagePreview">
+                                <img id="previewImg" src="" alt="Book Cover Preview">
+                                <br>
+                                <button type="button" class="image-remove" onclick="removeImage()">🗑️ Remove Image</button>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="form-group">
                         <label>Language</label>
                         <div class="language-selection">
@@ -541,6 +706,101 @@
     </div>
 
     <script>
+        // Category Management
+        function toggleCategoryInput() {
+            const select = document.getElementById('categorySelect');
+            const input = document.getElementById('categoryInput');
+            const addBtn = document.getElementById('addCategoryBtn');
+            const hiddenInput = document.getElementById('bookCategory');
+            
+            if (select.value === '__new__') {
+                input.classList.add('show');
+                addBtn.style.display = 'block';
+                hiddenInput.value = '';
+            } else {
+                input.classList.remove('show');
+                addBtn.style.display = 'none';
+                hiddenInput.value = select.value;
+            }
+        }
+
+        function addNewCategory() {
+            const input = document.getElementById('bookCategory');
+            const categoryName = input.value.trim();
+            
+            if (categoryName) {
+                const select = document.getElementById('categorySelect');
+                const newOption = new Option(categoryName, categoryName, true, true);
+                select.insertBefore(newOption, select.lastElementChild);
+                
+                document.getElementById('categoryInput').classList.remove('show');
+                document.getElementById('addCategoryBtn').style.display = 'none';
+                
+                showNotification('✅ Category "' + categoryName + '" added successfully!', 'success');
+            }
+        }
+
+        // Image Upload
+        const imageUploadContainer = document.getElementById('imageUploadContainer');
+        const imageInput = document.getElementById('bookImage');
+        const imagePreview = document.getElementById('imagePreview');
+        const previewImg = document.getElementById('previewImg');
+
+        imageUploadContainer.addEventListener('click', function() {
+            imageInput.click();
+        });
+
+        imageUploadContainer.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('dragover');
+        });
+
+        imageUploadContainer.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+        });
+
+        imageUploadContainer.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleImageFile(files[0]);
+            }
+        });
+
+        imageInput.addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                handleImageFile(e.target.files[0]);
+            }
+        });
+
+        function handleImageFile(file) {
+            if (!file.type.match('image.*')) {
+                showNotification('⚠️ Please select a valid image file.', 'error');
+                return;
+            }
+
+            if (file.size > 5 * 1024 * 1024) { // 5MB
+                showNotification('⚠️ File size must be less than 5MB.', 'error');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImg.src = e.target.result;
+                imagePreview.style.display = 'block';
+                document.querySelector('.upload-text').style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeImage() {
+            imageInput.value = '';
+            imagePreview.style.display = 'none';
+            document.querySelector('.upload-text').style.display = 'block';
+        }
+
         // Language Selection
         function selectLanguage(language) {
             document.querySelectorAll('.language-option').forEach(function(option) {
@@ -680,8 +940,22 @@
         // Notification function
         function showNotification(message, type) {
             const notification = document.createElement('div');
-            notification.className = `alert alert-${type}`;
-            notification.textContent = message;
+            notification.className = `alert alert-${type === 'success' ? 'success' : 'error'}`;
+            notification.innerHTML = message;
+            
+            // Add success alert styles if not exist
+            if (type === 'success' && !document.querySelector('.alert-success')) {
+                const style = document.createElement('style');
+                style.textContent = `
+                    .alert-success {
+                        background-color: #d4edda;
+                        border-left-color: #28a745;
+                        color: #155724;
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
             document.querySelector('.form-container').prepend(notification);
             setTimeout(() => {
                 notification.style.opacity = '0';
@@ -694,6 +968,9 @@
             console.log('Add Book page loaded');
             document.getElementById('title').focus();
             stockQuantityInput.dispatchEvent(new Event('input'));
+            
+            // Initialize category dropdown
+            toggleCategoryInput();
         });
     </script>
 </body>

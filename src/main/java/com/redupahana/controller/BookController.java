@@ -1,28 +1,48 @@
-// BookController.java - Improved with better error handling for book code generation
+// BookController.java - Improved with better error handling for book code generation + Image Upload Support
 package com.redupahana.controller;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.sql.SQLException;
 import java.util.List;
 import javax.servlet.ServletException;
+import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.servlet.http.Part;
 import com.redupahana.model.Book;
 import com.redupahana.model.User;
 import com.redupahana.service.BookService;
 import com.redupahana.util.Constants;
 
 @WebServlet("/book")
+@MultipartConfig(
+    fileSizeThreshold = 1024 * 1024, // 1 MB
+    maxFileSize = 1024 * 1024 * 5,   // 5 MB
+    maxRequestSize = 1024 * 1024 * 10 // 10 MB
+)
 public class BookController extends HttpServlet {
     private static final long serialVersionUID = 1L;
     
     private BookService bookService;
+    private static final String UPLOAD_DIR = "uploads/books";
     
     public void init() throws ServletException {
         bookService = BookService.getInstance();
+        
+        // Create upload directory if it doesn't exist
+        String uploadPath = getServletContext().getRealPath("") + File.separator + UPLOAD_DIR;
+        File uploadDir = new File(uploadPath);
+        if (!uploadDir.exists()) {
+            uploadDir.mkdirs();
+        }
     }
     
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
@@ -55,6 +75,8 @@ public class BookController extends HttpServlet {
             searchBooksByAuthor(request, response);
         } else if (action.equals("searchByLanguage")) {
             searchBooksByLanguage(request, response);
+        } else if (action.equals("searchByCategory")) {
+            searchBooksByCategory(request, response);
         }
     }
     
@@ -83,7 +105,10 @@ public class BookController extends HttpServlet {
             throws ServletException, IOException {
         try {
             List<Book> books = bookService.getAllBooks();
+            List<String> categories = bookService.getAllBookCategories();
+            
             request.setAttribute("books", books);
+            request.setAttribute("categories", categories);
             
             // Check for success messages in session
             HttpSession session = request.getSession();
@@ -110,10 +135,15 @@ public class BookController extends HttpServlet {
     private void showAddForm(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         
-        // Get suggested book code for display
         try {
+            // Get suggested book code for display
             String suggestedCode = bookService.getNextAvailableBookCode();
             request.setAttribute("suggestedBookCode", suggestedCode);
+            
+            // Get all categories for dropdown
+            List<String> categories = bookService.getAllBookCategories();
+            request.setAttribute("categories", categories);
+            
         } catch (SQLException e) {
             // If we can't get suggested code, that's okay, just continue without it
             System.err.println("Could not generate suggested book code: " + e.getMessage());
@@ -123,7 +153,7 @@ public class BookController extends HttpServlet {
     }
     
     /**
-     * Improved addBook method with better error handling and retry logic
+     * Improved addBook method with better error handling and retry logic + Image Upload
      */
     private void addBook(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
@@ -145,6 +175,14 @@ public class BookController extends HttpServlet {
                 String publicationYearStr = request.getParameter("publicationYear");
                 String pagesStr = request.getParameter("pages");
                 String language = request.getParameter("language");
+                String bookCategory = request.getParameter("bookCategory");
+                
+                // Handle image upload
+                String imagePath = null;
+                Part imagePart = request.getPart("bookImage");
+                if (imagePart != null && imagePart.getSize() > 0) {
+                    imagePath = handleImageUpload(imagePart);
+                }
                 
                 // Basic validation
                 if (title == null || title.trim().isEmpty()) {
@@ -246,6 +284,7 @@ public class BookController extends HttpServlet {
                 book.setAuthor(author.trim());
                 book.setPrice(price);
                 book.setStockQuantity(stockQuantity);
+                book.setImagePath(imagePath);
                 
                 // Handle optional fields
                 if (description != null && !description.trim().isEmpty()) {
@@ -272,6 +311,10 @@ public class BookController extends HttpServlet {
                     book.setLanguage(language.trim());
                 } else {
                     book.setLanguage("Sinhala"); // Default language
+                }
+                
+                if (bookCategory != null && !bookCategory.trim().isEmpty()) {
+                    book.setBookCategory(bookCategory.trim());
                 }
                 
                 // Try to add book to database
@@ -352,6 +395,90 @@ public class BookController extends HttpServlet {
     }
     
     /**
+     * Handle image upload and return the path
+     */
+    private String handleImageUpload(Part imagePart) throws IOException {
+        String fileName = getFileName(imagePart);
+        if (fileName == null || fileName.trim().isEmpty()) {
+            return null;
+        }
+        
+        // Validate file type
+        String contentType = imagePart.getContentType();
+        if (!isValidImageType(contentType)) {
+            throw new IllegalArgumentException("Invalid image format. Only JPG, PNG, and GIF are allowed.");
+        }
+        
+        // Generate unique file name
+        String fileExtension = getFileExtension(fileName);
+        String uniqueFileName = System.currentTimeMillis() + "_" + fileName;
+        
+        // Get upload path
+        String uploadPath = getServletContext().getRealPath("") + File.separator + UPLOAD_DIR;
+        
+        // Save file
+        Path filePath = Paths.get(uploadPath, uniqueFileName);
+        Files.copy(imagePart.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+        
+        // Return relative path for database storage
+        return UPLOAD_DIR + "/" + uniqueFileName;
+    }
+    
+    /**
+     * Get file name from Part
+     */
+    private String getFileName(Part part) {
+        String contentDisp = part.getHeader("content-disposition");
+        String[] tokens = contentDisp.split(";");
+        for (String token : tokens) {
+            if (token.trim().startsWith("filename")) {
+                return token.substring(token.indexOf("=") + 2, token.length() - 1);
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Get file extension
+     */
+    private String getFileExtension(String fileName) {
+        int lastIndexOf = fileName.lastIndexOf(".");
+        if (lastIndexOf == -1) {
+            return "";
+        }
+        return fileName.substring(lastIndexOf);
+    }
+    
+    /**
+     * Validate image type
+     */
+    private boolean isValidImageType(String contentType) {
+        return contentType != null && (
+            contentType.equals("image/jpeg") ||
+            contentType.equals("image/jpg") ||
+            contentType.equals("image/png") ||
+            contentType.equals("image/gif")
+        );
+    }
+    
+    /**
+     * Delete image file
+     */
+    private void deleteImageFile(String imagePath) {
+        if (imagePath != null && !imagePath.trim().isEmpty()) {
+            try {
+                String fullPath = getServletContext().getRealPath("") + File.separator + imagePath;
+                File file = new File(fullPath);
+                if (file.exists()) {
+                    file.delete();
+                }
+            } catch (Exception e) {
+                System.err.println("Error deleting image file: " + e.getMessage());
+            }
+        }
+    }
+    
+    /**
      * Helper method to show add form with error and preserve form data
      */
     private void showAddFormWithError(HttpServletRequest request, HttpServletResponse response) 
@@ -360,12 +487,17 @@ public class BookController extends HttpServlet {
         // Preserve form data
         request.setAttribute("formData", request.getParameterMap());
         
-        // Get suggested book code for display
         try {
+            // Get suggested book code for display
             String suggestedCode = bookService.getNextAvailableBookCode();
             if (request.getAttribute("suggestedBookCode") == null) {
                 request.setAttribute("suggestedBookCode", suggestedCode);
             }
+            
+            // Get all categories for dropdown
+            List<String> categories = bookService.getAllBookCategories();
+            request.setAttribute("categories", categories);
+            
         } catch (SQLException e) {
             System.err.println("Could not generate suggested book code: " + e.getMessage());
         }
@@ -389,6 +521,11 @@ public class BookController extends HttpServlet {
             
             if (book != null) {
                 request.setAttribute("book", book);
+                
+                // Get all categories for dropdown
+                List<String> categories = bookService.getAllBookCategories();
+                request.setAttribute("categories", categories);
+                
                 request.getRequestDispatcher("WEB-INF/view/book/editBook.jsp").forward(request, response);
             } else {
                 HttpSession session = request.getSession();
@@ -421,6 +558,8 @@ public class BookController extends HttpServlet {
             String publicationYearStr = request.getParameter("publicationYear");
             String pagesStr = request.getParameter("pages");
             String language = request.getParameter("language");
+            String bookCategory = request.getParameter("bookCategory");
+            String removeImage = request.getParameter("removeImage");
             
             // Basic validation
             if (bookIdParam == null || bookIdParam.trim().isEmpty()) {
@@ -511,6 +650,28 @@ public class BookController extends HttpServlet {
                 return;
             }
             
+            // Handle image upload/removal
+            String imagePath = existingBook.getImagePath();
+            
+            // Check if user wants to remove existing image
+            if ("true".equals(removeImage)) {
+                if (imagePath != null) {
+                    deleteImageFile(imagePath);
+                }
+                imagePath = null;
+            }
+            
+            // Handle new image upload
+            Part imagePart = request.getPart("bookImage");
+            if (imagePart != null && imagePart.getSize() > 0) {
+                // Delete old image if exists
+                if (imagePath != null) {
+                    deleteImageFile(imagePath);
+                }
+                // Upload new image
+                imagePath = handleImageUpload(imagePart);
+            }
+            
             // Create updated book object
             Book book = new Book();
             book.setBookId(bookId);
@@ -520,6 +681,7 @@ public class BookController extends HttpServlet {
             book.setPrice(price);
             book.setStockQuantity(stockQuantity);
             book.setCreatedDate(existingBook.getCreatedDate()); // Keep original created date
+            book.setImagePath(imagePath);
             
             // Handle optional fields
             if (description != null && !description.trim().isEmpty()) {
@@ -552,6 +714,12 @@ public class BookController extends HttpServlet {
                 book.setLanguage(language.trim());
             } else {
                 book.setLanguage("Sinhala");
+            }
+            
+            if (bookCategory != null && !bookCategory.trim().isEmpty()) {
+                book.setBookCategory(bookCategory.trim());
+            } else {
+                book.setBookCategory(null);
             }
             
             // Update book in database
@@ -589,13 +757,18 @@ public class BookController extends HttpServlet {
             
             int bookId = Integer.parseInt(bookIdParam);
             
-            // Get book info before deletion for success message
+            // Get book info before deletion for success message and image cleanup
             Book bookToDelete = bookService.getBookById(bookId);
             if (bookToDelete == null) {
                 HttpSession session = request.getSession();
                 session.setAttribute("errorMessage", "Book not found.");
                 response.sendRedirect("book?action=list");
                 return;
+            }
+            
+            // Delete associated image file
+            if (bookToDelete.getImagePath() != null) {
+                deleteImageFile(bookToDelete.getImagePath());
             }
             
             // Delete book
@@ -630,7 +803,10 @@ public class BookController extends HttpServlet {
             }
             
             List<Book> books = bookService.searchBooks(searchTerm.trim());
+            List<String> categories = bookService.getAllBookCategories();
+            
             request.setAttribute("books", books);
+            request.setAttribute("categories", categories);
             request.setAttribute("searchTerm", searchTerm.trim());
             
             if (books.isEmpty()) {
@@ -656,7 +832,10 @@ public class BookController extends HttpServlet {
             }
             
             List<Book> books = bookService.getBooksByAuthor(author.trim());
+            List<String> categories = bookService.getAllBookCategories();
+            
             request.setAttribute("books", books);
+            request.setAttribute("categories", categories);
             request.setAttribute("searchTerm", "Author: " + author.trim());
             
             if (books.isEmpty()) {
@@ -682,7 +861,10 @@ public class BookController extends HttpServlet {
             }
             
             List<Book> books = bookService.getBooksByLanguage(language.trim());
+            List<String> categories = bookService.getAllBookCategories();
+            
             request.setAttribute("books", books);
+            request.setAttribute("categories", categories);
             request.setAttribute("searchTerm", "Language: " + language.trim());
             
             if (books.isEmpty()) {
@@ -694,6 +876,35 @@ public class BookController extends HttpServlet {
             request.getRequestDispatcher("WEB-INF/view/book/listBooks.jsp").forward(request, response);
         } catch (SQLException e) {
             request.setAttribute("errorMessage", "Error searching books by language: " + e.getMessage());
+            request.getRequestDispatcher("WEB-INF/view/error.jsp").forward(request, response);
+        }
+    }
+    
+    private void searchBooksByCategory(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+        try {
+            String category = request.getParameter("category");
+            if (category == null || category.trim().isEmpty()) {
+                response.sendRedirect("book?action=list");
+                return;
+            }
+            
+            List<Book> books = bookService.getBooksByCategory(category.trim());
+            List<String> categories = bookService.getAllBookCategories();
+            
+            request.setAttribute("books", books);
+            request.setAttribute("categories", categories);
+            request.setAttribute("searchTerm", "Category: " + category.trim());
+            
+            if (books.isEmpty()) {
+                request.setAttribute("errorMessage", "No books found in '" + category + "' category.");
+            } else {
+                request.setAttribute("successMessage", "Found " + books.size() + " book(s) in '" + category + "' category.");
+            }
+            
+            request.getRequestDispatcher("WEB-INF/view/book/listBooks.jsp").forward(request, response);
+        } catch (SQLException e) {
+            request.setAttribute("errorMessage", "Error searching books by category: " + e.getMessage());
             request.getRequestDispatcher("WEB-INF/view/error.jsp").forward(request, response);
         }
     }

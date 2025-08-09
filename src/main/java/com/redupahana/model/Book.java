@@ -17,6 +17,10 @@ public class Book {
     private boolean isActive;
     private String createdDate;
     private String updatedDate;
+    
+    // New fields for image and category
+    private String imagePath;
+    private String bookCategory;
 
     // Constructors
     public Book() {
@@ -78,6 +82,13 @@ public class Book {
     public String getUpdatedDate() { return updatedDate; }
     public void setUpdatedDate(String updatedDate) { this.updatedDate = updatedDate; }
 
+    // New getters and setters for image and category
+    public String getImagePath() { return imagePath; }
+    public void setImagePath(String imagePath) { this.imagePath = imagePath; }
+
+    public String getBookCategory() { return bookCategory; }
+    public void setBookCategory(String bookCategory) { this.bookCategory = bookCategory; }
+
     // Helper methods for backward compatibility with Item
     public int getItemId() { return bookId; }
     public void setItemId(int itemId) { this.bookId = itemId; }
@@ -98,6 +109,7 @@ public class Book {
                 ", author='" + author + '\'' +
                 ", price=" + price +
                 ", stock=" + stockQuantity +
+                ", category='" + bookCategory + '\'' +
                 '}';
     }
 }

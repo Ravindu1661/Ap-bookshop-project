@@ -102,31 +102,66 @@
             background: #007bff;
             color: white;
             padding: 2rem;
-            text-align: center;
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .profile-image-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .profile-book-image {
+            width: 150px;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .profile-book-image:hover {
+            transform: scale(1.05);
         }
 
         .profile-avatar {
-            width: 80px;
-            height: 80px;
+            width: 150px;
+            height: 200px;
             background-color: rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 0.8rem;
-            font-size: 2.5rem;
+            font-size: 4rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .profile-details {
+            min-width: 0;
         }
 
         .profile-title {
-            font-size: 1.6rem;
+            font-size: 1.8rem;
             font-weight: 600;
-            margin-bottom: 0.4rem;
+            margin-bottom: 0.5rem;
+            word-wrap: break-word;
         }
 
         .profile-author {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             opacity: 0.9;
             margin-bottom: 0.8rem;
+        }
+
+        .profile-meta {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
         }
 
         .profile-code {
@@ -136,6 +171,15 @@
             padding: 0.4rem 0.8rem;
             border-radius: 15px;
             background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .profile-category {
+            font-size: 0.9rem;
+            display: inline-block;
+            padding: 0.4rem 0.8rem;
+            border-radius: 15px;
+            background-color: rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.4);
         }
 
         .profile-content {
@@ -202,7 +246,7 @@
             font-size: 1.1rem;
         }
 
-        /* Stock Badge */
+        /* Badges */
         .stock-badge {
             display: inline-block;
             padding: 0.25rem 0.8rem;
@@ -244,6 +288,17 @@
             border-radius: 15px;
             font-size: 0.85rem;
             font-weight: 500;
+        }
+
+        .category-badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            background-color: #e8f4fd;
+            color: #2c3e50;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            border: 1px solid #bee5eb;
         }
 
         /* Action Buttons */
@@ -335,6 +390,51 @@
             padding: 1.5rem;
         }
 
+        /* Image Modal */
+        .image-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            cursor: pointer;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            max-width: 90%;
+            max-height: 90%;
+        }
+
+        .modal-image {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            background: rgba(0,0,0,0.5);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
             .content-area {
@@ -346,11 +446,14 @@
             }
 
             .profile-header {
-                padding: 1.2rem;
+                grid-template-columns: 1fr;
+                text-align: center;
+                gap: 1rem;
+                padding: 1.5rem;
             }
 
             .profile-title {
-                font-size: 1.3rem;
+                font-size: 1.4rem;
             }
 
             .profile-content {
@@ -380,21 +483,39 @@
                 width: 100%;
                 margin-bottom: 0.5rem;
             }
+
+            .profile-book-image,
+            .profile-avatar {
+                width: 120px;
+                height: 160px;
+            }
+
+            .profile-avatar {
+                font-size: 3rem;
+            }
+
+            .profile-meta {
+                justify-content: center;
+            }
         }
 
         @media (max-width: 480px) {
+            .profile-book-image,
             .profile-avatar {
-                width: 60px;
-                height: 60px;
-                font-size: 2rem;
+                width: 100px;
+                height: 140px;
+            }
+
+            .profile-avatar {
+                font-size: 2.5rem;
             }
 
             .profile-title {
-                font-size: 1.1rem;
+                font-size: 1.2rem;
             }
 
             .profile-author {
-                font-size: 0.9rem;
+                font-size: 1rem;
             }
 
             .btn {
@@ -459,10 +580,24 @@
             <!-- Book Profile -->
             <div class="book-profile">
                 <div class="profile-header">
-                    <div class="profile-avatar">📖</div>
-                    <div class="profile-title"><%= book.getTitle() %></div>
-                    <div class="profile-author">by <%= book.getAuthor() %></div>
-                    <div class="profile-code">Code: <%= book.getBookCode() %></div>
+                    <div class="profile-image-section">
+                        <% if (book.getImagePath() != null && !book.getImagePath().trim().isEmpty()) { %>
+                            <img src="<%= book.getImagePath() %>" alt="<%= book.getTitle() %>" 
+                                 class="profile-book-image" onclick="showImageModal('<%= book.getImagePath() %>', '<%= book.getTitle() %>')">
+                        <% } else { %>
+                            <div class="profile-avatar">📖</div>
+                        <% } %>
+                    </div>
+                    <div class="profile-details">
+                        <div class="profile-title"><%= book.getTitle() %></div>
+                        <div class="profile-author">by <%= book.getAuthor() %></div>
+                        <div class="profile-meta">
+                            <div class="profile-code">Code: <%= book.getBookCode() %></div>
+                            <% if (book.getBookCategory() != null && !book.getBookCategory().trim().isEmpty()) { %>
+                                <div class="profile-category">📂 <%= book.getBookCategory() %></div>
+                            <% } %>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="profile-content">
@@ -480,6 +615,16 @@
                             <div class="info-row">
                                 <span class="info-label">Author:</span>
                                 <span class="info-value"><%= book.getAuthor() %></span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Category:</span>
+                                <span class="info-value">
+                                    <% if (book.getBookCategory() != null && !book.getBookCategory().trim().isEmpty()) { %>
+                                        <span class="category-badge"><%= book.getBookCategory() %></span>
+                                    <% } else { %>
+                                        <span class="empty">No category assigned</span>
+                                    <% } %>
+                                </span>
                             </div>
                             <div class="info-row">
                                 <span class="info-label">Language:</span>
@@ -565,6 +710,16 @@
                                 <span class="info-label">Days in Library:</span>
                                 <span class="info-value" id="daysInLibrary">Calculating...</span>
                             </div>
+                            <div class="info-row">
+                                <span class="info-label">Has Cover Image:</span>
+                                <span class="info-value">
+                                    <% if (book.getImagePath() != null && !book.getImagePath().trim().isEmpty()) { %>
+                                        <span style="color: #28a745;">✅ Yes</span>
+                                    <% } else { %>
+                                        <span style="color: #6c757d;">❌ No</span>
+                                    <% } %>
+                                </span>
+                            </div>
                         </div>
                     </div>
 
@@ -604,7 +759,28 @@
         </main>
     </div>
 
+    <!-- Image Modal -->
+    <div id="imageModal" class="image-modal" onclick="closeImageModal()">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeImageModal()">&times;</span>
+            <img id="modalImage" class="modal-image" src="" alt="">
+        </div>
+    </div>
+
     <script>
+        // Image Modal Functions
+        function showImageModal(imagePath, title) {
+            const modal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('modalImage');
+            modal.style.display = 'block';
+            modalImg.src = imagePath;
+            modalImg.alt = title;
+        }
+
+        function closeImageModal() {
+            document.getElementById('imageModal').style.display = 'none';
+        }
+
         // Calculate days in library
         <% if (book != null) { %>
         const createdDate = new Date('<%= book.getCreatedDate() %>');
@@ -635,6 +811,10 @@
             if (e.key === 'b' || e.key === 'B') {
                 const backBtn = document.querySelector('.btn-primary');
                 if (backBtn) backBtn.click();
+            }
+
+            if (e.key === 'Escape') {
+                closeImageModal();
             }
         });
 

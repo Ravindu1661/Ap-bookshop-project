@@ -1,4 +1,4 @@
-// BookDAO.java - Improved version with better error handling
+// BookDAO.java - Improved version with better error handling + Image and Category Support
 package com.redupahana.dao;
 
 import java.sql.*;
@@ -10,12 +10,12 @@ import com.redupahana.util.DBConnectionFactory;
 public class BookDAO {
     
     /**
-     * Add a new book with improved error handling and transaction support
+     * Add a new book with improved error handling and transaction support + Image and Category
      */
     public void addBook(Book book) throws SQLException {
         String query = "INSERT INTO items (item_code, name, description, price, stock_quantity, category, " +
-                      "author, isbn, publisher, publication_year, pages, language) " +
-                      "VALUES (?, ?, ?, ?, ?, 'Books', ?, ?, ?, ?, ?, ?)";
+                      "author, isbn, publisher, publication_year, pages, language, image_path, book_category) " +
+                      "VALUES (?, ?, ?, ?, ?, 'Books', ?, ?, ?, ?, ?, ?, ?, ?)";
         
         Connection connection = null;
         PreparedStatement statement = null;
@@ -50,6 +50,8 @@ public class BookDAO {
             }
             
             statement.setString(11, book.getLanguage());
+            statement.setString(12, book.getImagePath());  // New image path field
+            statement.setString(13, book.getBookCategory()); // New book category field
             
             int affectedRows = statement.executeUpdate();
             
@@ -210,11 +212,12 @@ public class BookDAO {
     }
     
     /**
-     * Update book with transaction support
+     * Update book with transaction support + Image and Category
      */
     public void updateBook(Book book) throws SQLException {
         String query = "UPDATE items SET name = ?, description = ?, price = ?, stock_quantity = ?, " +
-                      "author = ?, isbn = ?, publisher = ?, publication_year = ?, pages = ?, language = ? " +
+                      "author = ?, isbn = ?, publisher = ?, publication_year = ?, pages = ?, language = ?, " +
+                      "image_path = ?, book_category = ? " +
                       "WHERE item_id = ? AND category = 'Books'";
         
         Connection connection = null;
@@ -248,7 +251,9 @@ public class BookDAO {
             }
             
             statement.setString(10, book.getLanguage());
-            statement.setInt(11, book.getBookId());
+            statement.setString(11, book.getImagePath());  // New image path field
+            statement.setString(12, book.getBookCategory()); // New book category field
+            statement.setInt(13, book.getBookId());
             
             int affectedRows = statement.executeUpdate();
             
@@ -334,13 +339,14 @@ public class BookDAO {
     }
     
     /**
-     * Search books with improved search functionality
+     * Search books with improved search functionality including category
      */
     public List<Book> searchBooks(String searchTerm) throws SQLException {
         List<Book> books = new ArrayList<>();
         String query = "SELECT * FROM items WHERE category = 'Books' AND is_active = true AND " +
                       "(UPPER(name) LIKE UPPER(?) OR UPPER(item_code) LIKE UPPER(?) OR UPPER(author) LIKE UPPER(?) " +
-                      "OR UPPER(isbn) LIKE UPPER(?) OR UPPER(publisher) LIKE UPPER(?) OR UPPER(description) LIKE UPPER(?)) " +
+                      "OR UPPER(isbn) LIKE UPPER(?) OR UPPER(publisher) LIKE UPPER(?) OR UPPER(description) LIKE UPPER(?) " +
+                      "OR UPPER(book_category) LIKE UPPER(?)) " +
                       "ORDER BY " +
                       "CASE " +
                       "  WHEN UPPER(name) LIKE UPPER(?) THEN 1 " +
@@ -360,10 +366,11 @@ public class BookDAO {
             statement.setString(4, searchPattern);
             statement.setString(5, searchPattern);
             statement.setString(6, searchPattern);
-            // Set parameters for ORDER BY clause
             statement.setString(7, searchPattern);
+            // Set parameters for ORDER BY clause
             statement.setString(8, searchPattern);
             statement.setString(9, searchPattern);
+            statement.setString(10, searchPattern);
             
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
@@ -419,6 +426,47 @@ public class BookDAO {
     }
     
     /**
+     * Get books by category - NEW METHOD
+     */
+    public List<Book> getBooksByCategory(String category) throws SQLException {
+        List<Book> books = new ArrayList<>();
+        String query = "SELECT * FROM items WHERE category = 'Books' AND is_active = true AND book_category = ? " +
+                      "ORDER BY created_date DESC, name";
+        
+        try (Connection connection = DBConnectionFactory.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+            
+            statement.setString(1, category);
+            
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    books.add(mapResultSetToBook(resultSet));
+                }
+            }
+        }
+        return books;
+    }
+    
+    /**
+     * Get all unique book categories - NEW METHOD
+     */
+    public List<String> getAllBookCategories() throws SQLException {
+        List<String> categories = new ArrayList<>();
+        String query = "SELECT DISTINCT book_category FROM items WHERE category = 'Books' AND is_active = true " +
+                      "AND book_category IS NOT NULL AND book_category != '' ORDER BY book_category";
+        
+        try (Connection connection = DBConnectionFactory.getConnection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(query)) {
+            
+            while (resultSet.next()) {
+                categories.add(resultSet.getString("book_category"));
+            }
+        }
+        return categories;
+    }
+    
+    /**
      * Check if book code exists (case-insensitive)
      */
     public boolean bookCodeExists(String bookCode) throws SQLException {
@@ -456,7 +504,7 @@ public class BookDAO {
     }
     
     /**
-     * Map ResultSet to Book object with proper null handling
+     * Map ResultSet to Book object with proper null handling + Image and Category Support
      */
     private Book mapResultSetToBook(ResultSet resultSet) throws SQLException {
         Book book = new Book();
@@ -484,6 +532,10 @@ public class BookDAO {
         
         book.setLanguage(resultSet.getString("language"));
         book.setActive(resultSet.getBoolean("is_active"));
+        
+        // Handle new fields
+        book.setImagePath(resultSet.getString("image_path"));
+        book.setBookCategory(resultSet.getString("book_category"));
         
         // Handle timestamps
         Timestamp createdTimestamp = resultSet.getTimestamp("created_date");

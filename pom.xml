@@ -63,7 +63,7 @@
   </dependencies>
 
   <build>
-    <finalName>Pahanaedu</finalName>
+    <finalName>R-pahanaedu</finalName>
     
     <plugins>
       <!-- Maven Compiler Plugin -->

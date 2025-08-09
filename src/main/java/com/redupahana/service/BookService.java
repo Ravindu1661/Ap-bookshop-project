@@ -1,4 +1,4 @@
-// BookService.java - Fixed Version with Thread-safe Book Code Generation
+// BookService.java - Fixed Version with Thread-safe Book Code Generation + Image and Category Support
 package com.redupahana.service;
 
 import java.sql.SQLException;
@@ -248,6 +248,19 @@ public class BookService {
             throw new IllegalArgumentException("Language is required");
         }
         return bookDAO.getBooksByLanguage(language);
+    }
+    
+    // New method for getting books by category
+    public List<Book> getBooksByCategory(String category) throws SQLException {
+        if (!ValidationUtil.isNotEmpty(category)) {
+            throw new IllegalArgumentException("Category is required");
+        }
+        return bookDAO.getBooksByCategory(category);
+    }
+    
+    // New method for getting all book categories
+    public List<String> getAllBookCategories() throws SQLException {
+        return bookDAO.getAllBookCategories();
     }
     
     /**

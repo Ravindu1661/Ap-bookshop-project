@@ -2,6 +2,7 @@
 <%@ page import="com.redupahana.model.Book"%>
 <%@ page import="com.redupahana.model.User"%>
 <%@ page import="com.redupahana.util.Constants"%>
+<%@ page import="java.util.List"%>
 <%
     User loggedUser = (User) session.getAttribute("loggedUser");
     if (loggedUser == null) {
@@ -10,6 +11,7 @@
     }
     
     Book book = (Book) request.getAttribute("book");
+    List<String> categories = (List<String>) request.getAttribute("categories");
     String errorMessage = (String) request.getAttribute("errorMessage");
     
     // Set page attributes for sidebar
@@ -102,9 +104,34 @@
             border-radius: 12px;
             margin-bottom: 2rem;
             border-left: 4px solid #2c3e50;
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 1.5rem;
+            align-items: center;
         }
 
-        .book-info-card h4 {
+        .current-image {
+            width: 100px;
+            height: 140px;
+            object-fit: cover;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .no-current-image {
+            width: 100px;
+            height: 140px;
+            background-color: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: #6c757d;
+        }
+
+        .book-info-details h4 {
             color: #2c3e50;
             margin-bottom: 1rem;
             font-size: 1.1rem;
@@ -192,6 +219,113 @@
             font-size: 0.85rem;
             color: #7f8c8d;
             margin-top: 0.25rem;
+        }
+
+        /* Category Selection */
+        .category-group {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-end;
+        }
+
+        .category-select {
+            flex: 1;
+        }
+
+        .category-input {
+            flex: 1;
+            display: none;
+        }
+
+        .category-input.show {
+            display: block;
+        }
+
+        .btn-add-category {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 0.8rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            transition: background 0.3s ease;
+        }
+
+        .btn-add-category:hover {
+            background: #218838;
+        }
+
+        /* Image Upload */
+        .image-upload-container {
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            background-color: #f8f9fa;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .image-upload-container:hover {
+            border-color: #007bff;
+            background-color: #e8f4fd;
+        }
+
+        .image-upload-container.dragover {
+            border-color: #007bff;
+            background-color: #e8f4fd;
+        }
+
+        .image-preview {
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .image-preview img {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .image-remove {
+            margin-top: 0.5rem;
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .image-remove:hover {
+            background: #c82333;
+        }
+
+        .current-image-section {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .current-image-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .btn-remove-current {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
         }
 
         /* Language Selection */
@@ -318,6 +452,16 @@
                 margin-right: 0;
                 text-align: center;
             }
+
+            .book-info-card {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .category-group {
+                flex-direction: column;
+                gap: 0.8rem;
+            }
         }
 
         @media (max-width: 480px) {
@@ -374,27 +518,43 @@
             <% if (book != null) { %>
             <!-- Current Book Info -->
             <div class="book-info-card">
-                <h4>📖 Current Book Information</h4>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <span class="info-label">Book Code</span>
-                        <span class="info-value"><%= book.getBookCode() %></span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Current Title</span>
-                        <span class="info-value"><%= book.getTitle() %></span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Current Author</span>
-                        <span class="info-value"><%= book.getAuthor() %></span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Current Price</span>
-                        <span class="info-value">Rs. <%= String.format("%.2f", book.getPrice()) %></span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Created Date</span>
-                        <span class="info-value"><%= book.getCreatedDate() %></span>
+                <div class="current-book-image">
+                    <% if (book.getImagePath() != null && !book.getImagePath().trim().isEmpty()) { %>
+                        <img src="<%= book.getImagePath() %>" alt="<%= book.getTitle() %>" class="current-image">
+                    <% } else { %>
+                        <div class="no-current-image">📚</div>
+                    <% } %>
+                </div>
+                <div class="book-info-details">
+                    <h4>📖 Current Book Information</h4>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Book Code</span>
+                            <span class="info-value"><%= book.getBookCode() %></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Current Title</span>
+                            <span class="info-value"><%= book.getTitle() %></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Current Author</span>
+                            <span class="info-value"><%= book.getAuthor() %></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Current Price</span>
+                            <span class="info-value">Rs. <%= String.format("%.2f", book.getPrice()) %></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Current Category</span>
+                            <span class="info-value">
+                                <%= book.getBookCategory() != null && !book.getBookCategory().trim().isEmpty() 
+                                    ? book.getBookCategory() : "No category" %>
+                            </span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Created Date</span>
+                            <span class="info-value"><%= book.getCreatedDate() %></span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -408,9 +568,10 @@
 
             <!-- Edit Book Form -->
             <div class="form-container">
-                <form action="book" method="post" id="editBookForm">
+                <form action="book" method="post" id="editBookForm" enctype="multipart/form-data">
                     <input type="hidden" name="action" value="update">
                     <input type="hidden" name="bookId" value="<%= book.getBookId() %>">
+                    <input type="hidden" name="removeImage" id="removeImageFlag" value="false">
                     
                     <div class="form-group">
                         <label for="bookCode">Book Code</label>
@@ -448,6 +609,36 @@
                         </div>
                     </div>
 
+                    <!-- Category Selection -->
+                    <div class="form-group">
+                        <label for="bookCategory">Book Category</label>
+                        <div class="category-group">
+                            <div class="category-select">
+                                <select class="form-control" id="categorySelect" onchange="toggleCategoryInput()">
+                                    <option value="">Select existing category</option>
+                                    <% if (categories != null && !categories.isEmpty()) { %>
+                                        <% for (String category : categories) { %>
+                                            <option value="<%= category %>" 
+                                                <%= category.equals(book.getBookCategory()) ? "selected" : "" %>>
+                                                <%= category %>
+                                            </option>
+                                        <% } %>
+                                    <% } %>
+                                    <option value="__new__">➕ Add New Category</option>
+                                </select>
+                            </div>
+                            <div class="category-input" id="categoryInput">
+                                <input type="text" class="form-control" id="bookCategory" name="bookCategory" 
+                                       value="<%= book.getBookCategory() != null ? book.getBookCategory() : "" %>"
+                                       placeholder="Enter new category name">
+                            </div>
+                            <button type="button" class="btn-add-category" onclick="addNewCategory()" style="display: none;" id="addCategoryBtn">
+                                ➕ Add
+                            </button>
+                        </div>
+                        <div class="form-text">Select an existing category or create a new one</div>
+                    </div>
+
                     <div class="form-group full-width">
                         <label for="description">Description</label>
                         <textarea class="form-control" id="description" name="description" rows="3" 
@@ -481,6 +672,37 @@
                             <input type="number" class="form-control" id="pages" name="pages" 
                                    value="<%= book.getPages() > 0 ? book.getPages() : "" %>"
                                    min="1" placeholder="Enter page count (optional)">
+                        </div>
+                    </div>
+
+                    <!-- Image Management -->
+                    <div class="form-group">
+                        <label for="bookImage">Book Cover Image</label>
+                        
+                        <% if (book.getImagePath() != null && !book.getImagePath().trim().isEmpty()) { %>
+                        <div class="current-image-section" id="currentImageSection">
+                            <h5>Current Image:</h5>
+                            <img src="<%= book.getImagePath() %>" alt="Current book cover" style="max-width: 150px; border-radius: 8px;">
+                            <div class="current-image-actions">
+                                <button type="button" class="btn-remove-current" onclick="removeCurrentImage()">
+                                    🗑️ Remove Current Image
+                                </button>
+                            </div>
+                        </div>
+                        <% } %>
+
+                        <div class="image-upload-container" id="imageUploadContainer">
+                            <input type="file" id="bookImage" name="bookImage" accept="image/*" style="display: none;">
+                            <div class="upload-text">
+                                <h4>📷 Upload New Book Cover</h4>
+                                <p>Click here or drag and drop an image file (JPG, PNG, GIF)</p>
+                                <p style="font-size: 0.8rem; color: #6c757d;">Maximum file size: 5MB</p>
+                            </div>
+                            <div class="image-preview" id="imagePreview">
+                                <img id="previewImg" src="" alt="Book Cover Preview">
+                                <br>
+                                <button type="button" class="image-remove" onclick="removeNewImage()">🗑️ Remove New Image</button>
+                            </div>
                         </div>
                     </div>
 
@@ -529,6 +751,108 @@
     </div>
 
     <script>
+        // Category Management
+        function toggleCategoryInput() {
+            const select = document.getElementById('categorySelect');
+            const input = document.getElementById('categoryInput');
+            const addBtn = document.getElementById('addCategoryBtn');
+            const hiddenInput = document.getElementById('bookCategory');
+            
+            if (select.value === '__new__') {
+                input.classList.add('show');
+                addBtn.style.display = 'block';
+                hiddenInput.value = '';
+            } else {
+                input.classList.remove('show');
+                addBtn.style.display = 'none';
+                hiddenInput.value = select.value;
+            }
+        }
+
+        function addNewCategory() {
+            const input = document.getElementById('bookCategory');
+            const categoryName = input.value.trim();
+            
+            if (categoryName) {
+                const select = document.getElementById('categorySelect');
+                const newOption = new Option(categoryName, categoryName, true, true);
+                select.insertBefore(newOption, select.lastElementChild);
+                
+                document.getElementById('categoryInput').classList.remove('show');
+                document.getElementById('addCategoryBtn').style.display = 'none';
+                
+                alert('✅ Category "' + categoryName + '" added successfully!');
+            }
+        }
+
+        // Image Management
+        const imageUploadContainer = document.getElementById('imageUploadContainer');
+        const imageInput = document.getElementById('bookImage');
+        const imagePreview = document.getElementById('imagePreview');
+        const previewImg = document.getElementById('previewImg');
+
+        imageUploadContainer.addEventListener('click', function() {
+            imageInput.click();
+        });
+
+        imageUploadContainer.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('dragover');
+        });
+
+        imageUploadContainer.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+        });
+
+        imageUploadContainer.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleImageFile(files[0]);
+            }
+        });
+
+        imageInput.addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                handleImageFile(e.target.files[0]);
+            }
+        });
+
+        function handleImageFile(file) {
+            if (!file.type.match('image.*')) {
+                alert('⚠️ Please select a valid image file.');
+                return;
+            }
+
+            if (file.size > 5 * 1024 * 1024) { // 5MB
+                alert('⚠️ File size must be less than 5MB.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImg.src = e.target.result;
+                imagePreview.style.display = 'block';
+                document.querySelector('.upload-text').style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeNewImage() {
+            imageInput.value = '';
+            imagePreview.style.display = 'none';
+            document.querySelector('.upload-text').style.display = 'block';
+        }
+
+        function removeCurrentImage() {
+            if (confirm('Are you sure you want to remove the current image?')) {
+                document.getElementById('removeImageFlag').value = 'true';
+                document.getElementById('currentImageSection').style.display = 'none';
+            }
+        }
+
         // Language Selection
         function selectLanguage(language) {
             // Remove selected class from all options
@@ -592,6 +916,9 @@
             
             // Focus on book title field
             document.getElementById('title').focus();
+            
+            // Initialize category dropdown
+            toggleCategoryInput();
         });
     </script>
 </body>
