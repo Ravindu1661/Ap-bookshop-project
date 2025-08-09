@@ -1,4 +1,4 @@
-// BillService.java - Fixed Version
+// BillService.java - Updated with Image and Category Support
 package com.redupahana.service;
 
 import java.sql.Connection;
@@ -82,11 +82,17 @@ public class BillService {
                 billItem.calculateTotalPrice();
                 subTotal += billItem.getTotalPrice();
                 
-                // Set book details in bill item
+                // Set comprehensive book details in bill item including new fields
                 billItem.setBookTitle(book.getTitle());
                 billItem.setBookCode(book.getBookCode());
                 billItem.setAuthor(book.getAuthor());
                 billItem.setIsbn(book.getIsbn());
+                billItem.setPublisher(book.getPublisher());
+                billItem.setImagePath(book.getImagePath());  // NEW: Set image path
+                billItem.setBookCategory(book.getBookCategory());  // NEW: Set book category
+                billItem.setLanguage(book.getLanguage());
+                billItem.setPages(book.getPages());
+                billItem.setPublicationYear(book.getPublicationYear());
             }
             
             // Set bill totals
@@ -140,7 +146,7 @@ public class BillService {
         }
     }
     
-    // Helper method to get book using specific connection
+    // Helper method to get book using specific connection with all fields including image and category
     private Book getBookByIdWithConnection(Connection connection, int bookId) throws SQLException {
         String query = "SELECT * FROM items WHERE item_id = ? AND category = 'Books' AND is_active = true";
         try (java.sql.PreparedStatement statement = connection.prepareStatement(query)) {
@@ -220,7 +226,7 @@ public class BillService {
         }
     }
     
-    // Helper method to map ResultSet to Book
+    // Helper method to map ResultSet to Book with image and category support
     private Book mapResultSetToBook(java.sql.ResultSet resultSet) throws SQLException {
         Book book = new Book();
         book.setBookId(resultSet.getInt("item_id"));
@@ -232,22 +238,69 @@ public class BillService {
         book.setAuthor(resultSet.getString("author"));
         book.setIsbn(resultSet.getString("isbn"));
         book.setPublisher(resultSet.getString("publisher"));
-        book.setPublicationYear(resultSet.getInt("publication_year"));
-        book.setPages(resultSet.getInt("pages"));
+        
+        // Handle nullable integer fields
+        int publicationYear = resultSet.getInt("publication_year");
+        if (!resultSet.wasNull()) {
+            book.setPublicationYear(publicationYear);
+        }
+        
+        int pages = resultSet.getInt("pages");
+        if (!resultSet.wasNull()) {
+            book.setPages(pages);
+        }
+        
         book.setLanguage(resultSet.getString("language"));
         book.setActive(resultSet.getBoolean("is_active"));
-        book.setCreatedDate(resultSet.getString("created_date"));
-        book.setUpdatedDate(resultSet.getString("updated_date"));
+        
+        // Handle new fields for image and category
+        book.setImagePath(resultSet.getString("image_path"));
+        book.setBookCategory(resultSet.getString("book_category"));
+        
+        // Handle timestamps
+        java.sql.Timestamp createdTimestamp = resultSet.getTimestamp("created_date");
+        if (createdTimestamp != null) {
+            book.setCreatedDate(createdTimestamp.toString());
+        }
+        
+        java.sql.Timestamp updatedTimestamp = resultSet.getTimestamp("updated_date");
+        if (updatedTimestamp != null) {
+            book.setUpdatedDate(updatedTimestamp.toString());
+        }
+        
         return book;
     }
     
-    // Existing methods remain the same but without transaction management issues
+    // Existing methods remain the same but with enhanced book loading for bill items
     public List<Bill> getAllBills() throws SQLException {
         List<Bill> bills = billDAO.getAllBills();
         
-        // Load bill items for each bill
+        // Load bill items for each bill with enhanced book details
         for (Bill bill : bills) {
             List<BillItem> billItems = billItemDAO.getBillItemsByBillId(bill.getBillId());
+            
+            // Load complete book details for each bill item
+            for (BillItem billItem : billItems) {
+                try {
+                    Book book = bookDAO.getBookById(billItem.getBookId());
+                    if (book != null) {
+                        // Set all book details including new fields
+                        billItem.setBookTitle(book.getTitle());
+                        billItem.setBookCode(book.getBookCode());
+                        billItem.setAuthor(book.getAuthor());
+                        billItem.setIsbn(book.getIsbn());
+                        billItem.setPublisher(book.getPublisher());
+                        billItem.setImagePath(book.getImagePath());  // NEW
+                        billItem.setBookCategory(book.getBookCategory());  // NEW
+                        billItem.setLanguage(book.getLanguage());
+                        billItem.setPages(book.getPages());
+                        billItem.setPublicationYear(book.getPublicationYear());
+                    }
+                } catch (SQLException e) {
+                    System.err.println("Error loading book details for bill item: " + e.getMessage());
+                }
+            }
+            
             bill.setBillItems(billItems);
         }
         
@@ -261,8 +314,31 @@ public class BillService {
         
         Bill bill = billDAO.getBillById(billId);
         if (bill != null) {
-            // Load bill items
+            // Load bill items with enhanced book details
             List<BillItem> billItems = billItemDAO.getBillItemsByBillId(billId);
+            
+            // Load complete book details for each bill item
+            for (BillItem billItem : billItems) {
+                try {
+                    Book book = bookDAO.getBookById(billItem.getBookId());
+                    if (book != null) {
+                        // Set all book details including new fields
+                        billItem.setBookTitle(book.getTitle());
+                        billItem.setBookCode(book.getBookCode());
+                        billItem.setAuthor(book.getAuthor());
+                        billItem.setIsbn(book.getIsbn());
+                        billItem.setPublisher(book.getPublisher());
+                        billItem.setImagePath(book.getImagePath());  // NEW
+                        billItem.setBookCategory(book.getBookCategory());  // NEW
+                        billItem.setLanguage(book.getLanguage());
+                        billItem.setPages(book.getPages());
+                        billItem.setPublicationYear(book.getPublicationYear());
+                    }
+                } catch (SQLException e) {
+                    System.err.println("Error loading book details for bill item: " + e.getMessage());
+                }
+            }
+            
             bill.setBillItems(billItems);
         }
         
@@ -276,8 +352,31 @@ public class BillService {
         
         Bill bill = billDAO.getBillByNumber(billNumber);
         if (bill != null) {
-            // Load bill items
+            // Load bill items with enhanced book details
             List<BillItem> billItems = billItemDAO.getBillItemsByBillId(bill.getBillId());
+            
+            // Load complete book details for each bill item
+            for (BillItem billItem : billItems) {
+                try {
+                    Book book = bookDAO.getBookById(billItem.getBookId());
+                    if (book != null) {
+                        // Set all book details including new fields
+                        billItem.setBookTitle(book.getTitle());
+                        billItem.setBookCode(book.getBookCode());
+                        billItem.setAuthor(book.getAuthor());
+                        billItem.setIsbn(book.getIsbn());
+                        billItem.setPublisher(book.getPublisher());
+                        billItem.setImagePath(book.getImagePath());  // NEW
+                        billItem.setBookCategory(book.getBookCategory());  // NEW
+                        billItem.setLanguage(book.getLanguage());
+                        billItem.setPages(book.getPages());
+                        billItem.setPublicationYear(book.getPublicationYear());
+                    }
+                } catch (SQLException e) {
+                    System.err.println("Error loading book details for bill item: " + e.getMessage());
+                }
+            }
+            
             bill.setBillItems(billItems);
         }
         
@@ -291,9 +390,32 @@ public class BillService {
         
         List<Bill> bills = billDAO.getBillsByCustomer(customerId);
         
-        // Load bill items for each bill
+        // Load bill items for each bill with enhanced book details
         for (Bill bill : bills) {
             List<BillItem> billItems = billItemDAO.getBillItemsByBillId(bill.getBillId());
+            
+            // Load complete book details for each bill item
+            for (BillItem billItem : billItems) {
+                try {
+                    Book book = bookDAO.getBookById(billItem.getBookId());
+                    if (book != null) {
+                        // Set all book details including new fields
+                        billItem.setBookTitle(book.getTitle());
+                        billItem.setBookCode(book.getBookCode());
+                        billItem.setAuthor(book.getAuthor());
+                        billItem.setIsbn(book.getIsbn());
+                        billItem.setPublisher(book.getPublisher());
+                        billItem.setImagePath(book.getImagePath());  // NEW
+                        billItem.setBookCategory(book.getBookCategory());  // NEW
+                        billItem.setLanguage(book.getLanguage());
+                        billItem.setPages(book.getPages());
+                        billItem.setPublicationYear(book.getPublicationYear());
+                    }
+                } catch (SQLException e) {
+                    System.err.println("Error loading book details for bill item: " + e.getMessage());
+                }
+            }
+            
             bill.setBillItems(billItems);
         }
         
@@ -307,9 +429,32 @@ public class BillService {
         
         List<Bill> bills = billDAO.getBillsByCashier(cashierId);
         
-        // Load bill items for each bill
+        // Load bill items for each bill with enhanced book details
         for (Bill bill : bills) {
             List<BillItem> billItems = billItemDAO.getBillItemsByBillId(bill.getBillId());
+            
+            // Load complete book details for each bill item
+            for (BillItem billItem : billItems) {
+                try {
+                    Book book = bookDAO.getBookById(billItem.getBookId());
+                    if (book != null) {
+                        // Set all book details including new fields
+                        billItem.setBookTitle(book.getTitle());
+                        billItem.setBookCode(book.getBookCode());
+                        billItem.setAuthor(book.getAuthor());
+                        billItem.setIsbn(book.getIsbn());
+                        billItem.setPublisher(book.getPublisher());
+                        billItem.setImagePath(book.getImagePath());  // NEW
+                        billItem.setBookCategory(book.getBookCategory());  // NEW
+                        billItem.setLanguage(book.getLanguage());
+                        billItem.setPages(book.getPages());
+                        billItem.setPublicationYear(book.getPublicationYear());
+                    }
+                } catch (SQLException e) {
+                    System.err.println("Error loading book details for bill item: " + e.getMessage());
+                }
+            }
+            
             bill.setBillItems(billItems);
         }
         
@@ -323,9 +468,32 @@ public class BillService {
         
         List<Bill> bills = billDAO.searchBills(searchTerm);
         
-        // Load bill items for each bill
+        // Load bill items for each bill with enhanced book details
         for (Bill bill : bills) {
             List<BillItem> billItems = billItemDAO.getBillItemsByBillId(bill.getBillId());
+            
+            // Load complete book details for each bill item
+            for (BillItem billItem : billItems) {
+                try {
+                    Book book = bookDAO.getBookById(billItem.getBookId());
+                    if (book != null) {
+                        // Set all book details including new fields
+                        billItem.setBookTitle(book.getTitle());
+                        billItem.setBookCode(book.getBookCode());
+                        billItem.setAuthor(book.getAuthor());
+                        billItem.setIsbn(book.getIsbn());
+                        billItem.setPublisher(book.getPublisher());
+                        billItem.setImagePath(book.getImagePath());  // NEW
+                        billItem.setBookCategory(book.getBookCategory());  // NEW
+                        billItem.setLanguage(book.getLanguage());
+                        billItem.setPages(book.getPages());
+                        billItem.setPublicationYear(book.getPublicationYear());
+                    }
+                } catch (SQLException e) {
+                    System.err.println("Error loading book details for bill item: " + e.getMessage());
+                }
+            }
+            
             bill.setBillItems(billItems);
         }
         
@@ -334,9 +502,40 @@ public class BillService {
     
     public List<Bill> getPendingPaymentBills() throws SQLException {
         List<Bill> allBills = billDAO.getAllBills();
-        return allBills.stream()
+        List<Bill> pendingBills = allBills.stream()
                 .filter(bill -> "PENDING".equalsIgnoreCase(bill.getPaymentStatus()))
                 .collect(java.util.stream.Collectors.toList());
+        
+        // Load bill items for each pending bill with enhanced book details
+        for (Bill bill : pendingBills) {
+            List<BillItem> billItems = billItemDAO.getBillItemsByBillId(bill.getBillId());
+            
+            // Load complete book details for each bill item
+            for (BillItem billItem : billItems) {
+                try {
+                    Book book = bookDAO.getBookById(billItem.getBookId());
+                    if (book != null) {
+                        // Set all book details including new fields
+                        billItem.setBookTitle(book.getTitle());
+                        billItem.setBookCode(book.getBookCode());
+                        billItem.setAuthor(book.getAuthor());
+                        billItem.setIsbn(book.getIsbn());
+                        billItem.setPublisher(book.getPublisher());
+                        billItem.setImagePath(book.getImagePath());  // NEW
+                        billItem.setBookCategory(book.getBookCategory());  // NEW
+                        billItem.setLanguage(book.getLanguage());
+                        billItem.setPages(book.getPages());
+                        billItem.setPublicationYear(book.getPublicationYear());
+                    }
+                } catch (SQLException e) {
+                    System.err.println("Error loading book details for bill item: " + e.getMessage());
+                }
+            }
+            
+            bill.setBillItems(billItems);
+        }
+        
+        return pendingBills;
     }
     
     public void updateBillPaymentStatus(int billId, String paymentStatus) throws SQLException {

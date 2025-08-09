@@ -1,4 +1,4 @@
-// BillController.java
+// BillController.java - Enhanced with Image and Category Support
 package com.redupahana.controller;
 
 import com.redupahana.service.UserService;
@@ -135,8 +135,12 @@ public class BillController extends HttpServlet {
                     .filter(book -> book.isActive() && book.getStockQuantity() > 0)
                     .collect(java.util.stream.Collectors.toList());
             
+            // Get all book categories for filtering
+            List<String> bookCategories = bookService.getAllBookCategories();
+            
             request.setAttribute("customers", customers);
             request.setAttribute("books", books);
+            request.setAttribute("bookCategories", bookCategories);  // NEW: Add categories
             request.getRequestDispatcher("WEB-INF/view/bill/createBill.jsp").forward(request, response);
         } catch (SQLException e) {
             request.setAttribute("errorMessage", "Error loading data: " + e.getMessage());
@@ -265,8 +269,9 @@ public class BillController extends HttpServlet {
             
             // Set success message
             session.setAttribute("successMessage", 
-                "Bill #" + createdBill.getBillNumber() + " has been successfully created. " +
-                "Total Amount: Rs. " + String.format("%.2f", createdBill.getTotalAmount()));
+                "📄 Bill #" + createdBill.getBillNumber() + " has been successfully created. " +
+                "Total Amount: Rs. " + String.format("%.2f", createdBill.getTotalAmount()) + 
+                " | Books: " + createdBill.getTotalBooksCount());
             
             response.sendRedirect("bill?action=view&id=" + billId);
             
@@ -321,16 +326,26 @@ public class BillController extends HttpServlet {
                     System.err.println("Error loading cashier details: " + e.getMessage());
                 }
                 
-                // Get book details for bill items
+                // Enhanced book details loading - already done in BillService but ensure completeness
                 if (bill.getBillItems() != null && !bill.getBillItems().isEmpty()) {
                     for (BillItem billItem : bill.getBillItems()) {
                         try {
-                            Book book = bookService.getBookById(billItem.getBookId());
-                            if (book != null) {
-                                billItem.setBookTitle(book.getTitle());
-                                billItem.setAuthor(book.getAuthor());
-                                billItem.setBookCode(book.getBookCode());
-                                billItem.setIsbn(book.getIsbn());
+                            // Double-check book details are loaded (BillService should have done this)
+                            if (billItem.getBookTitle() == null || billItem.getBookTitle().trim().isEmpty()) {
+                                Book book = bookService.getBookById(billItem.getBookId());
+                                if (book != null) {
+                                    // Set all book details including new fields
+                                    billItem.setBookTitle(book.getTitle());
+                                    billItem.setAuthor(book.getAuthor());
+                                    billItem.setBookCode(book.getBookCode());
+                                    billItem.setIsbn(book.getIsbn());
+                                    billItem.setPublisher(book.getPublisher());
+                                    billItem.setLanguage(book.getLanguage());
+                                    billItem.setPages(book.getPages());
+                                    billItem.setPublicationYear(book.getPublicationYear());
+                                    billItem.setImagePath(book.getImagePath());  // NEW
+                                    billItem.setBookCategory(book.getBookCategory());  // NEW
+                                }
                             }
                         } catch (SQLException e) {
                             System.err.println("Error loading book details for ID " + billItem.getBookId() + ": " + e.getMessage());
@@ -413,16 +428,26 @@ public class BillController extends HttpServlet {
                     System.err.println("Error loading cashier details: " + e.getMessage());
                 }
                 
-                // Get book details for bill items
+                // Enhanced book details loading for printing - already done in BillService
                 if (bill.getBillItems() != null && !bill.getBillItems().isEmpty()) {
                     for (BillItem billItem : bill.getBillItems()) {
                         try {
-                            Book book = bookService.getBookById(billItem.getBookId());
-                            if (book != null) {
-                                billItem.setBookTitle(book.getTitle());
-                                billItem.setAuthor(book.getAuthor());
-                                billItem.setBookCode(book.getBookCode());
-                                billItem.setIsbn(book.getIsbn());
+                            // Ensure all book details are available for printing
+                            if (billItem.getBookTitle() == null || billItem.getBookTitle().trim().isEmpty()) {
+                                Book book = bookService.getBookById(billItem.getBookId());
+                                if (book != null) {
+                                    // Set comprehensive book details for print view
+                                    billItem.setBookTitle(book.getTitle());
+                                    billItem.setAuthor(book.getAuthor());
+                                    billItem.setBookCode(book.getBookCode());
+                                    billItem.setIsbn(book.getIsbn());
+                                    billItem.setPublisher(book.getPublisher());
+                                    billItem.setLanguage(book.getLanguage());
+                                    billItem.setPages(book.getPages());
+                                    billItem.setPublicationYear(book.getPublicationYear());
+                                    billItem.setImagePath(book.getImagePath());  // NEW
+                                    billItem.setBookCategory(book.getBookCategory());  // NEW
+                                }
                             }
                         } catch (SQLException e) {
                             System.err.println("Error loading book details for ID " + billItem.getBookId() + ": " + e.getMessage());
@@ -512,11 +537,12 @@ public class BillController extends HttpServlet {
             // Delete bill
             billService.deleteBill(billId);
             
-            // Set success message
+            // Set success message with enhanced details
             HttpSession session = request.getSession();
             session.setAttribute("successMessage", 
-                "Bill #" + billToDelete.getBillNumber() + " has been successfully deleted. " +
-                "Stock has been restored for all books.");
+                "🗑️ Bill #" + billToDelete.getBillNumber() + " has been successfully deleted. " +
+                "Stock has been restored for " + billToDelete.getTotalBooksCount() + " book(s). " +
+                "Amount: Rs. " + String.format("%.2f", billToDelete.getTotalAmount()));
             
             response.sendRedirect("bill?action=list");
             
@@ -606,7 +632,8 @@ public class BillController extends HttpServlet {
             
             HttpSession session = request.getSession();
             session.setAttribute("successMessage", 
-                "Payment status for Bill #" + bill.getBillNumber() + " has been updated to " + paymentStatus + ".");
+                "💳 Payment status for Bill #" + bill.getBillNumber() + " has been updated to " + paymentStatus + ". " +
+                "Amount: Rs. " + String.format("%.2f", bill.getTotalAmount()));
             
             response.sendRedirect("bill?action=view&id=" + billId);
             
@@ -648,8 +675,11 @@ public class BillController extends HttpServlet {
             if (bills.isEmpty()) {
                 request.setAttribute("errorMessage", "No bills found for this customer.");
             } else {
+                int totalBooks = bills.stream().mapToInt(Bill::getTotalBooksCount).sum();
+                double totalAmount = bills.stream().mapToDouble(Bill::getTotalAmount).sum();
                 request.setAttribute("successMessage", "Found " + bills.size() + " bill(s) for " + 
-                    (customer != null ? customer.getName() : "this customer") + ".");
+                    (customer != null ? customer.getName() : "this customer") + 
+                    ". Total Books: " + totalBooks + ", Total Amount: Rs. " + String.format("%.2f", totalAmount));
             }
             
             request.getRequestDispatcher("WEB-INF/view/bill/listBills.jsp").forward(request, response);
@@ -692,7 +722,10 @@ public class BillController extends HttpServlet {
             if (bills.isEmpty()) {
                 request.setAttribute("errorMessage", "No bills found for this cashier.");
             } else {
-                request.setAttribute("successMessage", "Found " + bills.size() + " bill(s) created by " + cashierName + ".");
+                int totalBooks = bills.stream().mapToInt(Bill::getTotalBooksCount).sum();
+                double totalAmount = bills.stream().mapToDouble(Bill::getTotalAmount).sum();
+                request.setAttribute("successMessage", "Found " + bills.size() + " bill(s) created by " + cashierName + 
+                    ". Total Books Sold: " + totalBooks + ", Total Amount: Rs. " + String.format("%.2f", totalAmount));
             }
             
             request.getRequestDispatcher("WEB-INF/view/bill/listBills.jsp").forward(request, response);
@@ -711,9 +744,13 @@ public class BillController extends HttpServlet {
             request.setAttribute("viewType", "pending");
             
             if (bills.isEmpty()) {
-                request.setAttribute("successMessage", "No pending payments found. All bills are paid!");
+                request.setAttribute("successMessage", "✅ No pending payments found. All bills are paid!");
             } else {
-                request.setAttribute("errorMessage", bills.size() + " bill(s) have pending payments.");
+                double totalPendingAmount = bills.stream().mapToDouble(Bill::getTotalAmount).sum();
+                int totalPendingBooks = bills.stream().mapToInt(Bill::getTotalBooksCount).sum();
+                request.setAttribute("errorMessage", "⏳ " + bills.size() + " bill(s) have pending payments. " +
+                    "Total Pending: Rs. " + String.format("%.2f", totalPendingAmount) + 
+                    " | Books: " + totalPendingBooks);
             }
             
             request.getRequestDispatcher("WEB-INF/view/bill/listBills.jsp").forward(request, response);

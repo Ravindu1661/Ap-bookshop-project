@@ -417,6 +417,87 @@
             margin-top: 0.2rem;
         }
 
+        /* NEW: Enhanced Book Item Display Styles */
+        .book-item-display {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.8rem;
+            max-width: 500px;
+        }
+
+        .book-item-image {
+            width: 48px;
+            height: 64px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid #e5e7eb;
+            flex-shrink: 0;
+            background: #f8f9fa;
+        }
+
+        .book-item-image-placeholder {
+            width: 48px;
+            height: 64px;
+            background: #e9ecef;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: #9ca3af;
+            flex-shrink: 0;
+        }
+
+        .book-item-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .book-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.3rem;
+            line-height: 1.3;
+        }
+
+        .book-meta {
+            font-size: 0.75rem;
+            color: #6b7280;
+            line-height: 1.4;
+        }
+
+        .book-meta-row {
+            margin-bottom: 0.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+
+        .category-badge {
+            display: inline-block;
+            padding: 0.15rem 0.4rem;
+            background: #e0e7ff;
+            color: #3730a3;
+            border-radius: 10px;
+            font-size: 0.65rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .book-code {
+            color: #059669;
+            font-family: monospace;
+            font-weight: 600;
+            font-size: 0.7rem;
+        }
+
+        .author-info {
+            color: #6366f1;
+            font-style: italic;
+        }
+
         /* Calculation Section */
         .calculation-section {
             background: #f8f9fa;
@@ -596,6 +677,30 @@
             .user-info span {
                 display: none;
             }
+
+            /* Mobile responsive for book items */
+            .book-item-display {
+                gap: 0.5rem;
+            }
+
+            .book-item-image,
+            .book-item-image-placeholder {
+                width: 36px;
+                height: 48px;
+            }
+
+            .book-title {
+                font-size: 0.85rem;
+            }
+
+            .book-meta {
+                font-size: 0.7rem;
+            }
+
+            .category-badge {
+                font-size: 0.6rem;
+                padding: 0.1rem 0.3rem;
+            }
         }
 
         @media (max-width: 480px) {
@@ -611,6 +716,18 @@
             .items-table td {
                 padding: 0.4rem;
                 font-size: 0.75rem;
+            }
+
+            .book-item-display {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                gap: 0.4rem;
+            }
+
+            .book-item-image,
+            .book-item-image-placeholder {
+                align-self: center;
             }
         }
 
@@ -635,6 +752,12 @@
             .bill-container {
                 box-shadow: none !important;
                 border: 1px solid #000;
+            }
+
+            .book-item-image,
+            .book-item-image-placeholder {
+                width: 32px;
+                height: 42px;
             }
         }
 
@@ -852,11 +975,11 @@
                     <!-- Items Section -->
                     <% if (bill.getBillItems() != null && !bill.getBillItems().isEmpty()) { %>
                     <div class="items-section">
-                        <h3 class="section-title">📦 Items Purchased</h3>
+                        <h3 class="section-title">📚 Books Purchased</h3>
                         <table class="items-table">
                             <thead>
                                 <tr>
-                                    <th>Item Details</th>
+                                    <th>Book Details</th>
                                     <th style="text-align: center;">Quantity</th>
                                     <th style="text-align: right;">Unit Price</th>
                                     <th style="text-align: right;">Total</th>
@@ -872,15 +995,86 @@
                                 %>
                                 <tr>
                                     <td>
-                                        <div class="item-name">
-                                            <% if (item.getItemName() != null && !item.getItemName().isEmpty()) { %>
-                                                <%= item.getItemName() %>
+                                        <!-- Enhanced Book Item Display with Image and Category -->
+                                        <div class="book-item-display">
+                                            <!-- Book Image -->
+                                            <% if (item.getImagePath() != null && !item.getImagePath().trim().isEmpty() && 
+                                                   !item.getImagePath().equals(request.getContextPath() + "/")) { %>
+                                            <img src="<%= item.getImagePath() %>" 
+                                                 alt="<%= item.getBookTitle() != null ? item.getBookTitle() : "Book" %>" 
+                                                 class="book-item-image" 
+                                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                            <div class="book-item-image-placeholder" style="display: none;">📚</div>
                                             <% } else { %>
-                                                Item #<%= item.getItemId() %>
+                                            <div class="book-item-image-placeholder">📚</div>
                                             <% } %>
-                                        </div>
-                                        <div class="item-details">
-                                            Item ID: #<%= item.getItemId() %>
+                                            
+                                            <!-- Book Information -->
+                                            <div class="book-item-info">
+                                                <div class="book-title">
+                                                    <% if (item.getBookTitle() != null && !item.getBookTitle().trim().isEmpty()) { %>
+                                                        <%= item.getBookTitle() %>
+                                                    <% } else { %>
+                                                        Book #<%= item.getBookId() %>
+                                                    <% } %>
+                                                </div>
+                                                
+                                                <div class="book-meta">
+                                                    <!-- Category Badge -->
+                                                    <% if (item.getBookCategory() != null && !item.getBookCategory().trim().isEmpty()) { %>
+                                                    <div class="book-meta-row">
+                                                        <span class="category-badge"><%= item.getBookCategory() %></span>
+                                                    </div>
+                                                    <% } %>
+                                                    
+                                                    <!-- Book Code and Author -->
+                                                    <div class="book-meta-row">
+                                                        <% if (item.getBookCode() != null && !item.getBookCode().trim().isEmpty()) { %>
+                                                        <span class="book-code">Code: <%= item.getBookCode() %></span>
+                                                        <% } %>
+                                                        
+                                                        <% if (item.getAuthor() != null && !item.getAuthor().trim().isEmpty()) { %>
+                                                        <span class="author-info">by <%= item.getAuthor() %></span>
+                                                        <% } %>
+                                                    </div>
+                                                    
+                                                    <!-- Additional Details -->
+                                                    <div class="book-meta-row">
+                                                        <span>Book ID: #<%= item.getBookId() %></span>
+                                                        
+                                                        <% if (item.getIsbn() != null && !item.getIsbn().trim().isEmpty()) { %>
+                                                        <span>ISBN: <%= item.getIsbn() %></span>
+                                                        <% } %>
+                                                    </div>
+                                                    
+                                                    <!-- Publisher and Language -->
+                                                    <% if ((item.getPublisher() != null && !item.getPublisher().trim().isEmpty()) || 
+                                                           (item.getLanguage() != null && !item.getLanguage().trim().isEmpty())) { %>
+                                                    <div class="book-meta-row">
+                                                        <% if (item.getPublisher() != null && !item.getPublisher().trim().isEmpty()) { %>
+                                                        <span>Publisher: <%= item.getPublisher() %></span>
+                                                        <% } %>
+                                                        
+                                                        <% if (item.getLanguage() != null && !item.getLanguage().trim().isEmpty()) { %>
+                                                        <span>Language: <%= item.getLanguage() %></span>
+                                                        <% } %>
+                                                    </div>
+                                                    <% } %>
+                                                    
+                                                    <!-- Pages and Publication Year -->
+                                                    <% if (item.getPages() > 0 || item.getPublicationYear() > 0) { %>
+                                                    <div class="book-meta-row">
+                                                        <% if (item.getPages() > 0) { %>
+                                                        <span>Pages: <%= item.getPages() %></span>
+                                                        <% } %>
+                                                        
+                                                        <% if (item.getPublicationYear() > 0) { %>
+                                                        <span>Year: <%= item.getPublicationYear() %></span>
+                                                        <% } %>
+                                                    </div>
+                                                    <% } %>
+                                                </div>
+                                            </div>
                                         </div>
                                     </td>
                                     <td style="text-align: center;"><%= item.getQuantity() %></td>
@@ -893,15 +1087,15 @@
                         
                         <!-- Summary Stats -->
                         <div style="margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px solid #e9ecef; display: flex; justify-content: space-between; font-size: 0.85rem; color: #6c757d;">
-                            <span>Total Items: <%= itemCount %></span>
+                            <span>Total Books: <%= itemCount %></span>
                             <span>Total Quantity: <%= totalQty %></span>
                         </div>
                     </div>
                     <% } else { %>
                     <div class="items-section">
-                        <h3 class="section-title">📦 Items Purchased</h3>
+                        <h3 class="section-title">📚 Books Purchased</h3>
                         <div style="text-align: center; padding: 2rem; color: #6c757d; font-style: italic;">
-                            No items found for this bill
+                            No books found for this bill
                         </div>
                     </div>
                     <% } %>
@@ -1184,7 +1378,35 @@
             }
         });
 
-        console.log('View Bill page loaded successfully');
+        // Enhanced book item image loading error handling
+        document.addEventListener('DOMContentLoaded', function() {
+            const bookImages = document.querySelectorAll('.book-item-image');
+            bookImages.forEach(img => {
+                img.addEventListener('load', function() {
+                    this.style.opacity = '0';
+                    setTimeout(() => {
+                        this.style.opacity = '1';
+                        this.style.transition = 'opacity 0.3s ease';
+                    }, 50);
+                });
+                
+                img.addEventListener('error', function() {
+                    console.log('Failed to load book image:', this.src);
+                });
+            });
+        });
+
+        // Add tooltips for truncated book titles on mobile
+        document.addEventListener('DOMContentLoaded', function() {
+            const bookTitles = document.querySelectorAll('.book-title');
+            bookTitles.forEach(title => {
+                if (title.scrollWidth > title.clientWidth) {
+                    title.title = title.textContent;
+                }
+            });
+        });
+
+        console.log('📚 Enhanced View Bill page loaded successfully with book images and categories support');
     </script>
 </body>
 </html>

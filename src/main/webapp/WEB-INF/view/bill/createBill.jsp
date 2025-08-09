@@ -13,10 +13,10 @@
     
     List<Customer> customers = (List<Customer>) request.getAttribute("customers");
     List<Book> books = (List<Book>) request.getAttribute("books");
+    List<String> bookCategories = (List<String>) request.getAttribute("bookCategories");
     String errorMessage = (String) request.getAttribute("errorMessage");
     String successMessage = (String) request.getAttribute("successMessage");
     
-    // Check if coming from view customer page
     String preSelectedCustomerId = request.getParameter("customerId");
 %>
 <!DOCTYPE html>
@@ -25,6 +25,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>POS System - Create Bill | Redupahana</title>
+</head>
+<body>
     <style>
         * {
             margin: 0;
@@ -212,9 +214,8 @@
             border-bottom: none;
         }
 
-        .add-customer-btn, .show-customers-btn {
+        .add-customer-btn, .show-customers-btn, .unselect-customer-btn {
             padding: 0.75rem 1.5rem;
-            background: #10b981;
             color: white;
             border: none;
             border-radius: 8px;
@@ -224,7 +225,11 @@
             white-space: nowrap;
         }
 
-        .add-customer-btn:hover, .show-customers-btn:hover {
+        .add-customer-btn {
+            background: #10b981;
+        }
+
+        .add-customer-btn:hover {
             background: #059669;
         }
 
@@ -235,6 +240,70 @@
 
         .show-customers-btn:hover {
             background: #2563eb;
+        }
+
+        .unselect-customer-btn {
+            background: #ef4444;
+            margin-left: 0.5rem;
+        }
+
+        .unselect-customer-btn:hover:not(:disabled) {
+            background: #dc2626;
+        }
+
+        .unselect-customer-btn:disabled {
+            background: #f87171;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        /* Category Filter Section */
+        .category-filter {
+            padding: 1rem 1.5rem;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .filter-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.9rem;
+        }
+
+        .category-select {
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            background: white;
+        }
+
+        .reset-filters-btn {
+            padding: 0.5rem 1rem;
+            background: #6b7280;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.3s;
+        }
+
+        .reset-filters-btn:hover {
+            background: #4b5563;
         }
 
         /* Product Search */
@@ -288,6 +357,60 @@
 
         .products-table tbody tr.selected {
             background: #dbeafe;
+        }
+
+        /* Book Image & Category Styles */
+        .book-image {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .book-image-placeholder {
+            width: 40px;
+            height: 40px;
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: #9ca3af;
+        }
+
+        .book-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .book-details {
+            flex: 1;
+        }
+
+        .book-title {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+        }
+
+        .book-meta {
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+
+        .category-badge {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            background: #e0e7ff;
+            color: #3730a3;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-right: 0.5rem;
         }
 
         .price-cell {
@@ -378,7 +501,37 @@
             margin-bottom: 0.75rem;
         }
 
-        .bill-item-info h4 {
+        .bill-item-info {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            flex: 1;
+        }
+
+        .bill-item-image {
+            width: 35px;
+            height: 35px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid #e5e7eb;
+            flex-shrink: 0;
+        }
+
+        .bill-item-image-placeholder {
+            width: 35px;
+            height: 35px;
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            color: #9ca3af;
+            flex-shrink: 0;
+        }
+
+        .bill-item-text h4 {
             color: #1f2937;
             margin-bottom: 0.25rem;
             font-size: 0.95rem;
@@ -707,11 +860,18 @@
             .form-grid {
                 grid-template-columns: 1fr;
             }
+
+            .filter-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .book-info {
+                flex-direction: column;
+                align-items: flex-start;
+            }
         }
     </style>
-</head>
-<body>
-    <!-- Header -->
     <header class="header">
         <div class="header-content">
             <div class="header-left">
@@ -733,7 +893,6 @@
         </div>
     </header>
 
-    <!-- Alert Messages -->
     <% if (successMessage != null) { %>
     <div class="alert alert-success">
         ✅ <%= successMessage %>
@@ -746,23 +905,20 @@
     </div>
     <% } %>
 
-    <!-- Main Container -->
     <div class="main-container">
-        <!-- Left Panel - Products & Customer -->
         <div class="left-panel">
             <div class="panel-header">
                 <h2>🛍️ Product Selection</h2>
                 <p>Choose customer and products for billing</p>
             </div>
 
-            <!-- Customer Section -->
             <div class="customer-section">
                 <div class="customer-controls">
                     <div class="form-group">
                         <label for="customerSearch">👤 Search & Select Customer <span class="required">*</span></label>
                         <div class="customer-search">
                             <input type="text" class="form-control" id="customerSearch" 
-                                   placeholder="Type customer name, phone, or account number..." 
+                                   placeholder="Type customer name or phone number..." 
                                    onkeyup="searchCustomers(this.value)" 
                                    onfocus="showCustomerSearch()" 
                                    onblur="hideCustomerSearch()">
@@ -777,22 +933,49 @@
                     <button type="button" class="add-customer-btn" onclick="openAddCustomerModal()">
                         ➕ Add New
                     </button>
+                    <button type="button" class="unselect-customer-btn" id="unselectCustomerBtn" onclick="unselectCustomer()" disabled>
+                        ❌ Unselect
+                    </button>
                 </div>
             </div>
 
-            <!-- Product Search -->
+            <div class="category-filter">
+                <div class="filter-controls">
+                    <div class="form-group">
+                        <label for="categoryFilter">📚 Category:</label>
+                        <select id="categoryFilter" class="category-select" onchange="filterByCategory(this.value)">
+                            <option value="">All Categories</option>
+                            <% if (bookCategories != null && !bookCategories.isEmpty()) {
+                                for (String category : bookCategories) { %>
+                            <option value="<%= category %>"><%= category %></option>
+                            <% } } %>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="stockFilter">📦 Stock:</label>
+                        <select id="stockFilter" class="category-select" onchange="filterByStock(this.value)">
+                            <option value="">All Stock</option>
+                            <option value="available">Available Only</option>
+                            <option value="low">Low Stock (≤5)</option>
+                            <option value="high">High Stock (>10)</option>
+                        </select>
+                    </div>
+                    <button type="button" class="reset-filters-btn" onclick="resetFilters()">
+                        🔄 Reset
+                    </button>
+                </div>
+            </div>
+
             <div class="product-search">
                 <input type="text" class="search-input" placeholder="🔍 Search products by title, author, or ISBN..." 
                        onkeyup="searchProducts(this.value)">
             </div>
 
-            <!-- Products Table -->
             <div class="products-table-container">
                 <table class="products-table" id="productsTable">
                     <thead>
                         <tr>
-                            <th>Title</th>
-                            <th>Author</th>
+                            <th>Book Details</th>
                             <th>Price</th>
                             <th>Stock</th>
                             <th>Action</th>
@@ -801,9 +984,33 @@
                     <tbody id="productsTableBody">
                         <% if (books != null && !books.isEmpty()) {
                             for (Book book : books) { %>
-                        <tr onclick="selectProduct(<%= book.getBookId() %>, '<%= book.getTitle().replace("'", "\\'") %>', '<%= book.getAuthor() != null ? book.getAuthor().replace("'", "\\'") : "" %>', <%= book.getPrice() %>, <%= book.getStockQuantity() %>)">
-                            <td><strong><%= book.getTitle() %></strong></td>
-                            <td><%= book.getAuthor() != null ? book.getAuthor() : "N/A" %></td>
+                        <tr onclick="selectProduct(<%= book.getBookId() %>, '<%= book.getTitle().replace("'", "\\'") %>', '<%= book.getAuthor() != null ? book.getAuthor().replace("'", "\\'") : "" %>', <%= book.getPrice() %>, <%= book.getStockQuantity() %>, '<%= book.getImagePath() != null ? book.getImagePath().replace("'", "\\'") : "" %>', '<%= book.getBookCategory() != null ? book.getBookCategory().replace("'", "\\'") : "" %>')">
+                            <td>
+                                <div class="book-info">
+                                    <% if (book.getImagePath() != null && !book.getImagePath().trim().isEmpty()) { %>
+                                    <img src="<%= request.getContextPath() %>/<%= book.getImagePath() %>" 
+                                         alt="<%= book.getTitle() %>" class="book-image" 
+                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <div class="book-image-placeholder" style="display: none;">📚</div>
+                                    <% } else { %>
+                                    <div class="book-image-placeholder">📚</div>
+                                    <% } %>
+                                    <div class="book-details">
+                                        <div class="book-title"><%= book.getTitle() %></div>
+                                        <div class="book-meta">
+                                            <% if (book.getBookCategory() != null && !book.getBookCategory().trim().isEmpty()) { %>
+                                            <span class="category-badge"><%= book.getBookCategory() %></span>
+                                            <% } %>
+                                            <% if (book.getAuthor() != null && !book.getAuthor().trim().isEmpty()) { %>
+                                            by <%= book.getAuthor() %>
+                                            <% } %>
+                                            <% if (book.getIsbn() != null && !book.getIsbn().trim().isEmpty()) { %>
+                                            • ISBN: <%= book.getIsbn() %>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
                             <td class="price-cell">Rs. <%= String.format("%.2f", book.getPrice()) %></td>
                             <td>
                                 <span class="stock-badge <%= book.getStockQuantity() > 10 ? "high" : (book.getStockQuantity() > 5 ? "medium" : "low") %>">
@@ -812,14 +1019,14 @@
                             </td>
                             <td>
                                 <button type="button" class="btn btn-sm" style="background: #059669; color: white; padding: 0.3rem 0.8rem; border: none; border-radius: 4px; font-size: 0.8rem;"
-                                        onclick="event.stopPropagation(); addProductToBill(<%= book.getBookId() %>, '<%= book.getTitle().replace("'", "\\'") %>', '<%= book.getAuthor() != null ? book.getAuthor().replace("'", "\\'") : "" %>', <%= book.getPrice() %>, <%= book.getStockQuantity() %>)">
+                                        onclick="event.stopPropagation(); addProductToBill(<%= book.getBookId() %>, '<%= book.getTitle().replace("'", "\\'") %>', '<%= book.getAuthor() != null ? book.getAuthor().replace("'", "\\'") : "" %>', <%= book.getPrice() %>, <%= book.getStockQuantity() %>, '<%= book.getImagePath() != null ? book.getImagePath().replace("'", "\\'") : "" %>', '<%= book.getBookCategory() != null ? book.getBookCategory().replace("'", "\\'") : "" %>')">
                                     Add
                                 </button>
                             </td>
                         </tr>
                         <% } } else { %>
                         <tr>
-                            <td colspan="5" class="empty-state">
+                            <td colspan="4" class="empty-state">
                                 <div class="empty-state-icon">📚</div>
                                 <h3>No Products Available</h3>
                                 <p>Please add products to inventory first</p>
@@ -831,14 +1038,12 @@
             </div>
         </div>
 
-        <!-- Right Panel - Bill -->
         <div class="right-panel">
             <div class="bill-header">
                 <h2>🧾 Current Bill</h2>
                 <div class="bill-number">Bill #<span id="billNumber"><%= System.currentTimeMillis() %></span></div>
             </div>
 
-            <!-- Bill Items -->
             <div class="bill-items" id="billItems">
                 <div class="empty-state">
                     <div class="empty-state-icon">🛒</div>
@@ -847,7 +1052,6 @@
                 </div>
             </div>
 
-            <!-- Bill Totals -->
             <div class="bill-totals">
                 <div class="discount-section">
                     <div class="form-group">
@@ -878,7 +1082,6 @@
                 </div>
             </div>
 
-            <!-- Action Buttons -->
             <div class="action-buttons">
                 <button type="button" class="btn btn-success" onclick="createBill()" id="createBillBtn">
                     ✅ Create Bill
@@ -890,7 +1093,6 @@
         </div>
     </div>
 
-    <!-- Customer Table Modal -->
     <div class="modal" id="customerTableModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -900,7 +1102,7 @@
             <div class="modal-body">
                 <div class="customer-modal-search">
                     <input type="text" class="form-control" id="customerTableSearch" 
-                           placeholder="🔍 Search customers..." 
+                           placeholder="🔍 Search by name or phone..." 
                            onkeyup="searchCustomerTable(this.value)">
                 </div>
                 <div style="max-height: 400px; overflow-y: auto;">
@@ -914,7 +1116,6 @@
                             </tr>
                         </thead>
                         <tbody id="customersTableBody">
-                            <!-- Customer data will be populated here -->
                         </tbody>
                     </table>
                 </div>
@@ -925,7 +1126,6 @@
         </div>
     </div>
 
-    <!-- Add Customer Modal -->
     <div class="modal" id="addCustomerModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -980,7 +1180,6 @@
         </div>
     </div>
 
-    <!-- Hidden iframe for form submission -->
     <iframe name="customerFrame" style="display: none;" onload="handleCustomerFormResponse()"></iframe>
     <form action="bill" method="post" id="createBillForm" style="display: none;">
         <input type="hidden" name="action" value="create">
@@ -990,13 +1189,12 @@
     </form>
 
     <script>
-        // Global variables
         let billItems = [];
         let allProducts = [];
+        let filteredProducts = [];
         let allCustomers = [];
         let customerSearchTimeout;
 
-        // Store data for search functionality
         <% if (books != null) { %>
         allProducts = [
             <% for (int i = 0; i < books.size(); i++) {
@@ -1007,7 +1205,11 @@
                 author: '<%= book.getAuthor() != null ? book.getAuthor().replace("'", "\\'") : "" %>',
                 price: <%= book.getPrice() %>,
                 stock: <%= book.getStockQuantity() %>,
-                isbn: '<%= book.getIsbn() != null ? book.getIsbn() : "" %>'
+                isbn: '<%= book.getIsbn() != null ? book.getIsbn() : "" %>',
+                imagePath: '<%= request.getContextPath() %>/<%= book.getImagePath() != null ? book.getImagePath().replace("'", "\\'") : "" %>',
+                category: '<%= book.getBookCategory() != null ? book.getBookCategory().replace("'", "\\'") : "" %>',
+                language: '<%= book.getLanguage() != null ? book.getLanguage() : "" %>',
+                publisher: '<%= book.getPublisher() != null ? book.getPublisher().replace("'", "\\'") : "" %>'
             }<%= i < books.size() - 1 ? "," : "" %>
             <% } %>
         ];
@@ -1028,7 +1230,8 @@
         ];
         <% } %>
 
-        // Validation functions
+        filteredProducts = [...allProducts];
+
         function validateName(name) {
             return name && name.trim().length >= 2 && /^[a-zA-Z\s.]+$/.test(name.trim());
         }
@@ -1038,27 +1241,102 @@
         }
 
         function validateEmail(email) {
-            if (!email || email.trim() === '') return true; // Optional field
+            if (!email || email.trim() === '') return true;
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             return emailRegex.test(email);
         }
 
-        // Customer search functions
+        function filterByCategory(category) {
+            filteredProducts = allProducts.filter(product => {
+                if (!category) return true;
+                return product.category === category;
+            });
+            
+            const searchQuery = document.querySelector('.search-input').value;
+            if (searchQuery && searchQuery.length >= 2) {
+                filteredProducts = filteredProducts.filter(product => 
+                    product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    product.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    product.isbn.toLowerCase().includes(searchQuery.toLowerCase())
+                );
+            }
+            
+            displayProductsInTable(filteredProducts);
+        }
+
+        function filterByStock(stockType) {
+            let baseProducts = allProducts;
+            
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            if (categoryFilter) {
+                baseProducts = baseProducts.filter(product => product.category === categoryFilter);
+            }
+            
+            if (stockType === 'available') {
+                filteredProducts = baseProducts.filter(product => product.stock > 0);
+            } else if (stockType === 'low') {
+                filteredProducts = baseProducts.filter(product => product.stock <= 5 && product.stock > 0);
+            } else if (stockType === 'high') {
+                filteredProducts = baseProducts.filter(product => product.stock > 10);
+            } else {
+                filteredProducts = baseProducts;
+            }
+            
+            const searchQuery = document.querySelector('.search-input').value;
+            if (searchQuery && searchQuery.length >= 2) {
+                filteredProducts = filteredProducts.filter(product => 
+                    product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    product.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    product.isbn.toLowerCase().includes(searchQuery.toLowerCase())
+                );
+            }
+            
+            displayProductsInTable(filteredProducts);
+        }
+
+        function resetFilters() {
+            document.getElementById('categoryFilter').value = '';
+            document.getElementById('stockFilter').value = '';
+            document.querySelector('.search-input').value = '';
+            filteredProducts = [...allProducts];
+            displayProductsInTable(filteredProducts);
+        }
+
         function searchCustomers(query) {
             clearTimeout(customerSearchTimeout);
             customerSearchTimeout = setTimeout(() => {
                 const searchResults = document.getElementById('customerSearchResults');
+                const searchInput = document.getElementById('customerSearch');
                 
                 if (!query || query.length < 2) {
                     searchResults.style.display = 'none';
+                    searchResults.innerHTML = '';
                     return;
                 }
 
+                // Check for exact phone number match
+                const exactPhoneMatch = allCustomers.find(customer => 
+                    customer.phone === query.trim()
+                );
+
+                if (exactPhoneMatch) {
+                    // Auto-select customer if exact phone number match
+                    selectCustomer(
+                        exactPhoneMatch.id,
+                        exactPhoneMatch.name,
+                        exactPhoneMatch.phone,
+                        exactPhoneMatch.accountNumber
+                    );
+                    showAlert(`✅ Customer "${exactPhoneMatch.name}" selected by phone number`, 'success');
+                    searchResults.style.display = 'none';
+                    searchResults.innerHTML = '';
+                    return;
+                }
+
+                // Filter customers by name or partial phone number
                 const filteredCustomers = allCustomers.filter(customer => 
                     customer.name.toLowerCase().includes(query.toLowerCase()) ||
-                    customer.phone.includes(query) ||
-                    customer.accountNumber.toLowerCase().includes(query.toLowerCase()) ||
-                    customer.email.toLowerCase().includes(query.toLowerCase())
+                    customer.phone.includes(query)
                 );
 
                 displayCustomerResults(filteredCustomers);
@@ -1089,7 +1367,23 @@
             document.getElementById('customerSearch').value = name;
             document.getElementById('selectedCustomerInfo').innerHTML = `✅ Selected: ${name} (${accountNumber})`;
             document.getElementById('customerSearchResults').style.display = 'none';
+            document.getElementById('unselectCustomerBtn').disabled = false;
             closeCustomerTableModal();
+        }
+
+        function unselectCustomer() {
+            const customerSearch = document.getElementById('customerSearch');
+            const selectedCustomerId = document.getElementById('selectedCustomerId');
+            const selectedCustomerInfo = document.getElementById('selectedCustomerInfo');
+            const unselectButton = document.getElementById('unselectCustomerBtn');
+
+            if (selectedCustomerId.value) {
+                selectedCustomerId.value = '';
+                customerSearch.value = '';
+                selectedCustomerInfo.innerHTML = '';
+                unselectButton.disabled = true;
+                showAlert('✅ Customer selection cleared', 'success');
+            }
         }
 
         function showCustomerSearch() {
@@ -1105,7 +1399,6 @@
             }, 200);
         }
 
-        // Customer Table Modal Functions
         function openCustomerTableModal() {
             document.getElementById('customerTableModal').classList.add('active');
             populateCustomerTable(allCustomers);
@@ -1150,15 +1443,12 @@
 
             const filteredCustomers = allCustomers.filter(customer => 
                 customer.name.toLowerCase().includes(query.toLowerCase()) ||
-                customer.phone.includes(query) ||
-                customer.accountNumber.toLowerCase().includes(query.toLowerCase()) ||
-                customer.email.toLowerCase().includes(query.toLowerCase())
+                customer.phone.includes(query)
             );
 
             populateCustomerTable(filteredCustomers);
         }
 
-        // Add Customer Function (Fixed with Iframe approach)
         function addNewCustomer() {
             const nameField = document.getElementById('newCustomerName');
             const phoneField = document.getElementById('newCustomerPhone');
@@ -1171,7 +1461,6 @@
             const email = emailField.value.trim();
             const address = addressField.value.trim();
             
-            // Validate required fields
             if (!name) {
                 showAlert('❌ Customer name is required', 'error');
                 nameField.focus();
@@ -1184,7 +1473,6 @@
                 return;
             }
             
-            // Validate formats
             if (!validateName(name)) {
                 showAlert('❌ Please enter a valid customer name', 'error');
                 nameField.focus();
@@ -1203,7 +1491,6 @@
                 return;
             }
 
-            // Check if customer already exists
             const existingCustomer = allCustomers.find(customer => customer.phone === phone);
             if (existingCustomer) {
                 showAlert('❌ Customer with this phone number already exists', 'error');
@@ -1211,22 +1498,18 @@
                 return;
             }
             
-            // Show loading state
             addCustomerBtn.classList.add('loading');
             addCustomerBtn.innerHTML = '⏳ Adding Customer...';
             addCustomerBtn.disabled = true;
             
-            // Store customer data for later use
             window.newCustomerData = { name, phone, email, address };
             
-            // Create and submit hidden form
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = 'customer';
             form.target = 'customerFrame';
             form.style.display = 'none';
             
-            // Add form fields
             const actionField = document.createElement('input');
             actionField.type = 'hidden';
             actionField.name = 'action';
@@ -1261,23 +1544,20 @@
                 form.appendChild(addressField2);
             }
             
-            // Add to page and submit
             document.body.appendChild(form);
             console.log('📤 Submitting customer form:', { name, phone, email, address });
             form.submit();
             
-            // Remove form after submission
             setTimeout(() => {
                 document.body.removeChild(form);
             }, 1000);
         }
 
-        // Handle customer form response from iframe
         function handleCustomerFormResponse() {
             const iframe = document.getElementsByName('customerFrame')[0];
             const addCustomerBtn = document.getElementById('addCustomerBtn');
             
-            if (!window.newCustomerData) return; // No customer being added
+            if (!window.newCustomerData) return;
             
             try {
                 const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
@@ -1285,12 +1565,10 @@
                 
                 console.log('🔍 Customer form response received');
                 
-                // Check for success indicators
                 const hasSuccess = responseBody.includes('success') || 
                                  responseBody.includes('added') ||
                                  responseBody.includes('customer') && responseBody.includes('successfully');
                 
-                // Check for error indicators
                 const hasError = responseBody.includes('error') || 
                                responseBody.includes('duplicate') ||
                                responseBody.includes('exception') ||
@@ -1298,34 +1576,27 @@
                                responseBody.includes('failed');
                 
                 if (hasError && !hasSuccess) {
-                    // Extract specific error message
                     let errorMessage = 'Failed to add customer';
                     if (responseBody.includes('duplicate')) {
                         errorMessage = 'Customer with this phone number already exists';
                     } else if (responseBody.includes('validation')) {
                         errorMessage = 'Please check the entered information';
                     }
-                    
                     showAlert('❌ ' + errorMessage, 'error');
                     console.error('❌ Customer add failed:', errorMessage);
                 } else {
-                    // Success case
                     const customerData = window.newCustomerData;
                     console.log('✅ Customer added successfully:', customerData.name);
                     
-                    // Clear form
                     document.getElementById('newCustomerName').value = '';
                     document.getElementById('newCustomerPhone').value = '';
                     document.getElementById('newCustomerEmail').value = '';
                     document.getElementById('newCustomerAddress').value = '';
                     
-                    // Close modal
                     closeAddCustomerModal();
                     
-                    // Show success message
                     showAlert('✅ Customer "' + customerData.name + '" added successfully!', 'success');
                     
-                    // Refresh the page to get updated customer list and auto-select
                     setTimeout(() => {
                         const currentUrl = new URL(window.location);
                         currentUrl.searchParams.set('newCustomerPhone', customerData.phone);
@@ -1337,50 +1608,67 @@
                 console.log('⚠️ Could not read iframe response, assuming success');
                 const customerData = window.newCustomerData;
                 
-                // Clear form
                 document.getElementById('newCustomerName').value = '';
                 document.getElementById('newCustomerPhone').value = '';
                 document.getElementById('newCustomerEmail').value = '';
                 document.getElementById('newCustomerAddress').value = '';
                 
-                // Close modal
                 closeAddCustomerModal();
                 
-                // Show success message
                 showAlert('✅ Customer "' + customerData.name + '" added successfully!', 'success');
                 
-                // Refresh with new customer phone
                 setTimeout(() => {
                     const currentUrl = new URL(window.location);
                     currentUrl.searchParams.set('newCustomerPhone', customerData.phone);
                     window.location.href = currentUrl.toString();
                 }, 1000);
             } finally {
-                // Reset button state
                 addCustomerBtn.classList.remove('loading');
                 addCustomerBtn.innerHTML = '✅ Add Customer';
                 addCustomerBtn.disabled = false;
                 
-                // Clear stored data
                 delete window.newCustomerData;
             }
         }
 
-        // Product search functions
         function searchProducts(query) {
             const tableBody = document.getElementById('productsTableBody');
             
             if (!query || query.length < 2) {
-                displayAllProducts();
+                applyCurrentFilters();
                 return;
             }
 
-            const filteredProducts = allProducts.filter(product => 
+            let searchResults = filteredProducts.filter(product => 
                 product.title.toLowerCase().includes(query.toLowerCase()) ||
                 product.author.toLowerCase().includes(query.toLowerCase()) ||
-                product.isbn.toLowerCase().includes(query.toLowerCase())
+                product.isbn.toLowerCase().includes(query.toLowerCase()) ||
+                product.category.toLowerCase().includes(query.toLowerCase()) ||
+                product.publisher.toLowerCase().includes(query.toLowerCase())
             );
 
+            displayProductsInTable(searchResults);
+        }
+
+        function applyCurrentFilters() {
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            const stockFilter = document.getElementById('stockFilter').value;
+            
+            let results = [...allProducts];
+            
+            if (categoryFilter) {
+                results = results.filter(product => product.category === categoryFilter);
+            }
+            
+            if (stockFilter === 'available') {
+                results = results.filter(product => product.stock > 0);
+            } else if (stockFilter === 'low') {
+                results = results.filter(product => product.stock <= 5 && product.stock > 0);
+            } else if (stockFilter === 'high') {
+                results = results.filter(product => product.stock > 10);
+            }
+            
+            filteredProducts = results;
             displayProductsInTable(filteredProducts);
         }
 
@@ -1390,63 +1678,77 @@
             if (products.length === 0) {
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="5" style="text-align: center; padding: 2rem; color: #6c757d;">
+                        <td colspan="4" style="text-align: center; padding: 2rem; color: #6b7280;">
                             <div>🔍 No products found</div>
-                            <small>Try different search terms</small>
+                            <small>Try different search terms or reset filters</small>
                         </td>
                     </tr>
                 `;
                 return;
             }
 
-            tableBody.innerHTML = products.map(product => `
-                <tr onclick="selectProduct(${product.id}, '${product.title.replace(/'/g, "\\'")}', '${product.author.replace(/'/g, "\\'")}', ${product.price}, ${product.stock})">
-                    <td><strong>${product.title}</strong></td>
-                    <td>${product.author || 'N/A'}</td>
-                    <td class="price-cell">Rs. ${product.price.toFixed(2)}</td>
-                    <td>
-                        <span class="stock-badge ${product.stock > 10 ? 'high' : (product.stock > 5 ? 'medium' : 'low')}">
-                            ${product.stock}
-                        </span>
-                    </td>
-                    <td>
-                        <button type="button" class="btn btn-sm" style="background: #059669; color: white; padding: 0.3rem 0.8rem; border: none; border-radius: 4px; font-size: 0.8rem;"
-                                onclick="event.stopPropagation(); addProductToBill(${product.id}, '${product.title.replace(/'/g, "\\'")}', '${product.author.replace(/'/g, "\\'")}', ${product.price}, ${product.stock})">
-                            Add
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
+            tableBody.innerHTML = products.map(product => {
+                const imageHtml = product.imagePath && product.imagePath.trim() !== '<%= request.getContextPath() %>/' ? 
+                    `<img src="${product.imagePath}" 
+                         alt="${product.title}" class="book-image" 
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                     <div class="book-image-placeholder" style="display: none;">📚</div>` :
+                    `<div class="book-image-placeholder">📚</div>`;
+                
+                const categoryBadge = product.category ? 
+                    `<span class="category-badge">${product.category}</span>` : '';
+                
+                return `
+                    <tr onclick="selectProduct(${product.id}, '${product.title.replace(/'/g, "\\'")}', '${product.author.replace(/'/g, "\\'")}', ${product.price}, ${product.stock}, '${product.imagePath.replace(/'/g, "\\'")}', '${product.category.replace(/'/g, "\\'")}')">
+                        <td>
+                            <div class="book-info">
+                                ${imageHtml}
+                                <div class="book-details">
+                                    <div class="book-title">${product.title}</div>
+                                    <div class="book-meta">
+                                        ${categoryBadge}
+                                        ${product.author ? `by ${product.author}` : ''}
+                                        ${product.isbn ? ` • ISBN: ${product.isbn}` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="price-cell">Rs. ${product.price.toFixed(2)}</td>
+                        <td>
+                            <span class="stock-badge ${product.stock > 10 ? 'high' : (product.stock > 5 ? 'medium' : 'low')}">
+                                ${product.stock}
+                            </span>
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-sm" style="background: #059669; color: white; padding: 0.3rem 0.8rem; border: none; border-radius: 4px; font-size: 0.8rem;"
+                                    onclick="event.stopPropagation(); addProductToBill(${product.id}, '${product.title.replace(/'/g, "\\'")}', '${product.author.replace(/'/g, "\\'")}', ${product.price}, ${product.stock}, '${product.imagePath.replace(/'/g, "\\'")}', '${product.category.replace(/'/g, "\\'")}')">
+                                Add
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
         }
 
-        function displayAllProducts() {
-            displayProductsInTable(allProducts);
-        }
-
-        function selectProduct(productId, title, author, price, stock) {
-            // Remove previous selection
+        function selectProduct(productId, title, author, price, stock, imagePath, category) {
             document.querySelectorAll('.products-table tbody tr').forEach(row => {
                 row.classList.remove('selected');
             });
             
-            // Add selection to current row
             event.currentTarget.classList.add('selected');
             
-            // Auto add to bill after short delay
             setTimeout(() => {
-                addProductToBill(productId, title, author, price, stock);
+                addProductToBill(productId, title, author, price, stock, imagePath, category);
                 event.currentTarget.classList.remove('selected');
             }, 200);
         }
 
-        // Add product to bill
-        function addProductToBill(productId, title, author, price, stock) {
+        function addProductToBill(productId, title, author, price, stock, imagePath, category) {
             if (stock === 0) {
                 showAlert('❌ Product out of stock!', 'error');
                 return;
             }
 
-            // Check if product already exists in bill
             const existingProduct = billItems.find(item => item.id === productId);
             
             if (existingProduct) {
@@ -1464,14 +1766,17 @@
                     author: author,
                     price: price,
                     quantity: 1,
-                    stock: stock
+                    stock: stock,
+                    imagePath: imagePath || '',
+                    category: category || '',
+                    publisher: '',
+                    isbn: ''
                 });
                 updateBillDisplay();
                 showAlert(`✅ Added "${title}" to bill`, 'success');
             }
         }
 
-        // Update bill display
         function updateBillDisplay() {
             const billItemsContainer = document.getElementById('billItems');
             
@@ -1484,32 +1789,46 @@
                     </div>
                 `;
             } else {
-                billItemsContainer.innerHTML = billItems.map((item, index) => `
-                    <div class="bill-item">
-                        <div class="bill-item-header">
-                            <div class="bill-item-info">
-                                <h4>${item.title}</h4>
-                                <div class="bill-item-details">
-                                    ${item.author ? `by ${item.author} • ` : ''}Rs. ${item.price.toFixed(2)} each
+                billItemsContainer.innerHTML = billItems.map((item, index) => {
+                    const imageHtml = item.imagePath && item.imagePath.trim() && !item.imagePath.endsWith('/') ? 
+                        `<img src="${item.imagePath}" 
+                             alt="${item.title}" class="bill-item-image" 
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                         <div class="bill-item-image-placeholder" style="display: none;">📚</div>` :
+                        `<div class="bill-item-image-placeholder">📚</div>`;
+                    
+                    const categoryBadge = item.category ? 
+                        `<span class="category-badge">${item.category}</span> ` : '';
+                    
+                    return `
+                        <div class="bill-item">
+                            <div class="bill-item-header">
+                                <div class="bill-item-info">
+                                    ${imageHtml}
+                                    <div class="bill-item-text">
+                                        <h4>${item.title}</h4>
+                                        <div class="bill-item-details">
+                                            ${categoryBadge}${item.author ? `by ${item.author} • ` : ''}Rs. ${item.price.toFixed(2)} each
+                                        </div>
+                                    </div>
                                 </div>
+                                <div class="item-total">Rs. ${(item.price * item.quantity).toFixed(2)}</div>
                             </div>
-                            <div class="item-total">Rs. ${(item.price * item.quantity).toFixed(2)}</div>
+                            <div class="quantity-controls">
+                                <button type="button" class="qty-btn" onclick="decreaseQuantity(${index})">-</button>
+                                <input type="number" class="qty-input" value="${item.quantity}" min="1" max="${item.stock}" 
+                                       onchange="updateQuantity(${index}, this.value)">
+                                <button type="button" class="qty-btn" onclick="increaseQuantity(${index})">+</button>
+                                <button type="button" class="remove-btn" onclick="removeProduct(${index})">🗑️</button>
+                            </div>
                         </div>
-                        <div class="quantity-controls">
-                            <button type="button" class="qty-btn" onclick="decreaseQuantity(${index})">-</button>
-                            <input type="number" class="qty-input" value="${item.quantity}" min="1" max="${item.stock}" 
-                                   onchange="updateQuantity(${index}, this.value)">
-                            <button type="button" class="qty-btn" onclick="increaseQuantity(${index})">+</button>
-                            <button type="button" class="remove-btn" onclick="removeProduct(${index})">🗑️</button>
-                        </div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
             }
             
             calculateTotals();
         }
 
-        // Quantity management functions
         function increaseQuantity(index) {
             const item = billItems[index];
             if (item.quantity < item.stock) {
@@ -1537,7 +1856,7 @@
                 updateBillDisplay();
             } else if (qty > item.stock) {
                 showAlert(`❌ Maximum quantity for "${item.title}" is ${item.stock}`, 'error');
-                updateBillDisplay(); // Reset to previous value
+                updateBillDisplay();
             } else if (qty <= 0) {
                 removeProduct(index);
             }
@@ -1552,7 +1871,6 @@
             }
         }
 
-        // Clear all products
         function clearBill() {
             if (billItems.length > 0 && confirm('Are you sure you want to clear all items from the bill?')) {
                 billItems = [];
@@ -1561,7 +1879,6 @@
             }
         }
 
-        // Calculate totals
         function calculateTotals() {
             let subTotal = 0;
             
@@ -1571,7 +1888,7 @@
             
             const discount = parseFloat(document.getElementById('discount').value) || 0;
             const taxableAmount = Math.max(0, subTotal - discount);
-            const tax = taxableAmount * 0.05; // 5% tax
+            const tax = taxableAmount * 0.05;
             const totalAmount = taxableAmount + tax;
             
             document.getElementById('subTotal').textContent = `Rs. ${subTotal.toFixed(2)}`;
@@ -1580,42 +1897,38 @@
             document.getElementById('totalAmount').textContent = `Rs. ${totalAmount.toFixed(2)}`;
         }
 
-        // Create bill function
         function createBill() {
             const customerId = document.getElementById('selectedCustomerId').value;
             const createBillBtn = document.getElementById('createBillBtn');
             
-            // Validate customer selection
             if (!customerId) {
                 showAlert('❌ Please select a customer before creating the bill.', 'error');
                 return;
             }
             
-            // Validate bill items
             if (billItems.length === 0) {
                 showAlert('❌ Please add at least one product to the bill.', 'error');
                 return;
             }
             
-            // Check total amount
             const totalAmount = parseFloat(document.getElementById('totalAmount').textContent.replace('Rs. ', ''));
             if (totalAmount <= 0) {
                 showAlert('❌ Bill total must be greater than 0.', 'error');
                 return;
             }
             
-            // Confirm bill creation
             const customerName = document.getElementById('customerSearch').value;
-            if (!confirm(`Create bill for ${customerName}?\nTotal Amount: Rs. ${totalAmount.toFixed(2)}`)) {
+            const itemCount = billItems.length;
+            const totalQty = billItems.reduce((sum, item) => sum + item.quantity, 0);
+            
+            if (!confirm(`Create bill for ${customerName}?\n\nItems: ${itemCount} different books (${totalQty} total)\nTotal Amount: Rs. ${totalAmount.toFixed(2)}`)) {
                 return;
             }
             
-            // Show loading state
             createBillBtn.classList.add('loading');
             createBillBtn.innerHTML = '⏳ Creating Bill...';
             createBillBtn.disabled = true;
             
-            // Prepare form data
             document.getElementById('hiddenCustomerId').value = customerId;
             document.getElementById('hiddenDiscount').value = document.getElementById('discount').value;
             
@@ -1630,13 +1943,11 @@
                 `;
             });
             
-            // Submit form
             setTimeout(() => {
                 document.getElementById('createBillForm').submit();
             }, 500);
         }
 
-        // Add Customer Modal Functions
         function openAddCustomerModal() {
             document.getElementById('addCustomerModal').classList.add('active');
             document.getElementById('newCustomerName').focus();
@@ -1644,29 +1955,23 @@
 
         function closeAddCustomerModal() {
             document.getElementById('addCustomerModal').classList.remove('active');
-            // Clear form
             document.getElementById('newCustomerName').value = '';
             document.getElementById('newCustomerPhone').value = '';
             document.getElementById('newCustomerEmail').value = '';
             document.getElementById('newCustomerAddress').value = '';
         }
 
-        // Show alert function
         function showAlert(message, type) {
-            // Remove existing alerts
             const existingAlerts = document.querySelectorAll('.alert');
             existingAlerts.forEach(alert => alert.remove());
             
-            // Create new alert
             const alert = document.createElement('div');
             alert.className = `alert alert-${type}`;
             alert.innerHTML = message;
             
-            // Insert after header
             const header = document.querySelector('.header');
             header.insertAdjacentElement('afterend', alert);
             
-            // Auto remove after 4 seconds
             setTimeout(() => {
                 if (alert.parentNode) {
                     alert.remove();
@@ -1674,30 +1979,31 @@
             }, 4000);
         }
 
-        // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 CreateBill page loaded');
+            console.log('🚀 Enhanced CreateBill page loaded with image & category support');
             
-            // Phone number input formatting
             const phoneField = document.getElementById('newCustomerPhone');
             phoneField.addEventListener('input', function() {
-                // Remove non-digits and limit to 10 digits
                 this.value = this.value.replace(/[^0-9]/g, '');
                 if (this.value.length > 10) {
                     this.value = this.value.substr(0, 10);
                 }
             });
             
-            // Initialize discount change listener
             document.getElementById('discount').addEventListener('input', calculateTotals);
             
-            // Initialize calculations
+            document.getElementById('categoryFilter').addEventListener('change', function() {
+                filterByCategory(this.value);
+            });
+            
+            document.getElementById('stockFilter').addEventListener('change', function() {
+                filterByStock(this.value);
+            });
+            
             calculateTotals();
             
-            // Display all products initially
             displayAllProducts();
             
-            // Close modals when clicking outside
             document.getElementById('addCustomerModal').addEventListener('click', function(e) {
                 if (e.target === this) {
                     closeAddCustomerModal();
@@ -1710,12 +2016,10 @@
                 }
             });
             
-            // Auto-focus customer search
             setTimeout(() => {
                 document.getElementById('customerSearch').focus();
             }, 500);
 
-            // Handle pre-selected customer (from view customer page)
             <% if (preSelectedCustomerId != null && !preSelectedCustomerId.trim().isEmpty()) { %>
             try {
                 const customerId = <%= preSelectedCustomerId %>;
@@ -1729,7 +2033,6 @@
             }
             <% } %>
 
-            // Handle newly added customer auto-selection
             const urlParams = new URLSearchParams(window.location.search);
             const newCustomerPhone = urlParams.get('newCustomerPhone');
             if (newCustomerPhone) {
@@ -1738,39 +2041,53 @@
                     selectCustomer(newCustomer.id, newCustomer.name, newCustomer.phone, newCustomer.accountNumber);
                     showAlert('✅ New customer "' + newCustomer.name + '" selected for billing', 'success');
                     
-                    // Clean URL
                     const cleanUrl = window.location.pathname + window.location.search.replace(/[&?]newCustomerPhone=[^&]*/g, '');
                     window.history.replaceState({}, document.title, cleanUrl);
                 }
             }
-            
-            console.log('💡 Shortcuts: Ctrl+Enter=Create Bill, Ctrl+N=Add Customer, Ctrl+L=Show Customers, Escape=Close Modals');
+
+            console.log('💡 Enhanced Features: Image Support, Category Filtering, Enhanced Bill Items, Unselect Customer');
+            console.log('🎮 Shortcuts: Ctrl+Enter=Create Bill, Ctrl+N=Add Customer, Ctrl+L=Show Customers, Ctrl+R=Reset Filters, Ctrl+U=Unselect Customer, Escape=Close Modals');
         });
 
-        // Keyboard shortcuts
+        function displayAllProducts() {
+            displayProductsInTable(allProducts);
+        }
+
         document.addEventListener('keydown', function(e) {
-            // ESC key closes modals
             if (e.key === 'Escape') {
                 closeAddCustomerModal();
                 closeCustomerTableModal();
             }
             
-            // Ctrl+Enter to create bill
             if (e.ctrlKey && e.key === 'Enter') {
                 e.preventDefault();
                 createBill();
             }
             
-            // Ctrl+N to add new customer
             if (e.ctrlKey && e.key === 'n') {
                 e.preventDefault();
                 openAddCustomerModal();
             }
 
-            // Ctrl+L to show customer list
             if (e.ctrlKey && e.key === 'l') {
                 e.preventDefault();
                 openCustomerTableModal();
+            }
+            
+            if (e.ctrlKey && e.key === 'r') {
+                e.preventDefault();
+                resetFilters();
+            }
+            
+            if (e.ctrlKey && e.key === 'f') {
+                e.preventDefault();
+                document.querySelector('.search-input').focus();
+            }
+
+            if (e.ctrlKey && e.key === 'u') {
+                e.preventDefault();
+                unselectCustomer();
             }
         });
     </script>

@@ -1,3 +1,4 @@
+// BillItem.java - Enhanced with Image and Category Support
 package com.redupahana.model;
 
 public class BillItem {
@@ -8,11 +9,17 @@ public class BillItem {
     private double unitPrice;
     private double totalPrice;
 
-    // Additional fields for display - Book specific
+    // Enhanced Book specific fields - including new image and category
     private String bookTitle;
     private String bookCode;
     private String author;
     private String isbn;
+    private String publisher;
+    private String language;
+    private int pages;
+    private int publicationYear;
+    private String imagePath;      // NEW: Book image path
+    private String bookCategory;   // NEW: Book category
     private Book book;
 
     // Constructors
@@ -26,7 +33,7 @@ public class BillItem {
         this.totalPrice = quantity * unitPrice;
     }
 
-    // Getters and Setters
+    // Basic Getters and Setters
     public int getBillItemId() { return billItemId; }
     public void setBillItemId(int billItemId) { this.billItemId = billItemId; }
 
@@ -55,7 +62,7 @@ public class BillItem {
     public double getTotalPrice() { return totalPrice; }
     public void setTotalPrice(double totalPrice) { this.totalPrice = totalPrice; }
 
-    // Book specific getters and setters
+    // Enhanced Book specific getters and setters
     public String getBookTitle() { return bookTitle; }
     public void setBookTitle(String bookTitle) { this.bookTitle = bookTitle; }
 
@@ -67,6 +74,25 @@ public class BillItem {
 
     public String getIsbn() { return isbn; }
     public void setIsbn(String isbn) { this.isbn = isbn; }
+
+    public String getPublisher() { return publisher; }
+    public void setPublisher(String publisher) { this.publisher = publisher; }
+
+    public String getLanguage() { return language; }
+    public void setLanguage(String language) { this.language = language; }
+
+    public int getPages() { return pages; }
+    public void setPages(int pages) { this.pages = pages; }
+
+    public int getPublicationYear() { return publicationYear; }
+    public void setPublicationYear(int publicationYear) { this.publicationYear = publicationYear; }
+
+    // NEW: Image and Category getters and setters
+    public String getImagePath() { return imagePath; }
+    public void setImagePath(String imagePath) { this.imagePath = imagePath; }
+
+    public String getBookCategory() { return bookCategory; }
+    public void setBookCategory(String bookCategory) { this.bookCategory = bookCategory; }
 
     public Book getBook() { return book; }
     public void setBook(Book book) { this.book = book; }
@@ -82,9 +108,77 @@ public class BillItem {
     public void setItemCategory(String itemCategory) { /* Always Books */ }
 
     public String getItemDescription() { 
-        return author != null ? "by " + author : null; 
+        StringBuilder desc = new StringBuilder();
+        if (author != null && !author.trim().isEmpty()) {
+            desc.append("by ").append(author);
+        }
+        if (bookCategory != null && !bookCategory.trim().isEmpty()) {
+            if (desc.length() > 0) desc.append(" | ");
+            desc.append("Category: ").append(bookCategory);
+        }
+        if (language != null && !language.trim().isEmpty()) {
+            if (desc.length() > 0) desc.append(" | ");
+            desc.append("Language: ").append(language);
+        }
+        return desc.length() > 0 ? desc.toString() : null; 
     }
     public void setItemDescription(String itemDescription) { /* Not used for books */ }
+
+    // NEW: Helper methods for image display
+    public boolean hasImage() {
+        return imagePath != null && !imagePath.trim().isEmpty();
+    }
+
+    public String getImageUrl() {
+        if (hasImage()) {
+            return imagePath.startsWith("/") ? imagePath : "/" + imagePath;
+        }
+        return null;
+    }
+
+    // NEW: Helper methods for category display
+    public boolean hasCategory() {
+        return bookCategory != null && !bookCategory.trim().isEmpty();
+    }
+
+    public String getCategoryDisplay() {
+        return hasCategory() ? bookCategory : "Uncategorized";
+    }
+
+    // Enhanced book info display methods
+    public String getBookInfo() {
+        StringBuilder info = new StringBuilder();
+        if (bookTitle != null) info.append(bookTitle);
+        if (author != null && !author.trim().isEmpty()) {
+            if (info.length() > 0) info.append(" by ");
+            info.append(author);
+        }
+        return info.toString();
+    }
+
+    public String getBookDetails() {
+        StringBuilder details = new StringBuilder();
+        if (bookCode != null && !bookCode.trim().isEmpty()) {
+            details.append("Code: ").append(bookCode);
+        }
+        if (isbn != null && !isbn.trim().isEmpty()) {
+            if (details.length() > 0) details.append(" | ");
+            details.append("ISBN: ").append(isbn);
+        }
+        if (publisher != null && !publisher.trim().isEmpty()) {
+            if (details.length() > 0) details.append(" | ");
+            details.append("Publisher: ").append(publisher);
+        }
+        if (publicationYear > 0) {
+            if (details.length() > 0) details.append(" | ");
+            details.append("Year: ").append(publicationYear);
+        }
+        if (pages > 0) {
+            if (details.length() > 0) details.append(" | ");
+            details.append("Pages: ").append(pages);
+        }
+        return details.toString();
+    }
 
     // Utility methods
     public void calculateTotalPrice() {
@@ -95,14 +189,24 @@ public class BillItem {
         return true; // Always true now
     }
 
+    public String getFormattedPrice() {
+        return String.format("Rs. %.2f", unitPrice);
+    }
+
+    public String getFormattedTotalPrice() {
+        return String.format("Rs. %.2f", totalPrice);
+    }
+
     @Override
     public String toString() {
         return "BillItem{" +
                 "bookTitle='" + bookTitle + '\'' +
                 ", author='" + author + '\'' +
+                ", category='" + bookCategory + '\'' +
                 ", quantity=" + quantity +
                 ", unitPrice=" + unitPrice +
                 ", totalPrice=" + totalPrice +
+                ", hasImage=" + hasImage() +
                 '}';
     }
 }
