@@ -1,12 +1,7 @@
-// BookController.java - Improved with better error handling for book code generation + Image Upload Support
+// BookController.java - Updated with Base64 Image Support
 package com.redupahana.controller;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.sql.SQLException;
 import java.util.List;
 import javax.servlet.ServletException;
@@ -20,7 +15,6 @@ import javax.servlet.http.Part;
 import com.redupahana.model.Book;
 import com.redupahana.model.User;
 import com.redupahana.service.BookService;
-import com.redupahana.util.Constants;
 
 @WebServlet("/book")
 @MultipartConfig(
@@ -32,17 +26,9 @@ public class BookController extends HttpServlet {
     private static final long serialVersionUID = 1L;
     
     private BookService bookService;
-    private static final String UPLOAD_DIR = "uploads/books";
     
     public void init() throws ServletException {
         bookService = BookService.getInstance();
-        
-        // Create upload directory if it doesn't exist
-        String uploadPath = getServletContext().getRealPath("") + File.separator + UPLOAD_DIR;
-        File uploadDir = new File(uploadPath);
-        if (!uploadDir.exists()) {
-            uploadDir.mkdirs();
-        }
     }
     
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
@@ -153,7 +139,52 @@ public class BookController extends HttpServlet {
     }
     
     /**
-     * Improved addBook method with better error handling and retry logic + Image Upload
+     * Convert uploaded image to Base64 string
+     */
+    private String handleImageUploadAsBase64(Part imagePart) throws IOException {
+        if (imagePart == null || imagePart.getSize() == 0) return null;
+        
+        if (!isValidImageType(imagePart.getContentType())) {
+            throw new IllegalArgumentException("Invalid image format.");
+        }
+        
+        if (imagePart.getSize() > 2 * 1024 * 1024) { // 2MB limit
+            throw new IllegalArgumentException("File too large. Max 2MB.");
+        }
+        
+        byte[] data = inputStreamToByteArray(imagePart.getInputStream());
+        String base64 = java.util.Base64.getEncoder().encodeToString(data);
+        return "data:" + imagePart.getContentType() + ";base64," + base64;
+    }
+    /**
+     * Convert InputStream to byte array (Compatible with older Java versions)
+     */
+    private byte[] inputStreamToByteArray(java.io.InputStream inputStream) throws IOException {
+        java.io.ByteArrayOutputStream buffer = new java.io.ByteArrayOutputStream();
+        int nRead;
+        byte[] data = new byte[1024];
+        
+        while ((nRead = inputStream.read(data, 0, data.length)) != -1) {
+            buffer.write(data, 0, nRead);
+        }
+        
+        buffer.flush();
+        return buffer.toByteArray();
+    }
+    /**
+     * Validate image type
+     */
+    private boolean isValidImageType(String contentType) {
+        return contentType != null && (
+            contentType.equals("image/jpeg") ||
+            contentType.equals("image/jpg") ||
+            contentType.equals("image/png") ||
+            contentType.equals("image/gif")
+        );
+    }
+    
+    /**
+     * Updated addBook method with Base64 image handling
      */
     private void addBook(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
@@ -177,11 +208,11 @@ public class BookController extends HttpServlet {
                 String language = request.getParameter("language");
                 String bookCategory = request.getParameter("bookCategory");
                 
-                // Handle image upload
-                String imagePath = null;
+                // Handle image upload as Base64
+                String imageBase64 = null;
                 Part imagePart = request.getPart("bookImage");
                 if (imagePart != null && imagePart.getSize() > 0) {
-                    imagePath = handleImageUpload(imagePart);
+                    imageBase64 = handleImageUploadAsBase64(imagePart);
                 }
                 
                 // Basic validation
@@ -276,7 +307,6 @@ public class BookController extends HttpServlet {
                 
                 // Handle book code - Let service auto-generate if empty or invalid
                 if (bookCode != null && !bookCode.trim().isEmpty()) {
-                    // Only set if user provided a code, otherwise let service generate
                     book.setBookCode(bookCode.trim());
                 }
                 
@@ -284,7 +314,7 @@ public class BookController extends HttpServlet {
                 book.setAuthor(author.trim());
                 book.setPrice(price);
                 book.setStockQuantity(stockQuantity);
-                book.setImagePath(imagePath);
+                book.setImageBase64(imageBase64); // Set Base64 image
                 
                 // Handle optional fields
                 if (description != null && !description.trim().isEmpty()) {
@@ -336,10 +366,8 @@ public class BookController extends HttpServlet {
                 // Check if it's a duplicate key error
                 if (e.getMessage().contains("already exists") || e.getMessage().contains("Duplicate entry")) {
                     if (retryCount < maxRetries) {
-                        // Clear the book code to force auto-generation on retry
                         System.out.println("Retry attempt " + retryCount + " - Book code conflict, trying again...");
                         
-                        // Add a small delay to avoid rapid retries
                         try {
                             Thread.sleep(10); // 10ms delay
                         } catch (InterruptedException ie) {
@@ -348,23 +376,19 @@ public class BookController extends HttpServlet {
                         
                         continue; // Retry the operation
                     } else {
-                        // Maximum retries reached
                         request.setAttribute("errorMessage", 
                             "❌ Unable to generate a unique book code after " + maxRetries + " attempts. Please try again in a moment.");
                         showAddFormWithError(request, response);
                         return;
                     }
                 } else {
-                    // Other SQL errors
                     request.setAttribute("errorMessage", "Database error: " + e.getMessage());
                     showAddFormWithError(request, response);
                     return;
                 }
                 
             } catch (IllegalArgumentException e) {
-                // Validation errors from service layer
                 if (e.getMessage().contains("already exists")) {
-                    // Suggest alternative book code
                     try {
                         String originalCode = request.getParameter("bookCode");
                         if (originalCode != null && !originalCode.trim().isEmpty()) {
@@ -386,94 +410,9 @@ public class BookController extends HttpServlet {
                 return;
                 
             } catch (Exception e) {
-                // Other unexpected errors
                 request.setAttribute("errorMessage", "Unexpected error: " + e.getMessage());
                 showAddFormWithError(request, response);
                 return;
-            }
-        }
-    }
-    
-    /**
-     * Handle image upload and return the path
-     */
-    private String handleImageUpload(Part imagePart) throws IOException {
-        String fileName = getFileName(imagePart);
-        if (fileName == null || fileName.trim().isEmpty()) {
-            return null;
-        }
-        
-        // Validate file type
-        String contentType = imagePart.getContentType();
-        if (!isValidImageType(contentType)) {
-            throw new IllegalArgumentException("Invalid image format. Only JPG, PNG, and GIF are allowed.");
-        }
-        
-        // Generate unique file name
-        String fileExtension = getFileExtension(fileName);
-        String uniqueFileName = System.currentTimeMillis() + "_" + fileName;
-        
-        // Get upload path
-        String uploadPath = getServletContext().getRealPath("") + File.separator + UPLOAD_DIR;
-        
-        // Save file
-        Path filePath = Paths.get(uploadPath, uniqueFileName);
-        Files.copy(imagePart.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-        
-        // Return relative path for database storage
-        return UPLOAD_DIR + "/" + uniqueFileName;
-    }
-    
-    /**
-     * Get file name from Part
-     */
-    private String getFileName(Part part) {
-        String contentDisp = part.getHeader("content-disposition");
-        String[] tokens = contentDisp.split(";");
-        for (String token : tokens) {
-            if (token.trim().startsWith("filename")) {
-                return token.substring(token.indexOf("=") + 2, token.length() - 1);
-            }
-        }
-        return null;
-    }
-    
-    /**
-     * Get file extension
-     */
-    private String getFileExtension(String fileName) {
-        int lastIndexOf = fileName.lastIndexOf(".");
-        if (lastIndexOf == -1) {
-            return "";
-        }
-        return fileName.substring(lastIndexOf);
-    }
-    
-    /**
-     * Validate image type
-     */
-    private boolean isValidImageType(String contentType) {
-        return contentType != null && (
-            contentType.equals("image/jpeg") ||
-            contentType.equals("image/jpg") ||
-            contentType.equals("image/png") ||
-            contentType.equals("image/gif")
-        );
-    }
-    
-    /**
-     * Delete image file
-     */
-    private void deleteImageFile(String imagePath) {
-        if (imagePath != null && !imagePath.trim().isEmpty()) {
-            try {
-                String fullPath = getServletContext().getRealPath("") + File.separator + imagePath;
-                File file = new File(fullPath);
-                if (file.exists()) {
-                    file.delete();
-                }
-            } catch (Exception e) {
-                System.err.println("Error deleting image file: " + e.getMessage());
             }
         }
     }
@@ -543,6 +482,9 @@ public class BookController extends HttpServlet {
         }
     }
     
+    /**
+     * Updated updateBook method with Base64 image handling
+     */
     private void updateBook(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         try {
@@ -650,26 +592,19 @@ public class BookController extends HttpServlet {
                 return;
             }
             
-            // Handle image upload/removal
-            String imagePath = existingBook.getImagePath();
+            // Handle image upload/removal for Base64
+            String imageBase64 = existingBook.getImageBase64();
             
             // Check if user wants to remove existing image
             if ("true".equals(removeImage)) {
-                if (imagePath != null) {
-                    deleteImageFile(imagePath);
-                }
-                imagePath = null;
+                imageBase64 = null; // Simply set to null for Base64
             }
             
             // Handle new image upload
             Part imagePart = request.getPart("bookImage");
             if (imagePart != null && imagePart.getSize() > 0) {
-                // Delete old image if exists
-                if (imagePath != null) {
-                    deleteImageFile(imagePath);
-                }
-                // Upload new image
-                imagePath = handleImageUpload(imagePart);
+                // Convert new image to Base64
+                imageBase64 = handleImageUploadAsBase64(imagePart);
             }
             
             // Create updated book object
@@ -681,7 +616,7 @@ public class BookController extends HttpServlet {
             book.setPrice(price);
             book.setStockQuantity(stockQuantity);
             book.setCreatedDate(existingBook.getCreatedDate()); // Keep original created date
-            book.setImagePath(imagePath);
+            book.setImageBase64(imageBase64); // Set Base64 image
             
             // Handle optional fields
             if (description != null && !description.trim().isEmpty()) {
@@ -757,7 +692,7 @@ public class BookController extends HttpServlet {
             
             int bookId = Integer.parseInt(bookIdParam);
             
-            // Get book info before deletion for success message and image cleanup
+            // Get book info before deletion for success message
             Book bookToDelete = bookService.getBookById(bookId);
             if (bookToDelete == null) {
                 HttpSession session = request.getSession();
@@ -766,12 +701,7 @@ public class BookController extends HttpServlet {
                 return;
             }
             
-            // Delete associated image file
-            if (bookToDelete.getImagePath() != null) {
-                deleteImageFile(bookToDelete.getImagePath());
-            }
-            
-            // Delete book
+            // Delete book (no need to delete image files for Base64)
             bookService.deleteBook(bookId);
             
             // Set success message

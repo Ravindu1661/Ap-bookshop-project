@@ -1,4 +1,4 @@
-// BookDAO.java - Improved version with better error handling + Image and Category Support
+// BookDAO.java - Updated with Base64 Image Support
 package com.redupahana.dao;
 
 import java.sql.*;
@@ -10,11 +10,11 @@ import com.redupahana.util.DBConnectionFactory;
 public class BookDAO {
     
     /**
-     * Add a new book with improved error handling and transaction support + Image and Category
+     * Add a new book with Base64 image support
      */
     public void addBook(Book book) throws SQLException {
         String query = "INSERT INTO items (item_code, name, description, price, stock_quantity, category, " +
-                      "author, isbn, publisher, publication_year, pages, language, image_path, book_category) " +
+                      "author, isbn, publisher, publication_year, pages, language, image_base64, book_category) " +
                       "VALUES (?, ?, ?, ?, ?, 'Books', ?, ?, ?, ?, ?, ?, ?, ?)";
         
         Connection connection = null;
@@ -50,8 +50,8 @@ public class BookDAO {
             }
             
             statement.setString(11, book.getLanguage());
-            statement.setString(12, book.getImagePath());  // New image path field
-            statement.setString(13, book.getBookCategory()); // New book category field
+            statement.setString(12, book.getImageBase64()); // Base64 image data
+            statement.setString(13, book.getBookCategory());
             
             int affectedRows = statement.executeUpdate();
             
@@ -212,12 +212,12 @@ public class BookDAO {
     }
     
     /**
-     * Update book with transaction support + Image and Category
+     * Update book with Base64 image support
      */
     public void updateBook(Book book) throws SQLException {
         String query = "UPDATE items SET name = ?, description = ?, price = ?, stock_quantity = ?, " +
                       "author = ?, isbn = ?, publisher = ?, publication_year = ?, pages = ?, language = ?, " +
-                      "image_path = ?, book_category = ? " +
+                      "image_base64 = ?, book_category = ? " +
                       "WHERE item_id = ? AND category = 'Books'";
         
         Connection connection = null;
@@ -251,8 +251,8 @@ public class BookDAO {
             }
             
             statement.setString(10, book.getLanguage());
-            statement.setString(11, book.getImagePath());  // New image path field
-            statement.setString(12, book.getBookCategory()); // New book category field
+            statement.setString(11, book.getImageBase64()); // Base64 image data
+            statement.setString(12, book.getBookCategory());
             statement.setInt(13, book.getBookId());
             
             int affectedRows = statement.executeUpdate();
@@ -303,7 +303,8 @@ public class BookDAO {
      * Soft delete book (mark as inactive)
      */
     public void deleteBook(int bookId) throws SQLException {
-        String query = "UPDATE items SET is_active = false WHERE item_id = ? AND category = 'Books'";
+        String query = "UPDATE items SET is_active = false, image_base64 = NULL " +
+                      "WHERE item_id = ? AND category = 'Books'";
         
         try (Connection connection = DBConnectionFactory.getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
@@ -426,7 +427,7 @@ public class BookDAO {
     }
     
     /**
-     * Get books by category - NEW METHOD
+     * Get books by category
      */
     public List<Book> getBooksByCategory(String category) throws SQLException {
         List<Book> books = new ArrayList<>();
@@ -448,7 +449,7 @@ public class BookDAO {
     }
     
     /**
-     * Get all unique book categories - NEW METHOD
+     * Get all unique book categories
      */
     public List<String> getAllBookCategories() throws SQLException {
         List<String> categories = new ArrayList<>();
@@ -504,7 +505,7 @@ public class BookDAO {
     }
     
     /**
-     * Map ResultSet to Book object with proper null handling + Image and Category Support
+     * Map ResultSet to Book object with Base64 image support
      */
     private Book mapResultSetToBook(ResultSet resultSet) throws SQLException {
         Book book = new Book();
@@ -533,8 +534,8 @@ public class BookDAO {
         book.setLanguage(resultSet.getString("language"));
         book.setActive(resultSet.getBoolean("is_active"));
         
-        // Handle new fields
-        book.setImagePath(resultSet.getString("image_path"));
+        // Handle Base64 image and category
+        book.setImageBase64(resultSet.getString("image_base64"));
         book.setBookCategory(resultSet.getString("book_category"));
         
         // Handle timestamps

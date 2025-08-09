@@ -31,7 +31,7 @@
 %>
 
 <style>
-/* Dashboard Styles - Complete CSS for all pages with Role-based Sidebar Colors */
+
 * {
     margin: 0;
     padding: 0;
@@ -975,7 +975,6 @@ body {
     }
 }
 
-/* Additional styles would continue here... */
 </style>
 
 <!-- Welcome Notification -->

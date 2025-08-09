@@ -436,22 +436,22 @@
                         <% for (Book book : books) { %>
                         <tr>
                             <td>
-                                <div class="book-info">
-                                    <% if (book.getImagePath() != null && !book.getImagePath().trim().isEmpty()) { %>
-                                        <img src="<%= book.getImagePath() %>" alt="<%= book.getTitle() %>" 
-                                             class="book-image" onclick="showImageModal('<%= book.getImagePath() %>', '<%= book.getTitle() %>')">
-                                    <% } else { %>
-                                        <div class="no-image">📚</div>
-                                    <% } %>
-                                    <div class="book-details">
-                                        <h4><%= book.getTitle() %></h4>
-                                        <small><strong>Code:</strong> <%= book.getBookCode() %></small>
-                                        <% if (book.getIsbn() != null && !book.getIsbn().trim().isEmpty()) { %>
-                                        <br><small><strong>ISBN:</strong> <%= book.getIsbn() %></small>
-                                        <% } %>
-                                    </div>
-                                </div>
-                            </td>
+							    <div class="book-info">
+							        <% if (book.getImageBase64() != null && !book.getImageBase64().trim().isEmpty()) { %>
+							            <img src="<%= book.getImageBase64() %>" alt="<%= book.getTitle() %>" 
+							                 class="book-image" onclick="showImageModal('<%= book.getImageBase64() %>', '<%= book.getTitle() %>')">
+							        <% } else { %>
+							            <div class="no-image">📚</div>
+							        <% } %>
+							        <div class="book-details">
+							            <h4><%= book.getTitle() %></h4>
+							            <small><strong>Code:</strong> <%= book.getBookCode() %></small>
+							            <% if (book.getIsbn() != null && !book.getIsbn().trim().isEmpty()) { %>
+							            <br><small><strong>ISBN:</strong> <%= book.getIsbn() %></small>
+							            <% } %>
+							        </div>
+							    </div>
+							</td>
                             <td>
                                 <div class="book-meta">
                                     <strong><%= book.getAuthor() %></strong>
@@ -532,22 +532,22 @@
 
     <script>
         // Image Modal Functions
-        function showImageModal(imagePath, title) {
-            const modal = document.getElementById('imageModal');
-            const modalImg = document.getElementById('modalImage');
-            modal.style.display = 'block';
-            modalImg.src = imagePath;
-            modalImg.alt = title;
-        }
+       function showImageModal(imageData, title) {
+		    const modal = document.getElementById('imageModal');
+		    const modalImg = document.getElementById('modalImage');
+		    modal.style.display = 'block';
+		    modalImg.src = imageData; // Now handles Base64 data
+		    modalImg.alt = title;
+		}
 
         function closeImageModal() {
             document.getElementById('imageModal').style.display = 'none';
         }
 
         // Delete Confirmation
-        function confirmDelete(bookTitle, bookId) {
-            return confirm('Are you sure you want to delete "' + bookTitle + '"?\n\nThis action cannot be undone and will also remove any associated image file.');
-        }
+       function confirmDelete(bookTitle, bookId) {
+		    return confirm('Are you sure you want to delete "' + bookTitle + '"?\n\nThis action cannot be undone.');
+		}
 
         // Search Function
         function performSearch() {

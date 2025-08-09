@@ -1,4 +1,4 @@
-// Book.java
+// Book.java - Updated with Base64 Image Support
 package com.redupahana.model;
 
 public class Book {
@@ -18,8 +18,8 @@ public class Book {
     private String createdDate;
     private String updatedDate;
     
-    // New fields for image and category
-    private String imagePath;
+    // Updated field - Base64 instead of file path
+    private String imageBase64;
     private String bookCategory;
 
     // Constructors
@@ -82,9 +82,9 @@ public class Book {
     public String getUpdatedDate() { return updatedDate; }
     public void setUpdatedDate(String updatedDate) { this.updatedDate = updatedDate; }
 
-    // New getters and setters for image and category
-    public String getImagePath() { return imagePath; }
-    public void setImagePath(String imagePath) { this.imagePath = imagePath; }
+    // Updated getter and setter for Base64 image
+    public String getImageBase64() { return imageBase64; }
+    public void setImageBase64(String imageBase64) { this.imageBase64 = imageBase64; }
 
     public String getBookCategory() { return bookCategory; }
     public void setBookCategory(String bookCategory) { this.bookCategory = bookCategory; }
@@ -101,6 +101,15 @@ public class Book {
 
     public String getCategory() { return "Books"; }
     public void setCategory(String category) { /* Always Books */ }
+
+    // Backward compatibility - keep these for existing JSP files
+    public String getImagePath() { 
+        // Return a dummy value to maintain compatibility
+        return imageBase64 != null ? "base64_image" : null; 
+    }
+    public void setImagePath(String imagePath) { 
+        // This method is kept for compatibility but does nothing
+    }
 
     @Override
     public String toString() {
