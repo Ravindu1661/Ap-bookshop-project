@@ -589,31 +589,30 @@
                     </div>
 
                     <!-- Category Selection -->
-                    <div class="form-group">
-                        <label for="bookCategory">Book Category</label>
-                        <div class="category-group">
-                            <div class="category-select">
-                                <select class="form-control" id="categorySelect" onchange="toggleCategoryInput()">
-                                    <option value="">Select existing category</option>
-                                    <% if (categories != null && !categories.isEmpty()) { %>
-                                        <% for (String category : categories) { %>
-                                            <option value="<%= category %>"><%= category %></option>
-                                        <% } %>
-                                    <% } %>
-                                    <option value="__new__">➕ Add New Category</option>
-                                </select>
-                            </div>
-                            <div class="category-input" id="categoryInput">
-                                <input type="text" class="form-control" id="bookCategory" name="bookCategory" 
-                                       placeholder="Enter new category name">
-                            </div>
-                            <button type="button" class="btn-add-category" onclick="addNewCategory()" style="display: none;" id="addCategoryBtn">
-                                ➕ Add
-                            </button>
-                        </div>
-                        <div class="form-text">Select an existing category or create a new one</div>
-                    </div>
-
+					<div class="form-group">
+					    <label for="bookCategory">Book Category <span class="required">*</span></label>
+					    <div class="category-group">
+					        <div class="category-select">
+					            <select class="form-control" id="categorySelect" onchange="toggleCategoryInput()" required>
+					                <option value="">Select a category (required)</option>
+					                <% if (categories != null && !categories.isEmpty()) { %>
+					                    <% for (String category : categories) { %>
+					                        <option value="<%= category %>"><%= category %></option>
+					                    <% } %>
+					                <% } %>
+					                <option value="__new__">➕ Add New Category</option>
+					            </select>
+					        </div>
+					        <div class="category-input" id="categoryInput">
+					            <input type="text" class="form-control" id="bookCategory" name="bookCategory" 
+					                   placeholder="Enter new category name" required>
+					        </div>
+					        <button type="button" class="btn-add-category" onclick="addNewCategory()" style="display: none;" id="addCategoryBtn">
+					            ➕ Add
+					        </button>
+					    </div>
+					    <div class="form-text">Book category is required. Select an existing one or create a new category.</div>
+					</div>
                     <div class="form-group full-width">
                         <label for="description">Description</label>
                         <textarea class="form-control" id="description" name="description" rows="3" 
@@ -705,273 +704,258 @@
         </main>
     </div>
 
-    <script>
-        // Category Management
-        function toggleCategoryInput() {
-            const select = document.getElementById('categorySelect');
-            const input = document.getElementById('categoryInput');
-            const addBtn = document.getElementById('addCategoryBtn');
-            const hiddenInput = document.getElementById('bookCategory');
-            
-            if (select.value === '__new__') {
-                input.classList.add('show');
-                addBtn.style.display = 'block';
-                hiddenInput.value = '';
-            } else {
-                input.classList.remove('show');
-                addBtn.style.display = 'none';
-                hiddenInput.value = select.value;
-            }
+<script>
+    // Category Management
+    function toggleCategoryInput() {
+        const select = document.getElementById('categorySelect');
+        const input = document.getElementById('categoryInput');
+        const addBtn = document.getElementById('addCategoryBtn');
+        const hiddenInput = document.getElementById('bookCategory');
+        
+        if (select.value === '__new__') {
+            input.classList.add('show');
+            addBtn.style.display = 'block';
+            hiddenInput.value = '';
+            hiddenInput.required = true;
+            select.required = false;
+        } else {
+            input.classList.remove('show');
+            addBtn.style.display = 'none';
+            hiddenInput.value = select.value;
+            hiddenInput.required = false;
+            select.required = true;
+        }
+    }
+
+    function addNewCategory() {
+        const input = document.getElementById('bookCategory');
+        const categoryName = input.value.trim();
+        
+        if (!categoryName) {
+            alert('⚠️ Please enter a category name');
+            input.focus();
+            return;
+        }
+        
+        if (categoryName.length < 2) {
+            alert('⚠️ Category name must be at least 2 characters long');
+            input.focus();
+            return;
+        }
+        
+        const select = document.getElementById('categorySelect');
+        
+        // Check if category already exists
+        const existingOptions = Array.from(select.options);
+        const categoryExists = existingOptions.some(option => 
+            option.value.toLowerCase() === categoryName.toLowerCase() && option.value !== '__new__'
+        );
+        
+        if (categoryExists) {
+            alert('⚠️ Category "' + categoryName + '" already exists');
+            input.focus();
+            return;
+        }
+        
+        // Add new category option
+        const newOption = new Option(categoryName, categoryName, true, true);
+        select.insertBefore(newOption, select.lastElementChild);
+        
+        // Hide input and show select
+        document.getElementById('categoryInput').classList.remove('show');
+        document.getElementById('addCategoryBtn').style.display = 'none';
+        select.required = true;
+        input.required = false;
+        
+        alert('✅ Category "' + categoryName + '" added successfully!');
+    }
+
+    // Image Upload
+    const imageUploadContainer = document.getElementById('imageUploadContainer');
+    const imageInput = document.getElementById('bookImage');
+    const imagePreview = document.getElementById('imagePreview');
+    const previewImg = document.getElementById('previewImg');
+
+    imageUploadContainer.addEventListener('click', function() {
+        imageInput.click();
+    });
+
+    imageUploadContainer.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.classList.add('dragover');
+    });
+
+    imageUploadContainer.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        this.classList.remove('dragover');
+    });
+
+    imageUploadContainer.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleImageFile(files[0]);
+        }
+    });
+
+    imageInput.addEventListener('change', function(e) {
+        if (e.target.files.length > 0) {
+            handleImageFile(e.target.files[0]);
+        }
+    });
+
+    function handleImageFile(file) {
+        if (!file.type.match('image.*')) {
+            alert('⚠️ Please select a valid image file.');
+            return;
         }
 
-        function addNewCategory() {
-            const input = document.getElementById('bookCategory');
-            const categoryName = input.value.trim();
-            
-            if (categoryName) {
-                const select = document.getElementById('categorySelect');
-                const newOption = new Option(categoryName, categoryName, true, true);
-                select.insertBefore(newOption, select.lastElementChild);
-                
-                document.getElementById('categoryInput').classList.remove('show');
-                document.getElementById('addCategoryBtn').style.display = 'none';
-                
-                showNotification('✅ Category "' + categoryName + '" added successfully!', 'success');
-            }
+        if (file.size > 5 * 1024 * 1024) { // 5MB
+            alert('⚠️ File size must be less than 5MB.');
+            return;
         }
 
-        // Image Upload
-        const imageUploadContainer = document.getElementById('imageUploadContainer');
-        const imageInput = document.getElementById('bookImage');
-        const imagePreview = document.getElementById('imagePreview');
-        const previewImg = document.getElementById('previewImg');
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewImg.src = e.target.result;
+            imagePreview.style.display = 'block';
+            document.querySelector('.upload-text').style.display = 'none';
+        };
+        
+        reader.onerror = function() {
+            alert('⚠️ Error reading the image file.');
+        };
+        
+        reader.readAsDataURL(file);
+    }
 
-        imageUploadContainer.addEventListener('click', function() {
-            imageInput.click();
+    function removeImage() {
+        imageInput.value = '';
+        imagePreview.style.display = 'none';
+        document.querySelector('.upload-text').style.display = 'block';
+    }
+
+    // Language Selection
+    function selectLanguage(language) {
+        document.querySelectorAll('.language-option').forEach(function(option) {
+            option.classList.remove('selected');
         });
+        event.currentTarget.classList.add('selected');
+        document.getElementById('language' + language).checked = true;
+    }
 
-        imageUploadContainer.addEventListener('dragover', function(e) {
+    // Stock Level Indicator
+    const stockQuantityInput = document.getElementById('stockQuantity');
+    const stockLevelSpan = document.getElementById('stockLevel');
+
+    stockQuantityInput.addEventListener('input', function() {
+        const quantity = parseInt(this.value) || 0;
+        
+        stockLevelSpan.className = 'stock-level';
+        
+        if (quantity === 0) {
+            stockLevelSpan.textContent = 'Out of Stock';
+            stockLevelSpan.classList.add('stock-low');
+        } else if (quantity <= 5) {
+            stockLevelSpan.textContent = 'Low Stock';
+            stockLevelSpan.classList.add('stock-low');
+        } else if (quantity <= 20) {
+            stockLevelSpan.textContent = 'Medium Stock';
+            stockLevelSpan.classList.add('stock-medium');
+        } else {
+            stockLevelSpan.textContent = 'Good Stock';
+            stockLevelSpan.classList.add('stock-good');
+        }
+    });
+
+    // Basic Category Validation
+    function validateCategory() {
+        const select = document.getElementById('categorySelect');
+        const input = document.getElementById('bookCategory');
+        
+        if (select.required && (!select.value || select.value === '')) {
+            return false;
+        }
+        
+        if (input.required && input.classList.contains('show') && (!input.value || input.value.trim().length < 2)) {
+            return false;
+        }
+        
+        return true;
+    }
+
+    // Form Validation
+    document.getElementById('addBookForm').addEventListener('submit', function(e) {
+        const title = document.getElementById('title').value.trim();
+        const author = document.getElementById('author').value.trim();
+        const price = parseFloat(document.getElementById('price').value);
+        const stockQuantity = parseInt(document.getElementById('stockQuantity').value);
+
+        let errorMessages = [];
+
+        // Basic validation
+        if (!title) {
+            errorMessages.push('Book title is required');
+        }
+
+        if (!author) {
+            errorMessages.push('Author name is required');
+        }
+
+        if (!price || price <= 0) {
+            errorMessages.push('Valid price is required');
+        }
+
+        if (isNaN(stockQuantity) || stockQuantity < 0) {
+            errorMessages.push('Valid stock quantity is required');
+        }
+
+        if (!validateCategory()) {
+            errorMessages.push('Book category is required');
+        }
+
+        if (errorMessages.length > 0) {
             e.preventDefault();
-            this.classList.add('dragover');
-        });
+            alert('Please fix the following errors:\n• ' + errorMessages.join('\n• '));
+            return false;
+        }
 
-        imageUploadContainer.addEventListener('dragleave', function(e) {
-            e.preventDefault();
-            this.classList.remove('dragover');
-        });
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.style.opacity = '0.7';
+        submitBtn.innerHTML = '⏳ Adding Book...';
+        submitBtn.disabled = true;
+    });
 
-        imageUploadContainer.addEventListener('drop', function(e) {
-            e.preventDefault();
-            this.classList.remove('dragover');
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                handleImageFile(files[0]);
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Add Book page loaded');
+        
+        // Focus on title field
+        document.getElementById('title').focus();
+        
+        // Initialize stock indicator
+        stockQuantityInput.dispatchEvent(new Event('input'));
+        
+        // Initialize category dropdown
+        toggleCategoryInput();
+        
+        // Add basic category validation listeners
+        const categorySelect = document.getElementById('categorySelect');
+        const categoryInput = document.getElementById('bookCategory');
+        
+        categorySelect.addEventListener('change', function() {
+            if (this.value && this.value !== '__new__') {
+                this.style.borderColor = '#28a745';
             }
         });
-
-        imageInput.addEventListener('change', function(e) {
-            if (e.target.files.length > 0) {
-                handleImageFile(e.target.files[0]);
+        
+        categoryInput.addEventListener('blur', function() {
+            if (this.classList.contains('show') && this.value && this.value.trim().length >= 2) {
+                this.style.borderColor = '#28a745';
             }
         });
-
-        function handleImageFile(file) {
-            if (!file.type.match('image.*')) {
-                showNotification('⚠️ Please select a valid image file.', 'error');
-                return;
-            }
-
-            if (file.size > 5 * 1024 * 1024) { // 5MB
-                showNotification('⚠️ File size must be less than 5MB.', 'error');
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                previewImg.src = e.target.result;
-                imagePreview.style.display = 'block';
-                document.querySelector('.upload-text').style.display = 'none';
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function removeImage() {
-            imageInput.value = '';
-            imagePreview.style.display = 'none';
-            document.querySelector('.upload-text').style.display = 'block';
-        }
-
-        // Language Selection
-        function selectLanguage(language) {
-            document.querySelectorAll('.language-option').forEach(function(option) {
-                option.classList.remove('selected');
-            });
-            event.currentTarget.classList.add('selected');
-            document.getElementById('language' + language).checked = true;
-        }
-
-        // Stock Level Indicator
-        const stockQuantityInput = document.getElementById('stockQuantity');
-        const stockLevelSpan = document.getElementById('stockLevel');
-
-        function validateField(field, validationFn) {
-            const formGroup = field.closest('.form-group');
-            const isValid = validationFn(field.value);
-            
-            formGroup.classList.remove('has-error', 'has-success');
-            
-            if (field.value.trim() === '') {
-                return true;
-            }
-            
-            if (isValid) {
-                formGroup.classList.add('has-success');
-                return true;
-            } else {
-                formGroup.classList.add('has-error');
-                return false;
-            }
-        }
-
-        // Validation functions
-        function validateTitle(title) {
-            return title.trim().length >= 2;
-        }
-
-        function validateAuthor(author) {
-            return author.trim().length >= 2;
-        }
-
-        function validatePrice(price) {
-            return !isNaN(price) && parseFloat(price) > 0;
-        }
-
-        function validateStock(stock) {
-            return !isNaN(stock) && parseInt(stock) >= 0;
-        }
-
-        function validateYear(year) {
-            if (!year.trim()) return true;
-            const y = parseInt(year);
-            const currentYear = new Date().getFullYear();
-            return y >= 1000 && y <= currentYear;
-        }
-
-        function validatePages(pages) {
-            if (!pages.trim()) return true;
-            return parseInt(pages) > 0;
-        }
-
-        stockQuantityInput.addEventListener('input', function() {
-            const quantity = parseInt(this.value) || 0;
-            
-            stockLevelSpan.className = 'stock-level';
-            
-            if (quantity === 0) {
-                stockLevelSpan.textContent = 'Out of Stock';
-                stockLevelSpan.classList.add('stock-low');
-            } else if (quantity <= 5) {
-                stockLevelSpan.textContent = 'Low Stock';
-                stockLevelSpan.classList.add('stock-low');
-            } else if (quantity <= 20) {
-                stockLevelSpan.textContent = 'Medium Stock';
-                stockLevelSpan.classList.add('stock-medium');
-            } else {
-                stockLevelSpan.textContent = 'Good Stock';
-                stockLevelSpan.classList.add('stock-good');
-            }
-        });
-
-        // Real-time validation
-        document.getElementById('title').addEventListener('blur', function() {
-            validateField(this, validateTitle);
-        });
-
-        document.getElementById('author').addEventListener('blur', function() {
-            validateField(this, validateAuthor);
-        });
-
-        document.getElementById('price').addEventListener('blur', function() {
-            validateField(this, validatePrice);
-        });
-
-        document.getElementById('stockQuantity').addEventListener('blur', function() {
-            validateField(this, validateStock);
-        });
-
-        document.getElementById('publicationYear').addEventListener('blur', function() {
-            validateField(this, validateYear);
-        });
-
-        document.getElementById('pages').addEventListener('blur', function() {
-            validateField(this, validatePages);
-        });
-
-        // Form Validation
-        document.getElementById('addBookForm').addEventListener('submit', function(e) {
-            const title = document.getElementById('title');
-            const author = document.getElementById('author');
-            const price = document.getElementById('price');
-            const stockQuantity = document.getElementById('stockQuantity');
-            const publicationYear = document.getElementById('publicationYear');
-            const pages = document.getElementById('pages');
-
-            let isValid = true;
-
-            isValid = validateField(title, validateTitle) && isValid;
-            isValid = validateField(author, validateAuthor) && isValid;
-            isValid = validateField(price, validatePrice) && isValid;
-            isValid = validateField(stockQuantity, validateStock) && isValid;
-            isValid = validateField(publicationYear, validateYear) && isValid;
-            isValid = validateField(pages, validatePages) && isValid;
-
-            if (!isValid) {
-                e.preventDefault();
-                showNotification('⚠️ Please fill in all required fields correctly.', 'error');
-                return false;
-            }
-
-            const submitBtn = document.getElementById('submitBtn');
-            submitBtn.style.opacity = '0.7';
-            submitBtn.innerHTML = '⏳ Adding Book...';
-            submitBtn.disabled = true;
-        });
-
-        // Notification function
-        function showNotification(message, type) {
-            const notification = document.createElement('div');
-            notification.className = `alert alert-${type === 'success' ? 'success' : 'error'}`;
-            notification.innerHTML = message;
-            
-            // Add success alert styles if not exist
-            if (type === 'success' && !document.querySelector('.alert-success')) {
-                const style = document.createElement('style');
-                style.textContent = `
-                    .alert-success {
-                        background-color: #d4edda;
-                        border-left-color: #28a745;
-                        color: #155724;
-                    }
-                `;
-                document.head.appendChild(style);
-            }
-            
-            document.querySelector('.form-container').prepend(notification);
-            setTimeout(() => {
-                notification.style.opacity = '0';
-                setTimeout(() => notification.remove(), 300);
-            }, 3000);
-        }
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Add Book page loaded');
-            document.getElementById('title').focus();
-            stockQuantityInput.dispatchEvent(new Event('input'));
-            
-            // Initialize category dropdown
-            toggleCategoryInput();
-        });
-    </script>
+    });
+</script>
 </body>
 </html>

@@ -984,46 +984,46 @@
                     <tbody id="productsTableBody">
                         <% if (books != null && !books.isEmpty()) {
                             for (Book book : books) { %>
-                        <tr onclick="selectProduct(<%= book.getBookId() %>, '<%= book.getTitle().replace("'", "\\'") %>', '<%= book.getAuthor() != null ? book.getAuthor().replace("'", "\\'") : "" %>', <%= book.getPrice() %>, <%= book.getStockQuantity() %>, '<%= book.getImagePath() != null ? book.getImagePath().replace("'", "\\'") : "" %>', '<%= book.getBookCategory() != null ? book.getBookCategory().replace("'", "\\'") : "" %>')">
-                            <td>
-                                <div class="book-info">
-                                    <% if (book.getImagePath() != null && !book.getImagePath().trim().isEmpty()) { %>
-                                    <img src="<%= request.getContextPath() %>/<%= book.getImagePath() %>" 
-                                         alt="<%= book.getTitle() %>" class="book-image" 
-                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                    <div class="book-image-placeholder" style="display: none;">📚</div>
-                                    <% } else { %>
-                                    <div class="book-image-placeholder">📚</div>
-                                    <% } %>
-                                    <div class="book-details">
-                                        <div class="book-title"><%= book.getTitle() %></div>
-                                        <div class="book-meta">
-                                            <% if (book.getBookCategory() != null && !book.getBookCategory().trim().isEmpty()) { %>
-                                            <span class="category-badge"><%= book.getBookCategory() %></span>
-                                            <% } %>
-                                            <% if (book.getAuthor() != null && !book.getAuthor().trim().isEmpty()) { %>
-                                            by <%= book.getAuthor() %>
-                                            <% } %>
-                                            <% if (book.getIsbn() != null && !book.getIsbn().trim().isEmpty()) { %>
-                                            • ISBN: <%= book.getIsbn() %>
-                                            <% } %>
-                                        </div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="price-cell">Rs. <%= String.format("%.2f", book.getPrice()) %></td>
-                            <td>
-                                <span class="stock-badge <%= book.getStockQuantity() > 10 ? "high" : (book.getStockQuantity() > 5 ? "medium" : "low") %>">
-                                    <%= book.getStockQuantity() %>
-                                </span>
-                            </td>
-                            <td>
-                                <button type="button" class="btn btn-sm" style="background: #059669; color: white; padding: 0.3rem 0.8rem; border: none; border-radius: 4px; font-size: 0.8rem;"
-                                        onclick="event.stopPropagation(); addProductToBill(<%= book.getBookId() %>, '<%= book.getTitle().replace("'", "\\'") %>', '<%= book.getAuthor() != null ? book.getAuthor().replace("'", "\\'") : "" %>', <%= book.getPrice() %>, <%= book.getStockQuantity() %>, '<%= book.getImagePath() != null ? book.getImagePath().replace("'", "\\'") : "" %>', '<%= book.getBookCategory() != null ? book.getBookCategory().replace("'", "\\'") : "" %>')">
-                                    Add
-                                </button>
-                            </td>
-                        </tr>
+                        <tr onclick="selectProduct(<%= book.getBookId() %>, '<%= book.getTitle().replace("'", "\\'") %>', '<%= book.getAuthor() != null ? book.getAuthor().replace("'", "\\'") : "" %>', <%= book.getPrice() %>, <%= book.getStockQuantity() %>, '<%= book.getImageBase64() != null ? book.getImageBase64().replace("'", "\\'") : "" %>', '<%= book.getBookCategory() != null ? book.getBookCategory().replace("'", "\\'") : "" %>')">
+						    <td>
+						        <div class="book-info">
+						            <% if (book.getImageBase64() != null && !book.getImageBase64().trim().isEmpty()) { %>
+						            <img src="<%= book.getImageBase64() %>" 
+						                 alt="<%= book.getTitle() %>" class="book-image" 
+						                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+						            <div class="book-image-placeholder" style="display: none;">📚</div>
+						            <% } else { %>
+						            <div class="book-image-placeholder">📚</div>
+						            <% } %>
+						            <div class="book-details">
+						                <div class="book-title"><%= book.getTitle() %></div>
+						                <div class="book-meta">
+						                    <% if (book.getBookCategory() != null && !book.getBookCategory().trim().isEmpty()) { %>
+						                    <span class="category-badge"><%= book.getBookCategory() %></span>
+						                    <% } %>
+						                    <% if (book.getAuthor() != null && !book.getAuthor().trim().isEmpty()) { %>
+						                    by <%= book.getAuthor() %>
+						                    <% } %>
+						                    <% if (book.getIsbn() != null && !book.getIsbn().trim().isEmpty()) { %>
+						                    • ISBN: <%= book.getIsbn() %>
+						                    <% } %>
+						                </div>
+						            </div>
+						        </div>
+						    </td>
+						    <td class="price-cell">Rs. <%= String.format("%.2f", book.getPrice()) %></td>
+						    <td>
+						        <span class="stock-badge <%= book.getStockQuantity() > 10 ? "high" : (book.getStockQuantity() > 5 ? "medium" : "low") %>">
+						            <%= book.getStockQuantity() %>
+						        </span>
+						    </td>
+						    <td>
+						        <button type="button" class="btn btn-sm" style="background: #059669; color: white; padding: 0.3rem 0.8rem; border: none; border-radius: 4px; font-size: 0.8rem;"
+						                onclick="event.stopPropagation(); addProductToBill(<%= book.getBookId() %>, '<%= book.getTitle().replace("'", "\\'") %>', '<%= book.getAuthor() != null ? book.getAuthor().replace("'", "\\'") : "" %>', <%= book.getPrice() %>, <%= book.getStockQuantity() %>, '<%= book.getImageBase64() != null ? book.getImageBase64().replace("'", "\\'") : "" %>', '<%= book.getBookCategory() != null ? book.getBookCategory().replace("'", "\\'") : "" %>')">
+						            Add
+						        </button>
+						    </td>
+						</tr>
                         <% } } else { %>
                         <tr>
                             <td colspan="4" class="empty-state">
@@ -1206,7 +1206,7 @@
                 price: <%= book.getPrice() %>,
                 stock: <%= book.getStockQuantity() %>,
                 isbn: '<%= book.getIsbn() != null ? book.getIsbn() : "" %>',
-                imagePath: '<%= request.getContextPath() %>/<%= book.getImagePath() != null ? book.getImagePath().replace("'", "\\'") : "" %>',
+                imageBase64: '<%= book.getImageBase64() != null ? book.getImageBase64().replace("'", "\\'") : "" %>',  // CHANGED: Base64 support
                 category: '<%= book.getBookCategory() != null ? book.getBookCategory().replace("'", "\\'") : "" %>',
                 language: '<%= book.getLanguage() != null ? book.getLanguage() : "" %>',
                 publisher: '<%= book.getPublisher() != null ? book.getPublisher().replace("'", "\\'") : "" %>'
@@ -1688,8 +1688,9 @@
             }
 
             tableBody.innerHTML = products.map(product => {
-                const imageHtml = product.imagePath && product.imagePath.trim() !== '<%= request.getContextPath() %>/' ? 
-                    `<img src="${product.imagePath}" 
+                // UPDATED: Use Base64 image data
+                const imageHtml = product.imageBase64 && product.imageBase64.trim() !== '' ? 
+                    `<img src="${product.imageBase64}" 
                          alt="${product.title}" class="book-image" 
                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                      <div class="book-image-placeholder" style="display: none;">📚</div>` :
@@ -1699,7 +1700,7 @@
                     `<span class="category-badge">${product.category}</span>` : '';
                 
                 return `
-                    <tr onclick="selectProduct(${product.id}, '${product.title.replace(/'/g, "\\'")}', '${product.author.replace(/'/g, "\\'")}', ${product.price}, ${product.stock}, '${product.imagePath.replace(/'/g, "\\'")}', '${product.category.replace(/'/g, "\\'")}')">
+                    <tr onclick="selectProduct(${product.id}, '${product.title.replace(/'/g, "\\'")}', '${product.author.replace(/'/g, "\\'")}', ${product.price}, ${product.stock}, '${product.imageBase64.replace(/'/g, "\\'")}', '${product.category.replace(/'/g, "\\'")}')">
                         <td>
                             <div class="book-info">
                                 ${imageHtml}
@@ -1721,7 +1722,7 @@
                         </td>
                         <td>
                             <button type="button" class="btn btn-sm" style="background: #059669; color: white; padding: 0.3rem 0.8rem; border: none; border-radius: 4px; font-size: 0.8rem;"
-                                    onclick="event.stopPropagation(); addProductToBill(${product.id}, '${product.title.replace(/'/g, "\\'")}', '${product.author.replace(/'/g, "\\'")}', ${product.price}, ${product.stock}, '${product.imagePath.replace(/'/g, "\\'")}', '${product.category.replace(/'/g, "\\'")}')">
+                                    onclick="event.stopPropagation(); addProductToBill(${product.id}, '${product.title.replace(/'/g, "\\'")}', '${product.author.replace(/'/g, "\\'")}', ${product.price}, ${product.stock}, '${product.imageBase64.replace(/'/g, "\\'")}', '${product.category.replace(/'/g, "\\'")}')">
                                 Add
                             </button>
                         </td>
@@ -1729,7 +1730,6 @@
                 `;
             }).join('');
         }
-
         function selectProduct(productId, title, author, price, stock, imagePath, category) {
             document.querySelectorAll('.products-table tbody tr').forEach(row => {
                 row.classList.remove('selected');
@@ -1743,7 +1743,7 @@
             }, 200);
         }
 
-        function addProductToBill(productId, title, author, price, stock, imagePath, category) {
+        function addProductToBill(productId, title, author, price, stock, imageBase64, category) {
             if (stock === 0) {
                 showAlert('❌ Product out of stock!', 'error');
                 return;
@@ -1767,7 +1767,7 @@
                     price: price,
                     quantity: 1,
                     stock: stock,
-                    imagePath: imagePath || '',
+                    imageBase64: imageBase64 || '',  // CHANGED: Store Base64 data
                     category: category || '',
                     publisher: '',
                     isbn: ''
@@ -1776,7 +1776,8 @@
                 showAlert(`✅ Added "${title}" to bill`, 'success');
             }
         }
-
+        
+        
         function updateBillDisplay() {
             const billItemsContainer = document.getElementById('billItems');
             
@@ -1790,8 +1791,9 @@
                 `;
             } else {
                 billItemsContainer.innerHTML = billItems.map((item, index) => {
-                    const imageHtml = item.imagePath && item.imagePath.trim() && !item.imagePath.endsWith('/') ? 
-                        `<img src="${item.imagePath}" 
+                    // UPDATED: Use Base64 image data for bill items
+                    const imageHtml = item.imageBase64 && item.imageBase64.trim() !== '' ? 
+                        `<img src="${item.imageBase64}" 
                              alt="${item.title}" class="bill-item-image" 
                              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                          <div class="bill-item-image-placeholder" style="display: none;">📚</div>` :
@@ -1828,7 +1830,8 @@
             
             calculateTotals();
         }
-
+        
+        
         function increaseQuantity(index) {
             const item = billItems[index];
             if (item.quantity < item.stock) {

@@ -423,7 +423,7 @@
                     <thead>
                         <tr>
                             <th>Book</th>
-                            <th>Details</th>
+                            <th>author</th>
                             <th>Category</th>
                             <th>Language</th>
                             <th>Price</th>

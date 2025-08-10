@@ -993,94 +993,93 @@
                                     itemCount++;
                                     totalQty += item.getQuantity();
                                 %>
-                                <tr>
-                                    <td>
-                                        <!-- Enhanced Book Item Display with Image and Category -->
-                                        <div class="book-item-display">
-                                            <!-- Book Image -->
-                                            <% if (item.getImagePath() != null && !item.getImagePath().trim().isEmpty() && 
-                                                   !item.getImagePath().equals(request.getContextPath() + "/")) { %>
-                                            <img src="<%= item.getImagePath() %>" 
-                                                 alt="<%= item.getBookTitle() != null ? item.getBookTitle() : "Book" %>" 
-                                                 class="book-item-image" 
-                                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                            <div class="book-item-image-placeholder" style="display: none;">📚</div>
-                                            <% } else { %>
-                                            <div class="book-item-image-placeholder">📚</div>
-                                            <% } %>
-                                            
-                                            <!-- Book Information -->
-                                            <div class="book-item-info">
-                                                <div class="book-title">
-                                                    <% if (item.getBookTitle() != null && !item.getBookTitle().trim().isEmpty()) { %>
-                                                        <%= item.getBookTitle() %>
-                                                    <% } else { %>
-                                                        Book #<%= item.getBookId() %>
-                                                    <% } %>
-                                                </div>
-                                                
-                                                <div class="book-meta">
-                                                    <!-- Category Badge -->
-                                                    <% if (item.getBookCategory() != null && !item.getBookCategory().trim().isEmpty()) { %>
-                                                    <div class="book-meta-row">
-                                                        <span class="category-badge"><%= item.getBookCategory() %></span>
-                                                    </div>
-                                                    <% } %>
-                                                    
-                                                    <!-- Book Code and Author -->
-                                                    <div class="book-meta-row">
-                                                        <% if (item.getBookCode() != null && !item.getBookCode().trim().isEmpty()) { %>
-                                                        <span class="book-code">Code: <%= item.getBookCode() %></span>
-                                                        <% } %>
-                                                        
-                                                        <% if (item.getAuthor() != null && !item.getAuthor().trim().isEmpty()) { %>
-                                                        <span class="author-info">by <%= item.getAuthor() %></span>
-                                                        <% } %>
-                                                    </div>
-                                                    
-                                                    <!-- Additional Details -->
-                                                    <div class="book-meta-row">
-                                                        <span>Book ID: #<%= item.getBookId() %></span>
-                                                        
-                                                        <% if (item.getIsbn() != null && !item.getIsbn().trim().isEmpty()) { %>
-                                                        <span>ISBN: <%= item.getIsbn() %></span>
-                                                        <% } %>
-                                                    </div>
-                                                    
-                                                    <!-- Publisher and Language -->
-                                                    <% if ((item.getPublisher() != null && !item.getPublisher().trim().isEmpty()) || 
-                                                           (item.getLanguage() != null && !item.getLanguage().trim().isEmpty())) { %>
-                                                    <div class="book-meta-row">
-                                                        <% if (item.getPublisher() != null && !item.getPublisher().trim().isEmpty()) { %>
-                                                        <span>Publisher: <%= item.getPublisher() %></span>
-                                                        <% } %>
-                                                        
-                                                        <% if (item.getLanguage() != null && !item.getLanguage().trim().isEmpty()) { %>
-                                                        <span>Language: <%= item.getLanguage() %></span>
-                                                        <% } %>
-                                                    </div>
-                                                    <% } %>
-                                                    
-                                                    <!-- Pages and Publication Year -->
-                                                    <% if (item.getPages() > 0 || item.getPublicationYear() > 0) { %>
-                                                    <div class="book-meta-row">
-                                                        <% if (item.getPages() > 0) { %>
-                                                        <span>Pages: <%= item.getPages() %></span>
-                                                        <% } %>
-                                                        
-                                                        <% if (item.getPublicationYear() > 0) { %>
-                                                        <span>Year: <%= item.getPublicationYear() %></span>
-                                                        <% } %>
-                                                    </div>
-                                                    <% } %>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td style="text-align: center;"><%= item.getQuantity() %></td>
-                                    <td style="text-align: right;">Rs. <%= String.format("%.2f", item.getUnitPrice()) %></td>
-                                    <td style="text-align: right;"><strong>Rs. <%= String.format("%.2f", item.getTotalPrice()) %></strong></td>
-                                </tr>
+                               <tr>
+							    <td>
+							        <!-- Enhanced Book Item Display with Base64 Image and Category -->
+							        <div class="book-item-display">
+							            <!-- Book Image - UPDATED for Base64 -->
+							            <% if (item.getImageBase64() != null && !item.getImageBase64().trim().isEmpty()) { %>
+							            <img src="<%= item.getImageBase64() %>" 
+							                 alt="<%= item.getBookTitle() != null ? item.getBookTitle() : "Book" %>" 
+							                 class="book-item-image" 
+							                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+							            <div class="book-item-image-placeholder" style="display: none;">📚</div>
+							            <% } else { %>
+							            <div class="book-item-image-placeholder">📚</div>
+							            <% } %>
+							            
+							            <!-- Book Information -->
+							            <div class="book-item-info">
+							                <div class="book-title">
+							                    <% if (item.getBookTitle() != null && !item.getBookTitle().trim().isEmpty()) { %>
+							                        <%= item.getBookTitle() %>
+							                    <% } else { %>
+							                        Book #<%= item.getBookId() %>
+							                    <% } %>
+							                </div>
+							                
+							                <div class="book-meta">
+							                    <!-- Category Badge -->
+							                    <% if (item.getBookCategory() != null && !item.getBookCategory().trim().isEmpty()) { %>
+							                    <div class="book-meta-row">
+							                        <span class="category-badge"><%= item.getBookCategory() %></span>
+							                    </div>
+							                    <% } %>
+							                    
+							                    <!-- Book Code and Author -->
+							                    <div class="book-meta-row">
+							                        <% if (item.getBookCode() != null && !item.getBookCode().trim().isEmpty()) { %>
+							                        <span class="book-code">Code: <%= item.getBookCode() %></span>
+							                        <% } %>
+							                        
+							                        <% if (item.getAuthor() != null && !item.getAuthor().trim().isEmpty()) { %>
+							                        <span class="author-info">by <%= item.getAuthor() %></span>
+							                        <% } %>
+							                    </div>
+							                    
+							                    <!-- Additional Details -->
+							                    <div class="book-meta-row">
+							                        <span>Book ID: #<%= item.getBookId() %></span>
+							                        
+							                        <% if (item.getIsbn() != null && !item.getIsbn().trim().isEmpty()) { %>
+							                        <span>ISBN: <%= item.getIsbn() %></span>
+							                        <% } %>
+							                    </div>
+							                    
+							                    <!-- Publisher and Language -->
+							                    <% if ((item.getPublisher() != null && !item.getPublisher().trim().isEmpty()) || 
+							                           (item.getLanguage() != null && !item.getLanguage().trim().isEmpty())) { %>
+							                    <div class="book-meta-row">
+							                        <% if (item.getPublisher() != null && !item.getPublisher().trim().isEmpty()) { %>
+							                        <span>Publisher: <%= item.getPublisher() %></span>
+							                        <% } %>
+							                        
+							                        <% if (item.getLanguage() != null && !item.getLanguage().trim().isEmpty()) { %>
+							                        <span>Language: <%= item.getLanguage() %></span>
+							                        <% } %>
+							                    </div>
+							                    <% } %>
+							                    
+							                    <!-- Pages and Publication Year -->
+							                    <% if (item.getPages() > 0 || item.getPublicationYear() > 0) { %>
+							                    <div class="book-meta-row">
+							                        <% if (item.getPages() > 0) { %>
+							                        <span>Pages: <%= item.getPages() %></span>
+							                        <% } %>
+							                        
+							                        <% if (item.getPublicationYear() > 0) { %>
+							                        <span>Year: <%= item.getPublicationYear() %></span>
+							                        <% } %>
+							                    </div>
+							                    <% } %>
+							                </div>
+							            </div>
+							        </div>
+							    </td>
+							    <td style="text-align: center;"><%= item.getQuantity() %></td>
+							    <td style="text-align: right;">Rs. <%= String.format("%.2f", item.getUnitPrice()) %></td>
+							    <td style="text-align: right;"><strong>Rs. <%= String.format("%.2f", item.getTotalPrice()) %></strong></td>
+							</tr>
                                 <% } %>
                             </tbody>
                         </table>

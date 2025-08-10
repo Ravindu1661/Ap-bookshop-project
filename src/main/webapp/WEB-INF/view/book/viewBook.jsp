@@ -579,25 +579,26 @@
             <% if (book != null) { %>
             <!-- Book Profile -->
             <div class="book-profile">
-                <div class="profile-header">
-                    <div class="profile-image-section">
-                        <% if (book.getImagePath() != null && !book.getImagePath().trim().isEmpty()) { %>
-                            <img src="<%= book.getImagePath() %>" alt="<%= book.getTitle() %>" 
-                                 class="profile-book-image" onclick="showImageModal('<%= book.getImagePath() %>', '<%= book.getTitle() %>')">
-                        <% } else { %>
-                            <div class="profile-avatar">📖</div>
-                        <% } %>
-                    </div>
-                    <div class="profile-details">
-                        <div class="profile-title"><%= book.getTitle() %></div>
-                        <div class="profile-author">by <%= book.getAuthor() %></div>
-                        <div class="profile-meta">
-                            <div class="profile-code">Code: <%= book.getBookCode() %></div>
-                            <% if (book.getBookCategory() != null && !book.getBookCategory().trim().isEmpty()) { %>
-                                <div class="profile-category">📂 <%= book.getBookCategory() %></div>
-                            <% } %>
-                        </div>
-                    </div>
+               <div class="profile-header">
+				    <div class="profile-image-section">
+				        <% if (book.getImageBase64() != null && !book.getImageBase64().trim().isEmpty()) { %>
+				            <img src="<%= book.getImageBase64() %>" alt="<%= book.getTitle() %>" 
+				                 class="profile-book-image" onclick="showImageModal('<%= book.getImageBase64() %>', '<%= book.getTitle() %>')">
+				        <% } else { %>
+				            <div class="profile-avatar">📖</div>
+				        <% } %>
+				    </div>
+				    <div class="profile-details">
+				        <div class="profile-title"><%= book.getTitle() %></div>
+				        <div class="profile-author">by <%= book.getAuthor() %></div>
+				        <div class="profile-meta">
+				            <div class="profile-code">Code: <%= book.getBookCode() %></div>
+				            <% if (book.getBookCategory() != null && !book.getBookCategory().trim().isEmpty()) { %>
+				                <div class="profile-category">📂 <%= book.getBookCategory() %></div>
+				            <% } %>
+				        </div>
+				    </div>
+				</div>
                 </div>
 
                 <div class="profile-content">
@@ -711,15 +712,14 @@
                                 <span class="info-value" id="daysInLibrary">Calculating...</span>
                             </div>
                             <div class="info-row">
-                                <span class="info-label">Has Cover Image:</span>
-                                <span class="info-value">
-                                    <% if (book.getImagePath() != null && !book.getImagePath().trim().isEmpty()) { %>
-                                        <span style="color: #28a745;">✅ Yes</span>
-                                    <% } else { %>
-                                        <span style="color: #6c757d;">❌ No</span>
-                                    <% } %>
-                                </span>
-                            </div>
+						    <span class="info-label">Has Cover Image:</span>
+						    <span class="info-value">
+						        <% if (book.getImageBase64() != null && !book.getImageBase64().trim().isEmpty()) { %>
+						            <span style="color: #28a745;">✅ Yes</span>
+						        <% } else { %>
+						            <span style="color: #6c757d;">❌ No</span>
+						        <% } %>
+						    </span>
                         </div>
                     </div>
 
@@ -767,61 +767,221 @@
         </div>
     </div>
 
-    <script>
-        // Image Modal Functions
-        function showImageModal(imagePath, title) {
-            const modal = document.getElementById('imageModal');
-            const modalImg = document.getElementById('modalImage');
-            modal.style.display = 'block';
-            modalImg.src = imagePath;
-            modalImg.alt = title;
-        }
-
-        function closeImageModal() {
-            document.getElementById('imageModal').style.display = 'none';
-        }
-
-        // Calculate days in library
-        <% if (book != null) { %>
-        const createdDate = new Date('<%= book.getCreatedDate() %>');
-        const now = new Date();
-        const diffTime = Math.abs(now - createdDate);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
-        document.getElementById('daysInLibrary').textContent = diffDays + ' days';
-        <% } %>
-
-        // Add loading state to action buttons
-        document.querySelectorAll('.btn').forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                if (!this.classList.contains('btn-disabled')) {
-                    this.style.opacity = '0.7';
-                    this.innerHTML = this.innerHTML + '...';
-                }
-            });
-        });
-
-        // Keyboard shortcuts
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'e' || e.key === 'E') {
-                const editBtn = document.querySelector('.btn-warning');
-                if (editBtn) editBtn.click();
-            }
-            
-            if (e.key === 'b' || e.key === 'B') {
-                const backBtn = document.querySelector('.btn-primary');
-                if (backBtn) backBtn.click();
-            }
-
-            if (e.key === 'Escape') {
-                closeImageModal();
-            }
-        });
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('View Book page loaded');
-        });
-    </script>
+   <script>
+		// Image Modal Functions - Updated for Base64
+		function showImageModal(imageData, title) {
+		    const modal = document.getElementById('imageModal');
+		    const modalImg = document.getElementById('modalImage');
+		    modal.style.display = 'block';
+		    modalImg.src = imageData;
+		    modalImg.alt = title;
+		    
+		    // Add error handling for Base64 images
+		    modalImg.onerror = function() {
+		        console.error('Error loading image');
+		        closeImageModal();
+		        showNotification('⚠️ Error loading image', 'error');
+		    };
+		}
+		
+		function closeImageModal() {
+		    document.getElementById('imageModal').style.display = 'none';
+		}
+		
+		// Enhanced notification function
+		function showNotification(message, type) {
+		    // Remove any existing notifications
+		    const existingNotification = document.querySelector('.notification');
+		    if (existingNotification) {
+		        existingNotification.remove();
+		    }
+		    
+		    const notification = document.createElement('div');
+		    notification.className = `notification notification-${type}`;
+		    notification.innerHTML = message;
+		    
+		    // Add notification styles if not exist
+		    if (!document.querySelector('.notification-styles')) {
+		        const style = document.createElement('style');
+		        style.className = 'notification-styles';
+		        style.textContent = `
+		            .notification {
+		                position: fixed;
+		                top: 20px;
+		                right: 20px;
+		                padding: 1rem 1.5rem;
+		                border-radius: 8px;
+		                color: white;
+		                font-weight: 500;
+		                z-index: 1000;
+		                animation: slideInRight 0.3s ease;
+		                max-width: 350px;
+		                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+		            }
+		            
+		            .notification-success { background-color: #28a745; }
+		            .notification-error { background-color: #dc3545; }
+		            .notification-warning { background-color: #ffc107; color: #212529; }
+		            .notification-info { background-color: #17a2b8; }
+		            
+		            @keyframes slideInRight {
+		                from { transform: translateX(100%); opacity: 0; }
+		                to { transform: translateX(0); opacity: 1; }
+		            }
+		            
+		            @keyframes slideOutRight {
+		                from { transform: translateX(0); opacity: 1; }
+		                to { transform: translateX(100%); opacity: 0; }
+		            }
+		        `;
+		        document.head.appendChild(style);
+		    }
+		    
+		    document.body.appendChild(notification);
+		    
+		    // Auto remove after 3 seconds
+		    setTimeout(() => {
+		        notification.style.animation = 'slideOutRight 0.3s ease';
+		        setTimeout(() => {
+		            if (notification.parentNode) {
+		                notification.remove();
+		            }
+		        }, 300);
+		    }, 3000);
+		}
+		
+		// Calculate days in library
+		<% if (book != null) { %>
+		try {
+		    const createdDate = new Date('<%= book.getCreatedDate() %>');
+		    const now = new Date();
+		    const diffTime = Math.abs(now - createdDate);
+		    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+		    
+		    document.getElementById('daysInLibrary').textContent = diffDays + ' days';
+		} catch (error) {
+		    document.getElementById('daysInLibrary').textContent = 'Unknown';
+		    console.error('Error calculating days in library:', error);
+		}
+		<% } %>
+		
+		// Enhanced button interactions
+		document.querySelectorAll('.btn').forEach(function(btn) {
+		    btn.addEventListener('click', function(e) {
+		        if (!this.classList.contains('btn-disabled')) {
+		            // Add visual feedback
+		            this.style.opacity = '0.7';
+		            const originalText = this.innerHTML;
+		            this.innerHTML = originalText + ' ⏳';
+		            
+		            // Restore after delay if it's a navigation
+		            if (this.href) {
+		                setTimeout(() => {
+		                    this.style.opacity = '1';
+		                    this.innerHTML = originalText;
+		                }, 1000);
+		            }
+		        }
+		    });
+		});
+		
+		// Enhanced keyboard shortcuts
+		document.addEventListener('keydown', function(e) {
+		    // Only if not in input field
+		    if (e.target.tagName.toLowerCase() !== 'input' && e.target.tagName.toLowerCase() !== 'textarea') {
+		        switch(e.key.toLowerCase()) {
+		            case 'e':
+		                const editBtn = document.querySelector('.btn-warning');
+		                if (editBtn) {
+		                    editBtn.click();
+		                    showNotification('📝 Opening edit mode...', 'info');
+		                }
+		                break;
+		                
+		            case 'b':
+		                const backBtn = document.querySelector('.btn-primary');
+		                if (backBtn) {
+		                    backBtn.click();
+		                    showNotification('📚 Returning to library...', 'info');
+		                }
+		                break;
+		                
+		            case 'escape':
+		                closeImageModal();
+		                break;
+		                
+		            case 'i':
+		                // Toggle image modal if image exists
+		                const profileImage = document.querySelector('.profile-book-image');
+		                if (profileImage) {
+		                    const imageData = profileImage.src;
+		                    const title = profileImage.alt;
+		                    showImageModal(imageData, title);
+		                }
+		                break;
+		        }
+		    }
+		});
+		
+		// Image loading optimization for Base64
+		document.addEventListener('DOMContentLoaded', function() {
+		    console.log('View Book page loaded with Base64 image support');
+		    
+		    // Check if Base64 image loads properly
+		    const profileImage = document.querySelector('.profile-book-image');
+		    if (profileImage) {
+		        profileImage.onload = function() {
+		            console.log('Book cover image loaded successfully');
+		        };
+		        
+		        profileImage.onerror = function() {
+		            console.error('Error loading book cover image');
+		            // Replace with placeholder if Base64 image fails
+		            this.style.display = 'none';
+		            const placeholder = document.createElement('div');
+		            placeholder.className = 'profile-avatar';
+		            placeholder.innerHTML = '📖';
+		            this.parentNode.appendChild(placeholder);
+		        };
+		    }
+		    
+		    // Add tooltip for keyboard shortcuts
+		    const editBtn = document.querySelector('.btn-warning');
+		    const backBtn = document.querySelector('.btn-primary');
+		    
+		    if (editBtn) {
+		        editBtn.title = 'Edit Book (Press E)';
+		    }
+		    if (backBtn) {
+		        backBtn.title = 'Back to Library (Press B)';
+		    }
+		    
+		    // Show welcome message
+		    showNotification('📖 Book details loaded', 'success');
+		});
+		
+		// Print functionality
+		function printBookDetails() {
+		    const printContent = document.querySelector('.book-profile').cloneNode(true);
+		    const printWindow = window.open('', '', 'height=600,width=800');
+		    
+		    printWindow.document.write('<html><head><title>Book Details - ' + '<%= book != null ? book.getTitle() : "" %>' + '</title>');
+		    printWindow.document.write('<style>body{font-family:Arial,sans-serif;margin:20px;}</style>');
+		    printWindow.document.write('</head><body>');
+		    printWindow.document.write(printContent.innerHTML);
+		    printWindow.document.write('</body></html>');
+		    
+		    printWindow.document.close();
+		    printWindow.print();
+		}
+		
+		// Add print shortcut
+		document.addEventListener('keydown', function(e) {
+		    if (e.ctrlKey && e.key === 'p') {
+		        e.preventDefault();
+		        printBookDetails();
+		    }
+		});
+		</script>
 </body>
 </html>

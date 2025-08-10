@@ -326,15 +326,14 @@ public class BillController extends HttpServlet {
                     System.err.println("Error loading cashier details: " + e.getMessage());
                 }
                 
-                // CHANGED: Enhanced book details loading - already done in BillService but ensure completeness
                 if (bill.getBillItems() != null && !bill.getBillItems().isEmpty()) {
                     for (BillItem billItem : bill.getBillItems()) {
                         try {
-                            // Double-check book details are loaded (BillService should have done this)
+                            // Enhanced book details loading with Base64 image support
                             if (billItem.getBookTitle() == null || billItem.getBookTitle().trim().isEmpty()) {
                                 Book book = bookService.getBookById(billItem.getBookId());
                                 if (book != null) {
-                                    // CHANGED: Set all book details including Base64 image
+                                    // UPDATED: Set all book details including Base64 image
                                     billItem.setBookTitle(book.getTitle());
                                     billItem.setAuthor(book.getAuthor());
                                     billItem.setBookCode(book.getBookCode());
@@ -343,7 +342,7 @@ public class BillController extends HttpServlet {
                                     billItem.setLanguage(book.getLanguage());
                                     billItem.setPages(book.getPages());
                                     billItem.setPublicationYear(book.getPublicationYear());
-                                    billItem.setImageBase64(book.getImageBase64());  // CHANGED: Base64
+                                    billItem.setImageBase64(book.getImageBase64());  // CHANGED: Base64 support
                                     billItem.setBookCategory(book.getBookCategory());
                                 }
                             }

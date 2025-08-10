@@ -383,62 +383,62 @@
                                 <%= bill.getCashierName() != null ? bill.getCashierName() : "Cashier #" + bill.getCashierId() %>
                             </td>
                             <td class="bill-items-column">
-                                <!-- NEW: Enhanced Bill Items Display with Images and Categories -->
-                                <div class="bill-items-preview">
-                                    <% 
-                                        List<BillItem> billItems = bill.getBillItems();
-                                        if (billItems != null && !billItems.isEmpty()) {
-                                            int displayLimit = 3; // Show max 3 items in preview
-                                            for (int i = 0; i < Math.min(billItems.size(), displayLimit); i++) {
-                                                BillItem item = billItems.get(i);
-                                    %>
-                                    <div class="bill-item-row">
-                                        <% if (item.getImagePath() != null && !item.getImagePath().trim().isEmpty() && 
-                                               !item.getImagePath().equals(request.getContextPath() + "/")) { %>
-                                        <img src="<%= item.getImagePath() %>" 
-                                             alt="<%= item.getBookTitle() != null ? item.getBookTitle() : "Book" %>" 
-                                             class="bill-item-image" 
-                                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                        <div class="bill-item-image-placeholder" style="display: none;">📚</div>
-                                        <% } else { %>
-                                        <div class="bill-item-image-placeholder">📚</div>
-                                        <% } %>
-                                        <div class="bill-item-details">
-                                            <div class="bill-item-title">
-                                                <%= item.getBookTitle() != null ? item.getBookTitle() : "Book #" + item.getBookId() %>
-                                            </div>
-                                            <div class="bill-item-meta">
-                                                <% if (item.getBookCategory() != null && !item.getBookCategory().trim().isEmpty()) { %>
-                                                <span class="category-badge"><%= item.getBookCategory() %></span>
-                                                <% } %>
-                                                <span class="item-qty">Qty: <%= item.getQuantity() %></span>
-                                                <% if (item.getAuthor() != null && !item.getAuthor().trim().isEmpty()) { %>
-                                                <span>by <%= item.getAuthor() %></span>
-                                                <% } %>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <%
-                                            }
-                                            // Show remaining items count if more than display limit
-                                            if (billItems.size() > displayLimit) {
-                                    %>
-                                    <div class="more-items">
-                                        +<%= billItems.size() - displayLimit %> more book(s)
-                                    </div>
-                                    <%
-                                            }
-                                        } else {
-                                    %>
-                                    <div class="bill-item-row">
-                                        <div class="bill-item-image-placeholder">📚</div>
-                                        <div class="bill-item-details">
-                                            <div class="bill-item-title">No items found</div>
-                                        </div>
-                                    </div>
-                                    <% } %>
-                                </div>
-                            </td>
+						    <!-- Enhanced Bill Items Display with Base64 Images and Categories -->
+						    <div class="bill-items-preview">
+						        <% 
+						            List<BillItem> billItems = bill.getBillItems();
+						            if (billItems != null && !billItems.isEmpty()) {
+						                int displayLimit = 3; // Show max 3 items in preview
+						                for (int i = 0; i < Math.min(billItems.size(), displayLimit); i++) {
+						                    BillItem item = billItems.get(i);
+						        %>
+						        <div class="bill-item-row">
+						            <!-- UPDATED: Use Base64 image data instead of file path -->
+						            <% if (item.getImageBase64() != null && !item.getImageBase64().trim().isEmpty()) { %>
+						            <img src="<%= item.getImageBase64() %>" 
+						                 alt="<%= item.getBookTitle() != null ? item.getBookTitle() : "Book" %>" 
+						                 class="bill-item-image" 
+						                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+						            <div class="bill-item-image-placeholder" style="display: none;">📚</div>
+						            <% } else { %>
+						            <div class="bill-item-image-placeholder">📚</div>
+						            <% } %>
+						            <div class="bill-item-details">
+						                <div class="bill-item-title">
+						                    <%= item.getBookTitle() != null ? item.getBookTitle() : "Book #" + item.getBookId() %>
+						                </div>
+						                <div class="bill-item-meta">
+						                    <% if (item.getBookCategory() != null && !item.getBookCategory().trim().isEmpty()) { %>
+						                    <span class="category-badge"><%= item.getBookCategory() %></span>
+						                    <% } %>
+						                    <span class="item-qty">Qty: <%= item.getQuantity() %></span>
+						                    <% if (item.getAuthor() != null && !item.getAuthor().trim().isEmpty()) { %>
+						                    <span>by <%= item.getAuthor() %></span>
+						                    <% } %>
+						                </div>
+						            </div>
+						        </div>
+						        <%
+						                }
+						                // Show remaining items count if more than display limit
+						                if (billItems.size() > displayLimit) {
+						        %>
+						        <div class="more-items">
+						            +<%= billItems.size() - displayLimit %> more book(s)
+						        </div>
+						        <%
+						                }
+						            } else {
+						        %>
+						        <div class="bill-item-row">
+						            <div class="bill-item-image-placeholder">📚</div>
+						            <div class="bill-item-details">
+						                <div class="bill-item-title">No items found</div>
+						            </div>
+						        </div>
+						        <% } %>
+						    </div>
+						</td>
                             <td><%= bill.getBillDate() %></td>
                             <td class="amount"><strong>Rs. <%= String.format("%.2f", bill.getTotalAmount()) %></strong></td>
                             <td>
