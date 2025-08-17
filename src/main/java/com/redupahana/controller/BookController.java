@@ -1,4 +1,4 @@
-// BookController.java - Updated with Base64 Image Support
+// BookController.java 
 package com.redupahana.controller;
 
 import java.io.IOException;
