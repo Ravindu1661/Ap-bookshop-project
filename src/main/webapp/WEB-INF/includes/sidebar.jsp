@@ -186,6 +186,7 @@ body {
 .icon-books::before { content: "📚"; }
 .icon-customers::before { content: "🏢"; }
 .icon-bills::before { content: "🧾"; }
+.icon-reports::before { content: "📈"; }
 .icon-help::before { content: "❓"; }
 .icon-logout::before { content: "🚪"; }
 
@@ -1027,6 +1028,13 @@ body {
             <i class="icon-bills"></i>
             Bill Management
         </a>
+        <!-- Reports - Available for all users -->
+          <% if (sidebarUser != null && Constants.ROLE_ADMIN.equals(sidebarUser.getRole())) { %>
+        <a href="reports" class="menu-item <%= "reports".equals(currentPage) ? "active" : "" %>">
+            <i class="icon-reports"></i>
+            Reports & Analytics
+        </a>
+		<% } %>
         <!-- Help & Support - Only for Cashiers -->
         <% if (sidebarUser != null && !Constants.ROLE_ADMIN.equals(sidebarUser.getRole())) { %>
         <a href="help?action=list" class="menu-item <%= "help".equals(currentPage) ? "active" : "" %>">
@@ -1134,6 +1142,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.ctrlKey && e.key === 'b') {
             e.preventDefault();
             window.location.href = 'bill?action=list';
+        }
+        
+        // Ctrl+R for reports
+        if (e.ctrlKey && e.key === 'r') {
+            e.preventDefault();
+            window.location.href = 'reports';
         }
     });
 });
@@ -1253,7 +1267,8 @@ window.confirmDelete = confirmDelete;
 window.showNotification = showNotification;
 window.handleLogout = handleLogout;
 
-console.log('Enhanced Dashboard with Role-based Sidebar Colors and Logout loaded successfully');
+console.log('Enhanced Dashboard with Reports section and Role-based Sidebar Colors loaded successfully');
+console.log('💡 Available shortcuts: Ctrl+D=Dashboard, Ctrl+B=Bills, Ctrl+R=Reports');
 </script>
 </body>
 </html>
