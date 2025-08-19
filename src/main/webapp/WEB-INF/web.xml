@@ -121,7 +121,5 @@
   <location>/WEB-INF/view/error.jsp</location>
 </error-page>
   
-  
-
 
 </web-app>
