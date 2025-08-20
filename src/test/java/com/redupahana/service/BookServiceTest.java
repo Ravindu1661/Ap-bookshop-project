@@ -22,8 +22,8 @@ public class BookServiceTest {
     private Book testBook;
     private String testBookCode;
     
-    // Test data identifiers for cleanup
-    private static final String TEST_ISBN = "978-9999999999"; // Unique test ISBN
+    // Test data 
+    private static final String TEST_ISBN = "978-9999999999"; 
     private static final String TEST_TITLE = "Test Book Integration";
     private static final String TEST_AUTHOR = "Test Author Integration";
 
@@ -112,8 +112,18 @@ public class BookServiceTest {
         );
         assertEquals("Book title is required", exception.getMessage());
         
-        // Test negative price
+        // Test empty author
         testBook.setTitle(TEST_TITLE); // Fix title
+        testBook.setAuthor("");
+        exception = assertThrows(
+            IllegalArgumentException.class, 
+            () -> bookService.addBook(testBook),
+            "Should throw exception for empty author"
+        );
+        assertEquals("Author name is required", exception.getMessage());
+        
+        // Test negative price
+        testBook.setAuthor(TEST_AUTHOR); // Fix author
         testBook.setPrice(-1.0);
         exception = assertThrows(
             IllegalArgumentException.class, 
@@ -130,7 +140,7 @@ public class BookServiceTest {
             () -> bookService.addBook(testBook),
             "Should throw exception for negative stock"
         );
-        assertEquals("Stock quantity must be non-negative", exception.getMessage());
+        assertEquals("Stock quantity cannot be negative", exception.getMessage());
         
         System.out.println("✓ Validation tests passed");
     }
