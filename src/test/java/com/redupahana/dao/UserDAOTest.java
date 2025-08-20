@@ -1,189 +1,191 @@
 package com.redupahana.dao;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.List;
 import org.junit.jupiter.api.*;
-import org.mockito.*;
 import com.redupahana.model.User;
 import com.redupahana.util.DBConnectionFactory;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class UserDAOTest {
 
-    @Mock
-    private Connection mockConnection;
-    
-    @Mock
-    private PreparedStatement mockStatement;
-    
-    @Mock
-    private ResultSet mockResultSet;
-    
     private UserDAO userDAO;
     private User testUser;
+    
+    // Test data constants
+    private static final String TEST_USERNAME = "daotest" + System.currentTimeMillis();
+    private static final String TEST_EMAIL = "daotest@example.com";
+
+    @BeforeAll
+    void setUpAll() {
+        userDAO = new UserDAO();
+        cleanupTestData();
+    }
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
-        userDAO = new UserDAO();
-        
         testUser = new User();
-        testUser.setUsername("testuser");
-        testUser.setPassword("password123");
+        testUser.setUsername(TEST_USERNAME);
+        testUser.setPassword("testpass123");
         testUser.setRole("ADMIN");
-        testUser.setFullName("Test User");
-        testUser.setEmail("test@example.com");
+        testUser.setFullName("DAO Test User");
+        testUser.setEmail(TEST_EMAIL);
         testUser.setPhone("0771234567");
+    }
+
+    @AfterEach
+    void tearDown() {
+        cleanupTestData();
+    }
+
+    @AfterAll
+    void tearDownAll() {
+        cleanupTestData();
     }
 
     @Test
     @Order(1)
     @DisplayName("Test User Authentication - Success")
-    void testAuthenticate_Success() throws SQLException {
-        // Arrange
-        try (MockedStatic<DBConnectionFactory> mockedFactory = mockStatic(DBConnectionFactory.class)) {
-            mockedFactory.when(DBConnectionFactory::getConnection).thenReturn(mockConnection);
+    void testAuthenticate_Success() {
+        try {
+            // Add test user first
+            userDAO.addUser(testUser);
             
-            when(mockConnection.prepareStatement(anyString())).thenReturn(mockStatement);
-            when(mockStatement.executeQuery()).thenReturn(mockResultSet);
-            when(mockResultSet.next()).thenReturn(true);
-            setupMockResultSetForUser();
-
-            // Act
-            User authenticatedUser = userDAO.authenticate("testuser", "password123");
-
-            // Assert
-            assertNotNull(authenticatedUser);
-            assertEquals("testuser", authenticatedUser.getUsername());
-            assertEquals("Test User", authenticatedUser.getFullName());
+            User authenticatedUser = userDAO.authenticate(TEST_USERNAME, "testpass123");
+            assertNotNull(authenticatedUser, "Authentication should succeed");
+            assertEquals(TEST_USERNAME, authenticatedUser.getUsername());
+            assertEquals("DAO Test User", authenticatedUser.getFullName());
             
-            verify(mockStatement).setString(1, "testuser");
-            verify(mockStatement).setString(2, "password123");
+            System.out.println("✓ User authentication successful");
+            
+        } catch (SQLException e) {
+            fail("Authentication test failed: " + e.getMessage());
         }
     }
 
     @Test
     @Order(2)
     @DisplayName("Test User Authentication - Failed")
-    void testAuthenticate_Failed() throws SQLException {
-        // Arrange
-        try (MockedStatic<DBConnectionFactory> mockedFactory = mockStatic(DBConnectionFactory.class)) {
-            mockedFactory.when(DBConnectionFactory::getConnection).thenReturn(mockConnection);
+    void testAuthenticate_Failed() {
+        try {
+            User authenticatedUser = userDAO.authenticate("wronguser", "wrongpass");
+            assertNull(authenticatedUser, "Authentication should fail for invalid credentials");
             
-            when(mockConnection.prepareStatement(anyString())).thenReturn(mockStatement);
-            when(mockStatement.executeQuery()).thenReturn(mockResultSet);
-            when(mockResultSet.next()).thenReturn(false);
-
-            // Act
-            User authenticatedUser = userDAO.authenticate("wronguser", "wrongpassword");
-
-            // Assert
-            assertNull(authenticatedUser);
+            System.out.println("✓ Invalid authentication correctly rejected");
+            
+        } catch (SQLException e) {
+            fail("Failed authentication test failed: " + e.getMessage());
         }
     }
 
     @Test
     @Order(3)
     @DisplayName("Test Add User")
-    void testAddUser() throws SQLException {
-        // Arrange
-        try (MockedStatic<DBConnectionFactory> mockedFactory = mockStatic(DBConnectionFactory.class)) {
-            mockedFactory.when(DBConnectionFactory::getConnection).thenReturn(mockConnection);
-            
-            when(mockConnection.prepareStatement(anyString())).thenReturn(mockStatement);
-            when(mockStatement.executeUpdate()).thenReturn(1);
-
-            // Act & Assert
+    void testAddUser() {
+        try {
             assertDoesNotThrow(() -> userDAO.addUser(testUser));
             
-            verify(mockStatement).setString(1, "testuser");
-            verify(mockStatement).setString(3, "ADMIN");
-            verify(mockStatement).setString(4, "Test User");
+            // Verify user was added
+            User retrievedUser = userDAO.getUserByUsername(TEST_USERNAME);
+            assertNotNull(retrievedUser, "User should exist in database");
+            assertEquals(TEST_USERNAME, retrievedUser.getUsername());
+            assertEquals("DAO Test User", retrievedUser.getFullName());
+            
+            System.out.println("✓ User added successfully");
+            
+        } catch (SQLException e) {
+            fail("Add user test failed: " + e.getMessage());
         }
     }
 
     @Test
     @Order(4)
     @DisplayName("Test Get All Users")
-    void testGetAllUsers() throws SQLException {
-        // Arrange
-        try (MockedStatic<DBConnectionFactory> mockedFactory = mockStatic(DBConnectionFactory.class)) {
-            mockedFactory.when(DBConnectionFactory::getConnection).thenReturn(mockConnection);
+    void testGetAllUsers() {
+        try {
+            // Add test user first
+            userDAO.addUser(testUser);
             
-            Statement mockCreateStatement = mock(Statement.class);
-            when(mockConnection.createStatement()).thenReturn(mockCreateStatement);
-            when(mockCreateStatement.executeQuery(anyString())).thenReturn(mockResultSet);
-            
-            when(mockResultSet.next()).thenReturn(true, false);
-            setupMockResultSetForUser();
-
-            // Act
             List<User> users = userDAO.getAllUsers();
-
-            // Assert
-            assertEquals(1, users.size());
-            assertEquals("testuser", users.get(0).getUsername());
+            assertNotNull(users, "Users list should not be null");
+            assertTrue(users.size() > 0, "Should have at least one user");
+            
+            // Find our test user
+            boolean foundTestUser = users.stream()
+                .anyMatch(user -> TEST_USERNAME.equals(user.getUsername()));
+            assertTrue(foundTestUser, "Should find our test user");
+            
+            System.out.println("✓ Retrieved " + users.size() + " users from database");
+            
+        } catch (SQLException e) {
+            fail("Get all users test failed: " + e.getMessage());
         }
     }
 
     @Test
     @Order(5)
     @DisplayName("Test Get User By ID")
-    void testGetUserById() throws SQLException {
-        // Arrange
-        try (MockedStatic<DBConnectionFactory> mockedFactory = mockStatic(DBConnectionFactory.class)) {
-            mockedFactory.when(DBConnectionFactory::getConnection).thenReturn(mockConnection);
+    void testGetUserById() {
+        try {
+            // Add test user first
+            userDAO.addUser(testUser);
             
-            when(mockConnection.prepareStatement(anyString())).thenReturn(mockStatement);
-            when(mockStatement.executeQuery()).thenReturn(mockResultSet);
-            when(mockResultSet.next()).thenReturn(true);
-            setupMockResultSetForUser();
-
-            // Act
-            User user = userDAO.getUserById(1);
-
-            // Assert
-            assertNotNull(user);
-            assertEquals("testuser", user.getUsername());
-            verify(mockStatement).setInt(1, 1);
+            // Get user by username to get the ID
+            User addedUser = userDAO.getUserByUsername(TEST_USERNAME);
+            assertNotNull(addedUser, "User should exist");
+            
+            int userId = addedUser.getUserId();
+            
+            User retrievedUser = userDAO.getUserById(userId);
+            assertNotNull(retrievedUser, "Should find user by valid ID");
+            assertEquals(TEST_USERNAME, retrievedUser.getUsername());
+            assertEquals(userId, retrievedUser.getUserId());
+            
+            System.out.println("✓ Found user by ID: " + userId);
+            
+        } catch (SQLException e) {
+            fail("Get user by ID test failed: " + e.getMessage());
         }
     }
 
     @Test
     @Order(6)
     @DisplayName("Test Get User By Username")
-    void testGetUserByUsername() throws SQLException {
-        // Arrange
-        try (MockedStatic<DBConnectionFactory> mockedFactory = mockStatic(DBConnectionFactory.class)) {
-            mockedFactory.when(DBConnectionFactory::getConnection).thenReturn(mockConnection);
+    void testGetUserByUsername() {
+        try {
+            // Add test user first
+            userDAO.addUser(testUser);
             
-            when(mockConnection.prepareStatement(anyString())).thenReturn(mockStatement);
-            when(mockStatement.executeQuery()).thenReturn(mockResultSet);
-            when(mockResultSet.next()).thenReturn(true);
-            setupMockResultSetForUser();
-
-            // Act
-            User user = userDAO.getUserByUsername("testuser");
-
-            // Assert
-            assertNotNull(user);
-            assertEquals("testuser", user.getUsername());
-            verify(mockStatement).setString(1, "testuser");
+            User retrievedUser = userDAO.getUserByUsername(TEST_USERNAME);
+            assertNotNull(retrievedUser, "Should find user by username");
+            assertEquals(TEST_USERNAME, retrievedUser.getUsername());
+            assertEquals("DAO Test User", retrievedUser.getFullName());
+            
+            System.out.println("✓ Found user by username: " + TEST_USERNAME);
+            
+        } catch (SQLException e) {
+            fail("Get user by username test failed: " + e.getMessage());
         }
     }
 
-    private void setupMockResultSetForUser() throws SQLException {
-        when(mockResultSet.getInt("user_id")).thenReturn(1);
-        when(mockResultSet.getString("username")).thenReturn("testuser");
-        when(mockResultSet.getString("password")).thenReturn("password123");
-        when(mockResultSet.getString("role")).thenReturn("ADMIN");
-        when(mockResultSet.getString("full_name")).thenReturn("Test User");
-        when(mockResultSet.getString("email")).thenReturn("test@example.com");
-        when(mockResultSet.getString("phone")).thenReturn("0771234567");
-        when(mockResultSet.getBoolean("is_active")).thenReturn(true);
-        when(mockResultSet.getString("created_date")).thenReturn("2024-01-01 00:00:00");
+    private void cleanupTestData() {
+        try (Connection connection = DBConnectionFactory.getConnection()) {
+            String deleteSQL = "DELETE FROM users WHERE username = ? OR email = ?";
+            try (PreparedStatement stmt = connection.prepareStatement(deleteSQL)) {
+                stmt.setString(1, TEST_USERNAME);
+                stmt.setString(2, TEST_EMAIL);
+                int deleted = stmt.executeUpdate();
+                if (deleted > 0) {
+                    System.out.println("Cleaned up " + deleted + " user test record(s)");
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("User cleanup failed: " + e.getMessage());
+        }
     }
 }
